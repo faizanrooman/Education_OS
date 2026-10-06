@@ -13,7 +13,7 @@ template and CI are concrete and every module is built the same way.
 | Concern | Choice | Notes |
 |---|---|---|
 | Backend | **Python 3.12 + FastAPI** | Each module's `backend/` is a Python package exposing one `APIRouter`. Pydantic models generated from / validated against `contracts/openapi.yaml` |
-| Frontend | **React + TypeScript** (Vite) | Each module's `frontend/` exports its routes and pages. `apps/web` composes them. PWA via Vite PWA plugin |
+| Frontend | **React + TypeScript** (Vite) | Each module's `frontend/` exports its routes and pages. `apps/frontend` composes them. PWA via Vite PWA plugin |
 | Mobile | **React Native** (proposed) | Keeps the React skill set. Confirm at kickoff; `apps/mobile` stays empty until then |
 | Primary database | **PostgreSQL 16** | Schema-per-module. SQLAlchemy 2 + Alembic per module, migrations in `<module>/db/migrations` |
 | Cache | Redis | Per diagram |
@@ -30,7 +30,7 @@ template and CI are concrete and every module is built the same way.
 ## Consequences
 - `modules/_template` gains `backend/pyproject.toml` and `frontend/package.json` placeholders.
 - `packages/core`, `packages/sdk` and `packages/testing` are Python packages. `packages/ui-kit` is a React package. `packages/contracts` holds OpenAPI/JSON Schema and generates both Pydantic and TypeScript types.
-- `apps/api` is a FastAPI app that includes each enabled module's router. `apps/web` is a Vite React app that mounts each enabled module's routes.
+- `apps/backend` is a FastAPI app that includes each enabled module's router. `apps/frontend` is a Vite React app that mounts each enabled module's routes.
 - Import boundary is enforced with `import-linter` (Python) and ESLint `no-restricted-imports` (TS) in CI.
 - Three follow-up ADRs needed: event broker, workflow engine, identity provider.
 

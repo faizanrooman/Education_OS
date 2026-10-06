@@ -1,4 +1,4 @@
-# Plans. The super admin edits these in the admin screens of apps/web; this file is the seed and the default.
+# Plans. The super admin edits these in the admin screens of apps/frontend; this file is the seed and the default.
 # An organisation's entitlement = modules in its academy profile that its plan allows,
 # plus super-admin overrides. "suites" and "modules" accept suite names (every module in the
 # suite) or <domain>/<module> paths. "*" means everything.

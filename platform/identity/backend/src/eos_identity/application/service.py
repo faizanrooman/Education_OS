@@ -17,7 +17,7 @@ class AuthError(Exception):
 
 class OrganisationHooks:
     """How identity learns about organisations without importing tenancy (module standard rule 1).
-    apps/api replaces these at startup with tenancy's implementations."""
+    apps/backend replaces these at startup with tenancy's implementations."""
 
     def status(self, db: Session, organisation_id: str) -> str | None:  # noqa: ARG002
         return "active"

@@ -27,12 +27,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r --if-present typecheck
       - run: pnpm -r --if-present test
-      - run: pnpm --filter @eos/web build
-      - run: echo "${GITHUB_SHA::7}" > apps/web/dist/VERSION
+      - run: pnpm --filter @eos/frontend build
+      - run: echo "${GITHUB_SHA::7}" > apps/frontend/dist/VERSION
       - uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          path: apps/web/dist
+          path: apps/frontend/dist
           if-no-files-found: error
 
   publish:

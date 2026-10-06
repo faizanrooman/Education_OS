@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy apps/web as static files into an nginx LXC container on a Proxmox host.
+# Deploy apps/frontend as static files into an nginx LXC container on a Proxmox host.
 # No Docker needed on the target. nginx serves the build from /var/www/education-os on port 8080.
 #
 #   PVE_HOST=root@<proxmox-ip> CTID=<container id> tools/scripts/deploy-web-static.sh
@@ -15,9 +15,9 @@ TAG="$(git -C "$ROOT" rev-parse --short HEAD)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-echo "==> building apps/web at $TAG"
-(cd "$ROOT" && pnpm --filter @eos/web build >/dev/null)
-tar -C "$ROOT/apps/web/dist" -czf "$TMP/eos-web.tar.gz" .
+echo "==> building apps/frontend at $TAG"
+(cd "$ROOT" && pnpm --filter @eos/frontend build >/dev/null)
+tar -C "$ROOT/apps/frontend/dist" -czf "$TMP/eos-web.tar.gz" .
 
 echo "==> copying to $PVE"
 scp -q "$TMP/eos-web.tar.gz" "$ROOT/infra/docker/nginx.static-vhost.conf" "$PVE:/tmp/"

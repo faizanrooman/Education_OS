@@ -1,4 +1,6 @@
-# apps/web
+# apps/frontend
+
+The web frontend: React + TypeScript + Vite. Package `@eos/frontend`.
 
 Responsive web client (also served as PWA). Composes module frontends. No business logic.
 
@@ -18,7 +20,7 @@ and every permission is granted. See `App.tsx`.
 
 ```
 pnpm install                      # repo root, once
-pnpm --filter @eos/web dev        # http://localhost:5173/?role=student
-pnpm --filter @eos/web test
-pnpm --filter @eos/web build
+pnpm --filter @eos/frontend dev        # http://localhost:5173/?role=student
+pnpm --filter @eos/frontend test
+pnpm --filter @eos/frontend build
 ```

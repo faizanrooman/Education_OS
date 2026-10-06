@@ -11,9 +11,9 @@ remains portable.
 | One module's domain / use-case logic | `<module>/backend/tests/` | module alone |
 | One module's React pages / components | `<module>/frontend/tests/` | module alone |
 | One module end to end against platform stubs | `<module>/tests/e2e/` | module + `packages/testing` stubs |
-| Two or more modules talking via API or events | [`tests/integration/`](integration/) | `apps/api` with those modules enabled |
+| Two or more modules talking via API or events | [`tests/integration/`](integration/) | `apps/backend` with those modules enabled |
 | A module honouring another module's published contract | [`tests/contract/`](contract/) | consumer + provider contracts only |
-| Full user journeys through `apps/web` / `apps/mobile` | [`tests/e2e/`](e2e/) | full stack via `infra/docker` |
+| Full user journeys through `apps/frontend` / `apps/mobile` | [`tests/e2e/`](e2e/) | full stack via `infra/docker` |
 | Load, soak, stress | [`tests/performance/`](performance/) | full stack, on demand |
 | Shared seed data, factories, fixtures used by the suites above | [`tests/fixtures/`](fixtures/) | — |
 
@@ -38,7 +38,7 @@ tests/<suite>/
 Commands are added with the first suite. Planned:
 
 ```
-uv run pytest tests/integration        # needs apps/api up with modules enabled
+uv run pytest tests/integration        # needs apps/backend up with modules enabled
 uv run pytest tests/contract
 pnpm --filter e2e test                 # Playwright, needs full stack
 uv run pytest tests/performance -m load

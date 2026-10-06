@@ -2,7 +2,7 @@
 
 Design system components, theme tokens, layout primitives, and the **dashboard widget contract**.
 
-React + TypeScript package consumed by every module frontend and by `apps/web`.
+React + TypeScript package consumed by every module frontend and by `apps/frontend`.
 
 ## Widget contract
 

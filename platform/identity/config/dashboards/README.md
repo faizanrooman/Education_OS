@@ -1,6 +1,6 @@
 # Role dashboard layouts
 
-One file per role. The dashboard shell in `apps/web` reads the file for the signed-in user's
+One file per role. The dashboard shell in `apps/frontend` reads the file for the signed-in user's
 role and renders the listed widgets in order. Adding, removing or reordering a widget on a
 dashboard is an edit here, not code.
 
@@ -17,7 +17,7 @@ learner (artist, musician, dancer, medical student, ...), instructor and field s
 role layouts use the generic `practice/*` and `facilities/*` modules; the profile vocabulary names them.
 
 Two layouts are platform-level rather than academy-level: `org-admin` (one per organisation,
-created at registration) and `super-admin` (the operator, served by the admin screens in `apps/web`).
+created at registration) and `super-admin` (the operator, served by the admin screens in `apps/frontend`).
 
 Rules
 - A widget id must be exported by exactly one module's `frontend/src/widgets/index.ts`.

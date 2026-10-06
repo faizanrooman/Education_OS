@@ -4,7 +4,7 @@ Dockerfiles and compose files for local and deployment.
 
 | File | Purpose |
 |---|---|
-| `web.Dockerfile` | Builds `apps/web` with pnpm and serves the static output with nginx |
+| `web.Dockerfile` | Builds `apps/frontend` with pnpm and serves the static output with nginx |
 | `nginx.web.conf` | SPA fallback, asset caching, placeholder for the API proxy |
 | `api.Dockerfile`, `docker-compose.api.yml`, `.env.api.example` | The API host and Postgres on a Docker host. See "API" below |
 | `nginx.static-vhost.conf` | Vhost for serving the build as static files from an existing nginx container on port 8080 |

@@ -7,7 +7,7 @@ export type WidgetSize = "1x1" | "2x1" | "2x2";
  * The dashboard widget contract.
  *
  * A module exports an array of these from `frontend/src/widgets/index.ts`.
- * The dashboard shell in apps/web knows nothing else about the module.
+ * The dashboard shell in apps/frontend knows nothing else about the module.
  */
 export interface DashboardWidget {
   /** Globally unique. Convention: `<module>.<widget>`, e.g. `fees-accounts.outstanding-dues`. */

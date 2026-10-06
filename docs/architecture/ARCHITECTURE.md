@@ -23,9 +23,9 @@ The diagram below is the first customer's view, a sports university. Each layer 
 | Diagram layer | Folder | Notes |
 |---|---|---|
 | Users (roles) | `platform/identity/contracts/permissions.yaml` + each module's `contracts/permissions.yaml` | Roles are compositions of module permissions |
-| Access channels | `apps/web` (browser + PWA), `apps/mobile` | Thin shells that compose module UIs |
+| Access channels | `apps/frontend` (browser + PWA), `apps/mobile` | Thin shells that compose module UIs |
 | Identity & security | `platform/identity`, `platform/api-gateway`, `platform/audit` | SSO, RBAC, MFA, sessions, audit |
-| Organisations, plans | `platform/tenancy`, `platform/billing`, `apps/web/src/admin` | Registration, academic package approval, entitlements, trial and upgrade, super admin screens |
+| Organisations, plans | `platform/tenancy`, `platform/billing`, `apps/frontend/src/admin` | Registration, academic package approval, entitlements, trial and upgrade, super admin screens |
 | Application layer (suites A–G, Global) | `modules/<domain>/<module>` | One folder per box in the diagram |
 | Shared platform services | `platform/*` | Notification, documents, search, workflow, audit, reporting, scheduler, integration hub |
 | API & integration layer | `platform/api-gateway`, `platform/integration-hub`, `integrations/*` | Gateway in front, adapters behind |
@@ -81,7 +81,7 @@ for its own configuration.
 | Academic package | `platform/tenancy` + profile | What the academy type gives the organisation inside the one application: the profile's suites, roles and dashboards, filtered by the plan. Approved by the super admin at registration and on change |
 | Plan | `platform/billing` | `trial`, `standard`, `premium` (super admin can add more): suites, modules, integrations, limits, price |
 | Entitlement | `platform/tenancy` | `profile.modules ∩ plan.modules ∪ overrides − disabled`. Evaluated by the gateway on every request |
-| Super admin | `apps/web/src/admin` | Platform operator outside every organisation: approves academic packages, organisations, plans, subscriptions, overrides, audited impersonation |
+| Super admin | `apps/frontend/src/admin` | Platform operator outside every organisation: approves academic packages, organisations, plans, subscriptions, overrides, audited impersonation |
 | Organisation admin | per organisation | Users, roles, settings, subscription of one organisation |
 
 Isolation rules every module follows (module standard, rule 11):
@@ -178,10 +178,10 @@ Example: `fees-accounts` does not query the admissions tables. It subscribes to
 |---|---|
 | `packages/core` (`eos_core`) | Settings, DB base with `organisation_id`, tenant context, RLS policies, JWT, config loaders, entitlement rule, outbox |
 | `platform/identity`, `tenancy`, `billing` backends | Sign-in, users and roles; registration, verification, entitlement, overrides, impersonation; plans, trial, upgrade |
-| `apps/api` | FastAPI host with the entitlement gate; 11 foundation tests pass on SQLite and Postgres |
+| `apps/backend` | FastAPI host with the entitlement gate; 11 foundation tests pass on SQLite and Postgres |
 | `packages/testing` | `register_and_login`, `assert_no_cross_tenant_leak` |
-| `apps/web` | Sign-up, sign-in, real entitlement from the API; preview mode when no API is reachable |
-| Not yet | Alembic chains, platform/notification (email is stubbed), payment adapter (upgrade applies directly when `BILLING_PAYMENT_ADAPTER=none`), the super admin screens in apps/web, every feature module |
+| `apps/frontend` | Sign-up, sign-in, real entitlement from the API; preview mode when no API is reachable |
+| Not yet | Alembic chains, platform/notification (email is stubbed), payment adapter (upgrade applies directly when `BILLING_PAYMENT_ADAPTER=none`), the super admin screens in apps/frontend, every feature module |
 
 ## Role dashboards
 
@@ -191,7 +191,7 @@ The 15 roles in the diagram each get a dashboard, but there is only one dashboar
 |---|---|---|
 | Widget contract (`DashboardWidget`, `WidgetFrame`, `WidgetRegistry`) | `packages/ui-kit/src/widget/` | Architecture and platform |
 | Role layouts, one YAML per role listing widget ids | `platform/identity/config/dashboards/` | Architecture and platform |
-| Dashboard shell that reads the layout and renders the widgets | `apps/web/src/dashboard/` | Apps, infra and QA |
+| Dashboard shell that reads the layout and renders the widgets | `apps/frontend/src/dashboard/` | Apps, infra and QA |
 | Widgets themselves | `<module>/frontend/src/widgets/index.ts` | The module's owner |
 
 A widget is module code: it imports only from its module and `packages/`, fetches through the
@@ -205,9 +205,9 @@ The same modules can be deployed three ways without code changes:
 
 | Shape | How | When |
 |---|---|---|
-| Multi-tenant monolith | `apps/api` mounts every module; the entitlement decides per organisation and per request what is on | Default. One deployment for all organisations |
-| Grouped services | Several `apps/api` instances, each with a different `modules.enabled.yaml`, behind the gateway | Scale hot suites (exams, fees) separately |
-| Dedicated instance | One `apps/api` and database for a single organisation | A customer who requires physical isolation |
+| Multi-tenant monolith | `apps/backend` mounts every module; the entitlement decides per organisation and per request what is on | Default. One deployment for all organisations |
+| Grouped services | Several `apps/backend` instances, each with a different `modules.enabled.yaml`, behind the gateway | Scale hot suites (exams, fees) separately |
+| Dedicated instance | One `apps/backend` and database for a single organisation | A customer who requires physical isolation |
 | Standalone module | Copy one module folder into another repo with `packages/` as a dependency | Reuse in a different product |
 
 ## Stack

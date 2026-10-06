@@ -6,7 +6,7 @@
   "packageManager": "pnpm@9.15.9",
   "engines": { "node": ">=18.18" },
   "scripts": {
-    "dev": "pnpm --filter @eos/web dev",
+    "dev": "pnpm --filter @eos/frontend dev",
     "build": "pnpm -r --if-present build",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck"

@@ -1,5 +1,5 @@
 """entitlement = profile.modules ∩ plan.modules ∪ overrides − disabled (ADR-0005).
-Mirrors apps/web/src/tenant/entitlements.ts; the two are kept identical on purpose."""
+Mirrors apps/frontend/src/tenant/entitlements.ts; the two are kept identical on purpose."""
 
 from __future__ import annotations
 

@@ -49,7 +49,7 @@ One deployment serves many organisations.
   rule; CI will fail a migration that creates a table without `organisation_id` and a policy.
 - Platform services `tenancy` and `billing` become part of the core and are the first backend
   work, before any feature module, because the gateway depends on entitlements.
-- Two more dashboards: organisation admin and super admin. The super admin screens live in `apps/web/src/admin`; there is no separate admin application.
+- Two more dashboards: organisation admin and super admin. The super admin screens live in `apps/frontend/src/admin`; there is no separate admin application.
 - Data isolation now depends on code discipline and RLS, not on separate databases. Tests in
   `packages/testing` must include a cross-tenant leak check that every module runs.
 - Backups, exports and deletion must work per organisation.
