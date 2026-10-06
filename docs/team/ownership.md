@@ -11,16 +11,16 @@ per-widget checklist: the "Dashboard Assignment Plan" doc.
 
 | # | Area | Owner | Backup | Modules | Widgets |
 |---|---|---|---|---|---|
-| 1 | Architecture & platform lead | Faizan | | `platform/identity`, `api-gateway`, `tenancy`, `billing`, `packages/*` | 10 |
-| 2 | Platform services & integrations | Himanshu | | `platform/event-bus`, `notification`, `documents`, `workflow`, `audit`, `search`, `scheduler`, `reporting`, `integration-hub`, `modules/practice/productions`, `integrations/*` except payment | 10 |
-| 3 | Student lifecycle | Praveen | | `modules/student-lifecycle/*`, `modules/practice/portfolio`, `modules/practice/selection-process` | 11 |
-| 4 | Academics | Shivani | | `modules/academics/*` | 15 |
-| 5 | Sports | Akshata | | `modules/sports/*`, `modules/facilities/sports-facilities`, `modules/practice/skill-progress` | 17 |
-| 6 | Facilities | Ashritha | | `modules/facilities/*` except sports-facilities | 8 |
-| 7 | Finance & operations | Gokula Lakshmi | | `modules/finance-operations/*`, `integrations/payment-sbiepay` | 13 |
-| 8 | Campus life | Tejaswini | | `modules/campus-life/*`, `modules/practice/field-training`, `modules/practice/projects` | 15 |
-| 9 | Governance & support | Madhumita | | `modules/governance/*`, `modules/support/*` | 11 |
-| 10 | Apps, infra & QA | Srujan | | `apps/*` (web incl. admin screens, api, mobile), `infra/*`, `packages/testing`, CI | 0 |
+| 1 | Architecture & platform lead | Faizan (@faizanrooman) | | `platform/identity`, `api-gateway`, `tenancy`, `billing`, `packages/*` | 10 |
+| 2 | Platform services & integrations | Himanshu (@himanshu-rooman) | | `platform/event-bus`, `notification`, `documents`, `workflow`, `audit`, `search`, `scheduler`, `reporting`, `integration-hub`, `modules/practice/productions`, `integrations/*` except payment | 10 |
+| 3 | Student lifecycle | Praveen (@praveen-rooman) | | `modules/student-lifecycle/*`, `modules/practice/portfolio`, `modules/practice/selection-process` | 11 |
+| 4 | Academics | Shivani (@shivanisinghrooman-09) | | `modules/academics/*` | 15 |
+| 5 | Sports | Akshata (@akshatatrathodrooman) | | `modules/sports/*`, `modules/facilities/sports-facilities`, `modules/practice/skill-progress` | 17 |
+| 6 | Facilities | Ashritha (@Ashritharooman) | | `modules/facilities/*` except sports-facilities | 8 |
+| 7 | Finance & operations | Gokula Lakshmi (@gokulalakshmirooman-source) | | `modules/finance-operations/*`, `integrations/payment-sbiepay` | 13 |
+| 8 | Campus life | Tejaswini (@tejaswini-rooman) | | `modules/campus-life/*`, `modules/practice/field-training`, `modules/practice/projects` | 15 |
+| 9 | Governance & support | Madhumita (@madhumitha-rooman) | | `modules/governance/*`, `modules/support/*` | 11 |
+| 10 | Apps, infra & QA | Srujan (@srujanrooman) | | `apps/*` (web incl. admin screens, api, mobile), `infra/*`, `packages/testing`, CI | 0 |
 
 Institution profiles (`platform/identity/config/profiles/`) and dashboard layouts belong to the Architecture & platform lead.
 A specialized suite for a new field gets its own owner row when the field has a customer.

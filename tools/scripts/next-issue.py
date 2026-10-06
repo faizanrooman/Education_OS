@@ -8,6 +8,7 @@ Queue order for a person: Week 1 task, foundation tasks (phase:foundation), thei
 
   next-issue.py --event closed --issue 42      # the person who closed #42 gets their next issue
   next-issue.py --event kickoff                # everyone with a handle and no open issue gets their first
+  next-issue.py --event pr --pr 88             # a merged PR: close the issues it references that belong to its author, then hand them the next
   add --dry-run to print without changing anything
 """
 
@@ -96,7 +97,8 @@ def assign(it: dict, member: dict, reason: str, dry: bool) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--event", choices=["closed", "kickoff"], required=True)
+    ap.add_argument("--event", choices=["closed", "kickoff", "pr"], required=True)
+    ap.add_argument("--pr", type=int, default=0)
     ap.add_argument("--issue", type=int, default=0)
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
@@ -104,7 +106,46 @@ def main() -> int:
     by_handle = {m["handle"]: m for m in team}
     issues = open_issues()
 
-    if a.event == "closed":
+    if a.event == "pr":
+        pr = json.loads(gh("pr", "view", str(a.pr), "-R", REPO, "--json", "number,title,body,author,mergedAt"))
+        if not pr.get("mergedAt"):
+            print(f"PR #{a.pr} was closed without merging; nothing happens")
+            return 0
+        handle = pr["author"]["login"]
+        if handle not in by_handle:
+            print(f"PR author @{handle} is not in docs/team/members.yaml; nothing assigned")
+            return 0
+        refs = {int(n) for n in re.findall(r"#(\d+)", (pr.get("title") or "") + "\n" + (pr.get("body") or ""))}
+        mine = [it for it in issues if handle in it["assignees"] and it["number"] in refs]
+        for it in mine:  # GitHub closes "Closes #N" on merge; this covers "#N" mentioned without the keyword
+            print(f"closing #{it['number']} ({it['title']}) merged by PR #{a.pr}")
+            if not a.dry_run:
+                gh(
+                    "issue",
+                    "close",
+                    str(it["number"]),
+                    "-R",
+                    REPO,
+                    "--comment",
+                    f"Closed by the merge of #{a.pr}.",
+                    check=False,
+                )
+            it["assignees"].discard(handle)
+            issues.remove(it)
+        still = busy(handle, issues)
+        if still and not mine:
+            msg = (
+                f"@{handle}: this PR merged but your open issue is still open: "
+                + ", ".join(f"#{x['number']}" for x in still)
+                + ". Link it with `Closes #N` in the PR body next time; close it when the work is done and your next issue arrives automatically."
+            )
+            print(msg)
+            if not a.dry_run:
+                gh("pr", "comment", str(a.pr), "-R", REPO, "--body", msg, check=False)
+            return 0
+        targets = [by_handle[handle]]
+        reason = f"PR #{a.pr} ({pr['title']}) merged"
+    elif a.event == "closed":
         closed = json.loads(
             gh("issue", "view", str(a.issue), "-R", REPO, "--json", "number,title,assignees,stateReason")
         )
