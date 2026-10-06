@@ -1,9 +1,10 @@
-# Build and serve apps/web. Build context is the repo root:
+# Build and serve apps/web. Build context is the repo root; web.Dockerfile.dockerignore beside this file applies (BuildKit):
 #   docker build -f infra/docker/web.Dockerfile -t eos-web .
 FROM node:20-alpine AS build
 RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 WORKDIR /repo
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY tools/config ./tools/config
 COPY apps ./apps
 COPY packages ./packages
 COPY modules ./modules

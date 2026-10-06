@@ -26,6 +26,6 @@ done
 [ -n "$FIELD" ] && sed -i "/^tier: /a field: $FIELD       # only for specialized: sports | music | arts | ..." "$DEST/module.yaml"
 sed -i '/canonical module template/,/replaces placeholders\./d' "$DEST/README.md"
 # platform/ and integrations/ are one level shallower than modules/<domain>/<name>
-[ "$FIX_TSCONFIG" = 1 ] && sed -i 's|"../../../../tsconfig.base.json"|"../../../tsconfig.base.json"|' "$DEST/frontend/tsconfig.json"
+[ "$FIX_TSCONFIG" = 1 ] && sed -i 's|"../../../../tools/config/tsconfig.base.json"|"../../../tools/config/tsconfig.base.json"|' "$DEST/frontend/tsconfig.json"
 echo "created $DEST"
 echo "next: add it to CODEOWNERS and docs/team/ownership.md"

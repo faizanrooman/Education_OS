@@ -1,7 +1,7 @@
 # Module ownership
 
 Ten people. Every module has exactly one owner and at least one backup. Owners approve
-PRs to their module and maintain its contracts and docs. Fill in handles, then mirror in `/CODEOWNERS`.
+PRs to their module and maintain its contracts and docs. Fill in handles, then mirror in `.github/CODEOWNERS`.
 
 ## Suggested split (edit freely)
 

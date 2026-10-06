@@ -1,6 +1,6 @@
 # Onboarding
 
-1. Read [README.md](../../README.md), then [ARCHITECTURE.md](../../ARCHITECTURE.md).
+1. Read [README.md](../../.github/README.md), then [ARCHITECTURE.md](../architecture/ARCHITECTURE.md).
 2. Read [module-standard.md](../architecture/module-standard.md). You will be held to it in review.
 3. Find your modules in [team/ownership.md](../team/ownership.md).
 4. Read the ADRs in [architecture/adr/](../architecture/adr/). Stack: React, FastAPI, PostgreSQL (ADR-0002).

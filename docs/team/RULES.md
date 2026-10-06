@@ -25,7 +25,7 @@ Bootstrap, jQuery, Django, Flask, requests.
 may bypass review in an emergency; nobody else can. Every PR needs
 
 - every required check green: `api / test`, `web / build`, `governance / rules`;
-- one approving review from a code owner of every file touched (CODEOWNERS);
+- one approving review from a code owner of every file touched (`.github/CODEOWNERS`);
 - every review conversation resolved;
 - the PR template filled in: module, task link, time spent.
 
@@ -34,6 +34,10 @@ before every push; it is the same set of checks CI runs. The admin bypass is for
 red checks; a bypass is noted in the PR and reviewed at the next standup.
 
 ## 3. One module per pull request
+
+Repo-wide housekeeping that has to touch many modules at once (moving shared config, renames)
+carries the `repo-wide` label, which only the lead applies; it skips the one-module check and still
+needs every other check and review.
 
 A PR touches one module (`modules/<domain>/<module>`, `platform/<service>` or
 `integrations/<adapter>`) unless it is a contract change plus its consumers. CI counts the modules
