@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Run exactly what CI's governance job runs, before you push. Rule: never open a PR red.
+#   tools/scripts/precheck.sh            # checks only
+#   tools/scripts/precheck.sh --fix      # also auto-fix lint and format
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"; cd "$ROOT"
+[ -x .venv/bin/ruff ] || { echo "run tools/scripts/py-setup.sh first (installs ruff)"; exit 1; }
+if [ "${1:-}" = "--fix" ]; then .venv/bin/ruff check --fix -q . ; .venv/bin/ruff format -q . ; fi
+echo "== approved stack";   python3 tools/scripts/check-stack.py
+echo "== module boundaries"; python3 tools/scripts/check-boundaries.py
+echo "== ruff";             .venv/bin/ruff check . && .venv/bin/ruff format --check .
+if git rev-parse --verify -q origin/main >/dev/null; then
+  echo "== commit messages"; tools/scripts/check-commits.sh "$(git merge-base origin/main HEAD)" HEAD
+fi
+echo "precheck ok: safe to push"
