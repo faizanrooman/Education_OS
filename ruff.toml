@@ -1,0 +1,9 @@
+# Python lint and format rules for every backend package. CI runs `ruff check` and `ruff format --check`.
+line-length = 120
+target-version = "py312"
+extend-exclude = [".venv", "node_modules", "dist"]
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "T20"]
+ignore = ["S101", "S105", "S106", "B008", "E501"]
+per-file-ignores = { "**/tests/**" = ["S", "T20"], "tools/**" = ["T20", "S603", "S607"], "packages/testing/**" = ["S"] }

@@ -1,9 +1,23 @@
 """entitlement = profile.modules ∩ plan.modules ∪ overrides − disabled (ADR-0005).
 Mirrors apps/web/src/tenant/entitlements.ts; the two are kept identical on purpose."""
+
 from __future__ import annotations
 
-PLATFORM_MODULES = {"identity", "tenancy", "billing", "audit", "workflow", "reporting", "notification",
-                    "documents", "search", "scheduler", "event-bus", "api-gateway", "integration-hub"}
+PLATFORM_MODULES = {
+    "identity",
+    "tenancy",
+    "billing",
+    "audit",
+    "workflow",
+    "reporting",
+    "notification",
+    "documents",
+    "search",
+    "scheduler",
+    "event-bus",
+    "api-gateway",
+    "integration-hub",
+}
 
 
 def _suite(m: str) -> str:
@@ -14,14 +28,16 @@ def _name(m: str) -> str:
     return m.split("/")[-1]
 
 
-def compute_entitlement(profile: dict, plan: dict, overrides: list[str] | None = None,
-                        disabled: list[str] | None = None) -> dict:
+def compute_entitlement(
+    profile: dict, plan: dict, overrides: list[str] | None = None, disabled: list[str] | None = None
+) -> dict:
     overrides = overrides or []
     disabled = disabled or []
     all_suites = "*" in plan["suites"]
     specialized = profile["suites"].get("specialized", [])
-    allowed_specialized = set(specialized if plan["specialized_suites"] == "all"
-                              else specialized[: int(plan["specialized_suites"])])
+    allowed_specialized = set(
+        specialized if plan["specialized_suites"] == "all" else specialized[: int(plan["specialized_suites"])]
+    )
 
     def allowed(m: str) -> bool:
         s = _suite(m)

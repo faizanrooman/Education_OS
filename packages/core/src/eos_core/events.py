@@ -1,5 +1,6 @@
 """Transactional outbox. Modules publish here in the same transaction as their state change;
 a relay (platform/event-bus) moves rows to the broker. Every event carries organisation_id."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -21,7 +22,9 @@ class OutboxEvent(Base):
     published: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
-def publish(session: Session, name: str, organisation_id: str | None, payload: dict, actor: str | None = None) -> OutboxEvent:
+def publish(
+    session: Session, name: str, organisation_id: str | None, payload: dict, actor: str | None = None
+) -> OutboxEvent:
     ev = OutboxEvent(name=name, organisation_id=organisation_id, payload=payload, actor=actor)
     session.add(ev)
     return ev

@@ -1,4 +1,5 @@
 """Row-level security for every table that carries organisation_id (Postgres only)."""
+
 from __future__ import annotations
 
 from sqlalchemy import text

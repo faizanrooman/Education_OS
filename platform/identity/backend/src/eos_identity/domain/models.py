@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+from eos_core.db import Base, TenantMixin, TimestampMixin, new_id
 from sqlalchemy import JSON, Boolean, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-
-from eos_core.db import Base, TenantMixin, TimestampMixin, new_id
 
 
 class User(Base, TenantMixin, TimestampMixin):
@@ -21,6 +20,13 @@ class User(Base, TenantMixin, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="active")  # active | disabled
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "organisation_id": self.organisation_id, "email": self.email, "name": self.name,
-                "roles": list(self.roles or []), "is_super_admin": self.is_super_admin, "status": self.status,
-                "created_at": self.created_at.isoformat() if self.created_at else None}
+        return {
+            "id": self.id,
+            "organisation_id": self.organisation_id,
+            "email": self.email,
+            "name": self.name,
+            "roles": list(self.roles or []),
+            "is_super_admin": self.is_super_admin,
+            "status": self.status,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }

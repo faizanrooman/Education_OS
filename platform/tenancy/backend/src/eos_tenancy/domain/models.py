@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from eos_core.db import Base, TenantMixin, TimestampMixin, new_id
 from sqlalchemy import JSON, Boolean, DateTime, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-
-from eos_core.db import Base, TenantMixin, TimestampMixin, new_id
 
 STATUSES = ("pending_verification", "pending_approval", "active", "suspended", "archived")
 
@@ -26,9 +25,18 @@ class Organisation(Base, TimestampMixin):
     settings: Mapped[dict] = mapped_column(JSON, default=dict)
 
     def to_dict(self, **extra) -> dict:
-        return {"id": self.id, "name": self.name, "slug": self.slug, "academy_type": self.academy_type,
-                "requested_academy_type": self.requested_academy_type, "country": self.country, "status": self.status,
-                "status_reason": self.status_reason, "created_at": self.created_at.isoformat() if self.created_at else None, **extra}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "academy_type": self.academy_type,
+            "requested_academy_type": self.requested_academy_type,
+            "country": self.country,
+            "status": self.status,
+            "status_reason": self.status_reason,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            **extra,
+        }
 
 
 class RegistrationToken(Base, TenantMixin):

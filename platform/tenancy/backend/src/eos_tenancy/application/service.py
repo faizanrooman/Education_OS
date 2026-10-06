@@ -4,9 +4,7 @@ import re
 import secrets
 from datetime import timedelta
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
+from eos_billing.application import service as billing
 from eos_core import events, notify
 from eos_core.config import load_profiles
 from eos_core.db import scoped, utcnow
@@ -14,8 +12,9 @@ from eos_core.entitlement import compute_entitlement
 from eos_core.security import create_token
 from eos_core.settings import settings
 from eos_core.tenant import organisation_scope, platform_scope
-from eos_billing.application import service as billing
 from eos_identity.application import service as identity
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from ..domain.models import Organisation, OrganisationModule, RegistrationToken
 
@@ -31,12 +30,27 @@ class TenancyError(Exception):
 
 
 def academy_types() -> list[dict]:
-    return [{"id": p["profile"], "title": p["title"], "description": p.get("description", ""),
-             "specialized_suites": p["suites"].get("specialized", [])} for p in load_profiles().values()]
+    return [
+        {
+            "id": p["profile"],
+            "title": p["title"],
+            "description": p.get("description", ""),
+            "specialized_suites": p["suites"].get("specialized", []),
+        }
+        for p in load_profiles().values()
+    ]
 
 
-def register(db: Session, *, organisation_name: str, slug: str, academy_type: str, admin: dict,
-             country: str | None = None, accepted_terms: bool = False) -> tuple[Organisation, str]:
+def register(
+    db: Session,
+    *,
+    organisation_name: str,
+    slug: str,
+    academy_type: str,
+    admin: dict,
+    country: str | None = None,
+    accepted_terms: bool = False,
+) -> tuple[Organisation, str]:
     if not settings.registration_open:
         raise TenancyError("registration is closed", 403)
     if not accepted_terms:
@@ -52,16 +66,37 @@ def register(db: Session, *, organisation_name: str, slug: str, academy_type: st
     db.add(org)
     db.flush()
     with organisation_scope(org.id):
-        identity.create_user(db, organisation_id=org.id, email=admin["email"], name=admin["name"],
-                             password=admin["password"], roles=["org-admin"])
+        identity.create_user(
+            db,
+            organisation_id=org.id,
+            email=admin["email"],
+            name=admin["name"],
+            password=admin["password"],
+            roles=["org-admin"],
+        )
         token = secrets.token_urlsafe(32)
-        db.add(RegistrationToken(organisation_id=org.id, token=token, email=admin["email"].lower(),
-                                 expires_at=utcnow() + timedelta(hours=48)))
+        db.add(
+            RegistrationToken(
+                organisation_id=org.id,
+                token=token,
+                email=admin["email"].lower(),
+                expires_at=utcnow() + timedelta(hours=48),
+            )
+        )
         billing.start_trial(db, organisation_id=org.id)
-        events.publish(db, "tenancy.organisation.registered", org.id,
-                       {"organisation_id": org.id, "slug": slug, "academy_type": academy_type, "admin_email": admin["email"]})
-    notify.send_email(admin["email"], "Verify your Education OS organisation",
-                      f"Welcome to {organisation_name}. Verify with token {token}", token=token, organisation_id=org.id)
+        events.publish(
+            db,
+            "tenancy.organisation.registered",
+            org.id,
+            {"organisation_id": org.id, "slug": slug, "academy_type": academy_type, "admin_email": admin["email"]},
+        )
+    notify.send_email(
+        admin["email"],
+        "Verify your Education OS organisation",
+        f"Welcome to {organisation_name}. Verify with token {token}",
+        token=token,
+        organisation_id=org.id,
+    )
     db.commit()
     return org, token
 
@@ -73,21 +108,32 @@ def verify(db: Session, token: str) -> Organisation:
             raise TenancyError("invalid or expired token", 400)
         org = db.get(Organisation, rt.organisation_id)
         rt.used = True
-        events.publish(db, "tenancy.organisation.verified", org.id, {"organisation_id": org.id, "academy_type": org.academy_type})
+        events.publish(
+            db, "tenancy.organisation.verified", org.id, {"organisation_id": org.id, "academy_type": org.academy_type}
+        )
         if AUTO_APPROVE:
             _activate(db, org, approved_by=None, reason="auto-approved")
         else:
             org.status = "pending_approval"
-            events.publish(db, "tenancy.package.requested", org.id,
-                           {"organisation_id": org.id, "academy_type": org.academy_type, "kind": "registration"})
+            events.publish(
+                db,
+                "tenancy.package.requested",
+                org.id,
+                {"organisation_id": org.id, "academy_type": org.academy_type, "kind": "registration"},
+            )
         db.commit()
         return org
 
 
 def _activate(db: Session, org: Organisation, *, approved_by: str | None, reason: str) -> None:
     org.status, org.status_reason = "active", reason
-    events.publish(db, "tenancy.organisation.approved", org.id,
-                   {"organisation_id": org.id, "academy_type": org.academy_type, "approved_by": approved_by}, actor=approved_by)
+    events.publish(
+        db,
+        "tenancy.organisation.approved",
+        org.id,
+        {"organisation_id": org.id, "academy_type": org.academy_type, "approved_by": approved_by},
+        actor=approved_by,
+    )
     events.publish(db, "tenancy.organisation.activated", org.id, {"organisation_id": org.id})
 
 
@@ -98,8 +144,13 @@ def approve(db: Session, organisation_id: str, *, approved_by: str, reason: str 
         if org.requested_academy_type:
             previous = org.academy_type
             org.academy_type, org.requested_academy_type = org.requested_academy_type, None
-            events.publish(db, "tenancy.package.changed", org.id,
-                           {"organisation_id": org.id, "from": previous, "to": org.academy_type, "approved_by": approved_by}, actor=approved_by)
+            events.publish(
+                db,
+                "tenancy.package.changed",
+                org.id,
+                {"organisation_id": org.id, "from": previous, "to": org.academy_type, "approved_by": approved_by},
+                actor=approved_by,
+            )
             _changed(db, org.id)
             if org.status == "active":
                 db.commit()
@@ -120,10 +171,26 @@ def request_package(db: Session, organisation_id: str, academy_type: str) -> Org
         raise TenancyError("already on this academic package", 409)
     with platform_scope():
         org.requested_academy_type = academy_type
-        events.publish(db, "tenancy.package.requested", org.id,
-                       {"organisation_id": org.id, "academy_type": academy_type, "kind": "change"})
+        events.publish(
+            db,
+            "tenancy.package.requested",
+            org.id,
+            {"organisation_id": org.id, "academy_type": academy_type, "kind": "change"},
+        )
         db.commit()
     return org
+
+
+def organisation_status(db: Session, organisation_id: str) -> str | None:
+    with platform_scope():
+        org = db.get(Organisation, organisation_id)
+    return org.status if org else None
+
+
+def organisation_id_for_slug(db: Session, slug: str) -> str | None:
+    with platform_scope():
+        org = db.scalar(select(Organisation).where(Organisation.slug == slug))
+    return org.id if org else None
 
 
 def get_organisation(db: Session, organisation_id: str) -> Organisation:
@@ -144,10 +211,14 @@ def entitlement(db: Session, organisation_id: str) -> dict:
     disabled = [r.module for r in rows if not r.enabled]
     ent = compute_entitlement(profile, plan, overrides=overrides, disabled=disabled)
     sub = billing.get_subscription(db, organisation_id)
-    return {"organisation_id": organisation_id, **ent, "status": org.status,
-            "subscription_status": sub.status if sub else None,
-            "trial_ends_at": sub.trial_ends_at.isoformat() if sub and sub.trial_ends_at else None,
-            "evaluated_at": utcnow().isoformat()}
+    return {
+        "organisation_id": organisation_id,
+        **ent,
+        "status": org.status,
+        "subscription_status": sub.status if sub else None,
+        "trial_ends_at": sub.trial_ends_at.isoformat() if sub and sub.trial_ends_at else None,
+        "evaluated_at": utcnow().isoformat(),
+    }
 
 
 def toggle_module(db: Session, organisation_id: str, module: str, enabled: bool) -> dict:
@@ -157,7 +228,9 @@ def toggle_module(db: Session, organisation_id: str, module: str, enabled: bool)
     if enabled and module not in compute_entitlement(profile, plan)["modules"]:
         raise TenancyError("module is not in the current plan; upgrade to unlock it", 402)
     with organisation_scope(organisation_id):
-        row = db.scalar(scoped(db, select(OrganisationModule), OrganisationModule).where(OrganisationModule.module == module))
+        row = db.scalar(
+            scoped(db, select(OrganisationModule), OrganisationModule).where(OrganisationModule.module == module)
+        )
         if not row:
             row = OrganisationModule(organisation_id=organisation_id, module=module)
             db.add(row)
@@ -173,7 +246,10 @@ def _changed(db: Session, organisation_id: str) -> None:
 
 # ---- super admin ----
 
-def list_organisations(db: Session, *, status: str | None = None, plan: str | None = None, academy_type: str | None = None) -> list[dict]:
+
+def list_organisations(
+    db: Session, *, status: str | None = None, plan: str | None = None, academy_type: str | None = None
+) -> list[dict]:
     with platform_scope():
         q = select(Organisation).order_by(Organisation.created_at.desc())
         if status:
@@ -186,12 +262,18 @@ def list_organisations(db: Session, *, status: str | None = None, plan: str | No
             sub = billing.get_subscription(db, o.id)
             if plan and (not sub or sub.plan_id != plan):
                 continue
-            out.append(o.to_dict(plan=sub.plan_id if sub else None, trial_ends_at=sub.trial_ends_at.isoformat() if sub and sub.trial_ends_at else None))
+            out.append(
+                o.to_dict(
+                    plan=sub.plan_id if sub else None,
+                    trial_ends_at=sub.trial_ends_at.isoformat() if sub and sub.trial_ends_at else None,
+                )
+            )
         return out
 
 
 def set_status(db: Session, organisation_id: str, status: str, reason: str) -> Organisation:
     from ..domain.models import STATUSES
+
     if status not in STATUSES:
         raise TenancyError(f"status must be one of {STATUSES}")
     org = get_organisation(db, organisation_id)
@@ -207,7 +289,9 @@ def set_overrides(db: Session, organisation_id: str, grant: list[str], revoke: l
     get_organisation(db, organisation_id)
     with organisation_scope(organisation_id):
         for module, on in [(m, True) for m in grant] + [(m, False) for m in revoke]:
-            row = db.scalar(scoped(db, select(OrganisationModule), OrganisationModule).where(OrganisationModule.module == module))
+            row = db.scalar(
+                scoped(db, select(OrganisationModule), OrganisationModule).where(OrganisationModule.module == module)
+            )
             if not row:
                 row = OrganisationModule(organisation_id=organisation_id, module=module)
                 db.add(row)
@@ -222,8 +306,19 @@ def impersonate(db: Session, *, organisation_id: str, user_id: str, super_admin_
     user = identity.get_user(db, user_id)
     if not user or user.organisation_id != org.id:
         raise TenancyError("user is not in that organisation", 404)
-    events.publish(db, "tenancy.impersonation.started", org.id,
-                   {"organisation_id": org.id, "user_id": user_id, "super_admin_id": super_admin_id, "reason": reason}, actor=super_admin_id)
+    events.publish(
+        db,
+        "tenancy.impersonation.started",
+        org.id,
+        {"organisation_id": org.id, "user_id": user_id, "super_admin_id": super_admin_id, "reason": reason},
+        actor=super_admin_id,
+    )
     db.commit()
-    token = create_token(user_id=user.id, organisation_id=org.id, roles=list(user.roles or []), impersonated_by=super_admin_id, ttl_minutes=60)
+    token = create_token(
+        user_id=user.id,
+        organisation_id=org.id,
+        roles=list(user.roles or []),
+        impersonated_by=super_admin_id,
+        ttl_minutes=60,
+    )
     return {"token": token, "expires_in_minutes": 60}

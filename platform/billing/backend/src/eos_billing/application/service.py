@@ -3,14 +3,13 @@ from __future__ import annotations
 import secrets
 from datetime import timedelta
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from eos_core import events
 from eos_core.config import load_plans
 from eos_core.db import scoped, utcnow
 from eos_core.settings import settings
 from eos_core.tenant import organisation_scope, platform_scope
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from ..domain.models import Plan, Subscription
 
@@ -24,10 +23,22 @@ class BillingError(Exception):
 def seed_plans(db: Session) -> None:
     for pid, p in load_plans().items():
         if db.get(Plan, pid) is None:
-            db.add(Plan(id=pid, title=p["title"], description=p.get("description", ""), price_per_month=p.get("price_per_month", 0),
-                        currency=p.get("currency", "INR"), trial_days=p.get("trial_days"), suites=p.get("suites", []),
-                        modules=p.get("modules", []), specialized_suites=str(p.get("specialized_suites", 0)),
-                        integrations=p.get("integrations", []), limits=p.get("limits", {}), after_trial=p.get("after_trial", "read_only")))
+            db.add(
+                Plan(
+                    id=pid,
+                    title=p["title"],
+                    description=p.get("description", ""),
+                    price_per_month=p.get("price_per_month", 0),
+                    currency=p.get("currency", "INR"),
+                    trial_days=p.get("trial_days"),
+                    suites=p.get("suites", []),
+                    modules=p.get("modules", []),
+                    specialized_suites=str(p.get("specialized_suites", 0)),
+                    integrations=p.get("integrations", []),
+                    limits=p.get("limits", {}),
+                    after_trial=p.get("after_trial", "read_only"),
+                )
+            )
     db.commit()
 
 
@@ -61,8 +72,12 @@ def start_trial(db: Session, *, organisation_id: str) -> Subscription:
     ends = utcnow() + timedelta(days=plan.trial_days or 30)
     sub = Subscription(organisation_id=organisation_id, plan_id="trial", status="trialing", trial_ends_at=ends)
     db.add(sub)
-    events.publish(db, "billing.subscription.started", organisation_id,
-                   {"organisation_id": organisation_id, "plan": "trial", "status": "trialing", "trial_ends_at": ends.isoformat()})
+    events.publish(
+        db,
+        "billing.subscription.started",
+        organisation_id,
+        {"organisation_id": organisation_id, "plan": "trial", "status": "trialing", "trial_ends_at": ends.isoformat()},
+    )
     return sub
 
 
@@ -81,8 +96,12 @@ def upgrade(db: Session, *, organisation_id: str, plan_id: str, billing_cycle: s
             # No payment adapter configured (dev / pilot): activate immediately and say so.
             _activate(db, sub, plan_id, billing_cycle, reference)
             db.commit()
-            return {"payment_url": None, "reference": reference, "activated": True,
-                    "note": "BILLING_PAYMENT_ADAPTER=none, upgrade applied without payment"}
+            return {
+                "payment_url": None,
+                "reference": reference,
+                "activated": True,
+                "note": "BILLING_PAYMENT_ADAPTER=none, upgrade applied without payment",
+            }
         sub.pending_plan_id, sub.payment_reference = plan_id, reference
         db.commit()
     return {"payment_url": f"/api/v1/billing/pay/{reference}", "reference": reference, "activated": False}
@@ -106,9 +125,18 @@ def _activate(db: Session, sub: Subscription, plan_id: str, billing_cycle: str, 
     sub.trial_ends_at = None
     sub.current_period_ends_at = utcnow() + timedelta(days=days)
     sub.payment_reference = reference
-    events.publish(db, "billing.subscription.upgraded", sub.organisation_id,
-                   {"organisation_id": sub.organisation_id, "from_plan": from_plan, "to_plan": plan_id})
-    events.publish(db, "tenancy.entitlement.changed", sub.organisation_id, {"organisation_id": sub.organisation_id, "plan": plan_id})
+    events.publish(
+        db,
+        "billing.subscription.upgraded",
+        sub.organisation_id,
+        {"organisation_id": sub.organisation_id, "from_plan": from_plan, "to_plan": plan_id},
+    )
+    events.publish(
+        db,
+        "tenancy.entitlement.changed",
+        sub.organisation_id,
+        {"organisation_id": sub.organisation_id, "plan": plan_id},
+    )
 
 
 def cancel(db: Session, *, organisation_id: str) -> Subscription:
@@ -121,7 +149,9 @@ def cancel(db: Session, *, organisation_id: str) -> Subscription:
     return sub
 
 
-def admin_set(db: Session, *, organisation_id: str, plan_id: str | None, trial_ends_at=None, comped_until=None, reason: str = "") -> Subscription:
+def admin_set(
+    db: Session, *, organisation_id: str, plan_id: str | None, trial_ends_at=None, comped_until=None, reason: str = ""
+) -> Subscription:
     sub = get_subscription(db, organisation_id)
     if not sub:
         raise BillingError("no subscription", 404)
@@ -134,7 +164,12 @@ def admin_set(db: Session, *, organisation_id: str, plan_id: str | None, trial_e
             sub.trial_ends_at = trial_ends_at
         if comped_until:
             sub.comped_until = comped_until
-        events.publish(db, "tenancy.entitlement.changed", organisation_id, {"organisation_id": organisation_id, "plan": sub.plan_id, "reason": reason})
+        events.publish(
+            db,
+            "tenancy.entitlement.changed",
+            organisation_id,
+            {"organisation_id": organisation_id, "plan": sub.plan_id, "reason": reason},
+        )
         db.commit()
     return sub
 
@@ -148,7 +183,12 @@ def expire_trials(db: Session) -> int:
             if sub.trial_ends_at and sub.trial_ends_at.replace(tzinfo=None) < now.replace(tzinfo=None):
                 plan = get_plan(db, sub.plan_id)
                 sub.status = "read_only"
-                events.publish(db, "billing.trial.expired", sub.organisation_id, {"organisation_id": sub.organisation_id, "after_trial": plan.after_trial})
+                events.publish(
+                    db,
+                    "billing.trial.expired",
+                    sub.organisation_id,
+                    {"organisation_id": sub.organisation_id, "after_trial": plan.after_trial},
+                )
                 n += 1
         db.commit()
     return n

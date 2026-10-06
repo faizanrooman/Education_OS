@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from eos_core.db import Base, TenantMixin, TimestampMixin, new_id
 from sqlalchemy import JSON, Boolean, DateTime, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
-
-from eos_core.db import Base, TenantMixin, TimestampMixin, new_id
 
 
 class Plan(Base):
@@ -29,20 +28,35 @@ class Plan(Base):
     def to_rule(self) -> dict:
         """The shape eos_core.entitlement.compute_entitlement expects."""
         ss = self.specialized_suites
-        return {"id": self.id, "suites": list(self.suites or []), "modules": list(self.modules or []),
-                "specialized_suites": "all" if ss == "all" else int(ss), "integrations": list(self.integrations or []),
-                "limits": dict(self.limits or {})}
+        return {
+            "id": self.id,
+            "suites": list(self.suites or []),
+            "modules": list(self.modules or []),
+            "specialized_suites": "all" if ss == "all" else int(ss),
+            "integrations": list(self.integrations or []),
+            "limits": dict(self.limits or {}),
+        }
 
     def to_dict(self) -> dict:
-        return {**self.to_rule(), "title": self.title, "description": self.description, "price_per_month": float(self.price_per_month or 0),
-                "currency": self.currency, "trial_days": self.trial_days, "after_trial": self.after_trial, "published": self.published}
+        return {
+            **self.to_rule(),
+            "title": self.title,
+            "description": self.description,
+            "price_per_month": float(self.price_per_month or 0),
+            "currency": self.currency,
+            "trial_days": self.trial_days,
+            "after_trial": self.after_trial,
+            "published": self.published,
+        }
 
 
 class Subscription(Base, TenantMixin, TimestampMixin):
     __tablename__ = "billing_subscription"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     plan_id: Mapped[str] = mapped_column(String(40))
-    status: Mapped[str] = mapped_column(String(20), default="trialing")  # trialing | active | past_due | cancelled | read_only
+    status: Mapped[str] = mapped_column(
+        String(20), default="trialing"
+    )  # trialing | active | past_due | cancelled | read_only
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     current_period_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     comped_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -50,7 +64,12 @@ class Subscription(Base, TenantMixin, TimestampMixin):
     payment_reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "organisation_id": self.organisation_id, "plan": self.plan_id, "status": self.status,
-                "trial_ends_at": self.trial_ends_at.isoformat() if self.trial_ends_at else None,
-                "current_period_ends_at": self.current_period_ends_at.isoformat() if self.current_period_ends_at else None,
-                "pending_plan": self.pending_plan_id}
+        return {
+            "id": self.id,
+            "organisation_id": self.organisation_id,
+            "plan": self.plan_id,
+            "status": self.status,
+            "trial_ends_at": self.trial_ends_at.isoformat() if self.trial_ends_at else None,
+            "current_period_ends_at": self.current_period_ends_at.isoformat() if self.current_period_ends_at else None,
+            "pending_plan": self.pending_plan_id,
+        }

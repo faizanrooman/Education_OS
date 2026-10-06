@@ -1,0 +1,35 @@
+# Team status report: per-person tasks, PRs, cycle times, time spent, CI pass rate.
+# Published to the team-status branch (docs/team/STATUS.md) every 6 hours and on demand.
+name: metrics
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/scripts/team-metrics.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to the team-status branch
+        run: |
+          mkdir -p /tmp/status && cp docs/team/STATUS.md docs/team/status.json /tmp/status/
+          git fetch -q origin team-status || true
+          git checkout -q -B team-status origin/team-status 2>/dev/null || git checkout -q --orphan team-status
+          git rm -rfq . >/dev/null 2>&1 || true
+          cp /tmp/status/* .
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "chore(team): status $(date -u +%FT%H:%MZ)" || exit 0
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" team-status

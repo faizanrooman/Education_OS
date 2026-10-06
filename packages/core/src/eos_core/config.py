@@ -1,4 +1,5 @@
 """Loaders for the repo's YAML configuration: academy profiles, plans, permission catalogues."""
+
 from __future__ import annotations
 
 from functools import lru_cache

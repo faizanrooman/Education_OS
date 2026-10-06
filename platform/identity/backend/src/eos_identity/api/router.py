@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+from eos_core.db import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
-
-from eos_core.db import get_db
 
 from ..application import service
 from .deps import Principal, current_principal, require, require_organisation
@@ -33,9 +32,11 @@ class CreateUser(BaseModel):
 @router.post("/auth/login", response_model=LoginResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     try:
-        user, token = service.authenticate(db, email=body.email, password=body.password, organisation_slug=body.organisation_slug)
+        user, token = service.authenticate(
+            db, email=body.email, password=body.password, organisation_slug=body.organisation_slug
+        )
     except service.AuthError as e:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, str(e))
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, str(e)) from e
     return {"token": token, "user": user.to_dict()}
 
 
@@ -51,12 +52,20 @@ def list_users(p: Principal = Depends(require_organisation), db: Session = Depen
 
 
 @router.post("/users", status_code=201)
-def create_user(body: CreateUser, p: Principal = Depends(require("tenancy:organisation:manage")), db: Session = Depends(get_db)):
+def create_user(
+    body: CreateUser, p: Principal = Depends(require("tenancy:organisation:manage")), db: Session = Depends(get_db)
+):
     if not p.organisation_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "organisation users only")
     if any(r in ("super-admin",) for r in body.roles):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "platform roles are never grantable inside an organisation")
-    user = service.create_user(db, organisation_id=p.organisation_id, email=body.email, name=body.name,
-                               password=body.password, roles=body.roles)
+    user = service.create_user(
+        db,
+        organisation_id=p.organisation_id,
+        email=body.email,
+        name=body.name,
+        password=body.password,
+        roles=body.roles,
+    )
     db.commit()
     return user.to_dict()

@@ -1,5 +1,7 @@
 # Contributing
 
+The enforced rules are in [docs/team/RULES.md](docs/team/RULES.md). This file is the how-to.
+
 ## Branches
 - `main` — always deployable. Protected. PR + 1 owner approval required.
 - `feat/<module>/<short-desc>` — feature work inside one module.

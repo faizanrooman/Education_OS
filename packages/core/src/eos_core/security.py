@@ -28,8 +28,15 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
-def create_token(*, user_id: str, organisation_id: str | None, roles: list[str], super_admin: bool = False,
-                 impersonated_by: str | None = None, ttl_minutes: int | None = None) -> str:
+def create_token(
+    *,
+    user_id: str,
+    organisation_id: str | None,
+    roles: list[str],
+    super_admin: bool = False,
+    impersonated_by: str | None = None,
+    ttl_minutes: int | None = None,
+) -> str:
     now = utcnow()
     payload = {
         "sub": user_id,

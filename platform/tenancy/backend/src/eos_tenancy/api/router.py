@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy.orm import Session
-
 from eos_core.db import get_db
 from eos_core.settings import settings
-from eos_identity.api.deps import Principal, current_principal, require, require_organisation
+from eos_identity.api.deps import Principal, require, require_organisation
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy.orm import Session
 
 from ..application import service
 from ..application.service import TenancyError
@@ -73,10 +72,17 @@ def academy_types():
 @router.post("/register", status_code=201)
 def register(body: RegistrationRequest, db: Session = Depends(get_db)):
     try:
-        org, token = service.register(db, organisation_name=body.organisation_name, slug=body.slug, academy_type=body.academy_type,
-                                      admin=body.admin.model_dump(), country=body.country, accepted_terms=body.accepted_terms)
+        org, token = service.register(
+            db,
+            organisation_name=body.organisation_name,
+            slug=body.slug,
+            academy_type=body.academy_type,
+            admin=body.admin.model_dump(),
+            country=body.country,
+            accepted_terms=body.accepted_terms,
+        )
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
     out = org.to_dict(plan="trial")
     if settings.dev_mode:
         out["verification_token"] = token  # never in production; EOS_DEV_MODE=false removes it
@@ -89,7 +95,7 @@ def verify(body: Verify, db: Session = Depends(get_db)):
     try:
         return service.verify(db, body.token).to_dict()
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.get("/organisation")
@@ -97,7 +103,7 @@ def organisation(p: Principal = Depends(require_organisation), db: Session = Dep
     try:
         return service.get_organisation(db, p.organisation_id).to_dict()
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.get("/organisation/entitlement")
@@ -106,64 +112,100 @@ def entitlement(p: Principal = Depends(require_organisation), db: Session = Depe
 
 
 @router.put("/organisation/modules/{module:path}")
-def toggle(module: str, body: Toggle, p: Principal = Depends(require("tenancy:organisation:manage")), db: Session = Depends(get_db)):
+def toggle(
+    module: str,
+    body: Toggle,
+    p: Principal = Depends(require("tenancy:organisation:manage")),
+    db: Session = Depends(get_db),
+):
     try:
         return service.toggle_module(db, p.organisation_id, module, body.enabled)
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.put("/organisation/academy-package")
-def request_package(body: PackageRequest, p: Principal = Depends(require("tenancy:organisation:manage")), db: Session = Depends(get_db)):
+def request_package(
+    body: PackageRequest, p: Principal = Depends(require("tenancy:organisation:manage")), db: Session = Depends(get_db)
+):
     try:
         return service.request_package(db, p.organisation_id, body.academy_type).to_dict()
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.post("/admin/organisations/{org_id}/approve")
-def admin_approve(org_id: str, body: Approve, p: Principal = Depends(require("platform:organisations:manage")), db: Session = Depends(get_db)):
+def admin_approve(
+    org_id: str,
+    body: Approve,
+    p: Principal = Depends(require("platform:organisations:manage")),
+    db: Session = Depends(get_db),
+):
     """Approve the organisation's academic package (registration or a requested change)."""
     try:
         return service.approve(db, org_id, approved_by=p.user_id, reason=body.reason).to_dict()
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.get("/admin/organisations")
-def admin_list(status_: str | None = Query(default=None, alias="status"), plan: str | None = None, academy_type: str | None = None,
-               p: Principal = Depends(require("platform:organisations:read")), db: Session = Depends(get_db)):
+def admin_list(
+    status_: str | None = Query(default=None, alias="status"),
+    plan: str | None = None,
+    academy_type: str | None = None,
+    p: Principal = Depends(require("platform:organisations:read")),
+    db: Session = Depends(get_db),
+):
     return service.list_organisations(db, status=status_, plan=plan, academy_type=academy_type)
 
 
 @router.get("/admin/organisations/{org_id}")
-def admin_get(org_id: str, p: Principal = Depends(require("platform:organisations:read")), db: Session = Depends(get_db)):
+def admin_get(
+    org_id: str, p: Principal = Depends(require("platform:organisations:read")), db: Session = Depends(get_db)
+):
     try:
         org = service.get_organisation(db, org_id)
         return {**org.to_dict(), "entitlement": service.entitlement(db, org_id)}
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.put("/admin/organisations/{org_id}/status")
-def admin_status(org_id: str, body: StatusChange, p: Principal = Depends(require("platform:organisations:manage")), db: Session = Depends(get_db)):
+def admin_status(
+    org_id: str,
+    body: StatusChange,
+    p: Principal = Depends(require("platform:organisations:manage")),
+    db: Session = Depends(get_db),
+):
     try:
         return service.set_status(db, org_id, body.status, body.reason).to_dict()
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.put("/admin/organisations/{org_id}/overrides")
-def admin_overrides(org_id: str, body: Overrides, p: Principal = Depends(require("platform:entitlements:manage")), db: Session = Depends(get_db)):
+def admin_overrides(
+    org_id: str,
+    body: Overrides,
+    p: Principal = Depends(require("platform:entitlements:manage")),
+    db: Session = Depends(get_db),
+):
     try:
         return service.set_overrides(db, org_id, body.grant_modules, body.revoke_modules, body.reason)
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e
 
 
 @router.post("/admin/organisations/{org_id}/impersonate", status_code=201)
-def admin_impersonate(org_id: str, body: Impersonate, p: Principal = Depends(require("platform:organisations:impersonate")), db: Session = Depends(get_db)):
+def admin_impersonate(
+    org_id: str,
+    body: Impersonate,
+    p: Principal = Depends(require("platform:organisations:impersonate")),
+    db: Session = Depends(get_db),
+):
     try:
-        return service.impersonate(db, organisation_id=org_id, user_id=body.user_id, super_admin_id=p.user_id, reason=body.reason)
+        return service.impersonate(
+            db, organisation_id=org_id, user_id=body.user_id, super_admin_id=p.user_id, reason=body.reason
+        )
     except TenancyError as e:
-        raise _err(e)
+        raise _err(e) from e

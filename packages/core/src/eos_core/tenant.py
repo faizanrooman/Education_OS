@@ -1,4 +1,5 @@
 """Request-scoped tenant context. The gateway sets it from the session; every query is scoped to it."""
+
 from __future__ import annotations
 
 from contextlib import contextmanager

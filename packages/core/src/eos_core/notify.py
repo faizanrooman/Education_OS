@@ -1,5 +1,6 @@
 """Notification stub until platform/notification ships: logs the message and keeps the last ones in memory
 so tests and dev mode can read verification tokens."""
+
 from __future__ import annotations
 
 import logging

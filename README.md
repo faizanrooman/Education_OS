@@ -35,6 +35,9 @@ A module may import only from **its own folder** and from **`packages/`**.
 It talks to other modules through their published **API contracts** and **events**, never through code.
 That rule is what makes every module liftable. Details: [docs/architecture/module-standard.md](docs/architecture/module-standard.md).
 
+## Team rules
+[docs/team/RULES.md](docs/team/RULES.md): fixed stack, protected main, one module per PR, conventional commits, issues and board, status report. Enforced by CI.
+
 ## Start here
 1. [ARCHITECTURE.md](ARCHITECTURE.md) — layers and how they map to folders
 2. [docs/architecture/module-standard.md](docs/architecture/module-standard.md) — anatomy of a module

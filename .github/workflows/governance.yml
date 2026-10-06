@@ -1,0 +1,38 @@
+# Rules every pull request must pass before it can merge to main (docs/team/RULES.md).
+name: governance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q pyyaml ruff
+      - name: Approved stack only
+        run: python tools/scripts/check-stack.py
+      - name: Module boundaries
+        run: python tools/scripts/check-boundaries.py
+      - name: Python lint and format
+        run: ruff check . && ruff format --check .
+      - name: Conventional commits scoped by module
+        if: github.event_name == 'pull_request'
+        run: tools/scripts/check-commits.sh ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+      - name: One module per PR
+        if: github.event_name == 'pull_request'
+        run: |
+          changed=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          mods=$(echo "$changed" | grep -E '^(modules/[^/]+/[^/]+|platform/[^/]+|integrations/[^/]+)/' | sed -E 's#^(modules/[^/]+/[^/]+|platform/[^/]+|integrations/[^/]+)/.*#\1#' | sort -u)
+          n=$(echo "$mods" | grep -c . || true)
+          echo "modules touched: $n"; echo "$mods"
+          if [ "$n" -gt 1 ] && ! echo "$changed" | grep -q 'contracts/'; then
+            echo "A PR touches one module unless it is a contract change plus its consumers (CONTRIBUTING.md)."; exit 1
+          fi

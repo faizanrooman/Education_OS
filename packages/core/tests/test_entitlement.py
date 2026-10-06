@@ -15,7 +15,10 @@ def plan(**over):
 
 
 def test_profile_intersect_plan():
-    e = compute_entitlement(PROFILE, plan(id="trial", suites=["academics", "support"], specialized_suites=1, integrations=["messaging-providers"]))
+    e = compute_entitlement(
+        PROFILE,
+        plan(id="trial", suites=["academics", "support"], specialized_suites=1, integrations=["messaging-providers"]),
+    )
     assert e["modules"] == ["academics/lms", "support/helpdesk", "sports/athlete-performance"]
     assert e["upgradable_modules"] == ["finance-operations/fees-accounts"]
     assert e["integrations"] == ["messaging-providers"]
@@ -25,5 +28,7 @@ def test_profile_intersect_plan():
 
 def test_star_overrides_disabled():
     assert compute_entitlement(PROFILE, plan(suites=["*"], specialized_suites="all"))["upgradable_modules"] == []
-    e = compute_entitlement(PROFILE, plan(suites=["academics"]), overrides=["finance-operations/fees-accounts"], disabled=["academics/lms"])
+    e = compute_entitlement(
+        PROFILE, plan(suites=["academics"]), overrides=["finance-operations/fees-accounts"], disabled=["academics/lms"]
+    )
     assert "finance-operations/fees-accounts" in e["modules"] and "academics/lms" not in e["modules"]

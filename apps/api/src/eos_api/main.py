@@ -3,11 +3,10 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from eos_core.db import SessionLocal, init_db
 from eos_core.settings import settings
+from fastapi import APIRouter, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .gateway import EntitlementGate
 
@@ -31,7 +30,13 @@ def _import_router(dotted: str) -> APIRouter:
 async def lifespan(app: FastAPI):
     init_db()
     from eos_billing.application.service import seed_plans
-    from eos_identity.application.service import seed_super_admin
+    from eos_identity.application import service as identity
+    from eos_tenancy.application import service as tenancy
+
+    # identity learns organisation status and slugs from tenancy without importing it (rule 1)
+    identity.hooks.status = tenancy.organisation_status
+    identity.hooks.id_for_slug = tenancy.organisation_id_for_slug
+    seed_super_admin = identity.seed_super_admin
 
     db = SessionLocal()
     try:
@@ -45,12 +50,21 @@ async def lifespan(app: FastAPI):
 def create_app(extra_routers: dict[str, APIRouter] | None = None) -> FastAPI:
     app = FastAPI(title="Education OS API", version="0.1.0", lifespan=lifespan)
     app.add_middleware(EntitlementGate)
-    app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True,
-                       allow_methods=["*"], allow_headers=["*"])
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @app.get("/api/v1/health")
     def health():
-        return {"status": "ok", "database": "postgres" if settings.is_postgres else "sqlite", "dev_mode": settings.dev_mode}
+        return {
+            "status": "ok",
+            "database": "postgres" if settings.is_postgres else "sqlite",
+            "dev_mode": settings.dev_mode,
+        }
 
     for name, dotted in PLATFORM_ROUTERS.items():
         app.include_router(_import_router(dotted), prefix=f"/api/v1/{name}")

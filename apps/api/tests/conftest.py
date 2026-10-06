@@ -11,10 +11,9 @@ os.environ.setdefault("TENANCY_AUTO_APPROVE", "true")
 os.environ.setdefault("EOS_REPO_ROOT", str(Path(__file__).resolve().parents[3]))
 
 import pytest
+from eos_api.main import create_app
 from fastapi import APIRouter
 from fastapi.testclient import TestClient
-
-from eos_api.main import create_app
 
 # A stand-in feature module so the entitlement gate can be tested before any real module ships.
 fees = APIRouter()

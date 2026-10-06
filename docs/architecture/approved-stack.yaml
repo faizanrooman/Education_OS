@@ -1,0 +1,85 @@
+# The approved stack (ADR-0002, kept current here). CI fails any dependency not on this list.
+# To add something: open a PR that adds it here with a one-line reason; the Architecture lead approves.
+# Patterns: exact name, or a prefix ending in "*".
+
+python:
+  runtime: "3.12"
+  allowed:
+    # web and data
+    - fastapi
+    - uvicorn
+    - starlette
+    - pydantic
+    - pydantic-settings
+    - email-validator
+    - sqlalchemy
+    - alembic
+    - psycopg
+    - redis
+    - arq                      # background jobs on Redis (trial expiry, reminders, reports)
+    - httpx
+    - pyyaml
+    - PyJWT
+    - python-multipart
+    - opensearch-py
+    - minio
+    - python-keycloak          # OIDC provider client (ADR-0006, pending)
+    - celery                   # only if arq proves insufficient; decide once, not per module
+    # quality
+    - pytest
+    - pytest-cov
+    - ruff
+    - mypy
+    - import-linter
+    # observability
+    - opentelemetry-*
+    - sentry-sdk
+    - structlog
+    # ours
+    - eos-*
+
+node:
+  runtime: "20"
+  package_manager: "pnpm@9"
+  allowed:
+    # app
+    - react
+    - react-dom
+    - react-router-dom
+    - "@tanstack/react-query"
+    - react-hook-form
+    - zod
+    - "@hookform/resolvers"
+    - yaml
+    - date-fns
+    - "@sentry/react"
+    # build and test
+    - vite
+    - "@vitejs/plugin-react"
+    - vitest
+    - jsdom
+    - "@testing-library/*"
+    - "@playwright/test"
+    - typescript
+    - "@types/*"
+    - eslint
+    - "@eslint/*"
+    - typescript-eslint
+    - eslint-plugin-react-hooks
+    - prettier
+    - openapi-typescript       # generated clients from contracts/openapi.yaml
+    - openapi-fetch
+    # ours
+    - "@eos/*"
+
+forbidden_everywhere:
+  - axios                    # use fetch / openapi-fetch
+  - lodash                   # not needed with modern TS
+  - moment                   # use date-fns
+  - redux                    # server state is TanStack Query; local state is React
+  - "@mui/*"                 # the design system is packages/ui-kit
+  - bootstrap
+  - jquery
+  - django
+  - flask
+  - requests                 # use httpx
