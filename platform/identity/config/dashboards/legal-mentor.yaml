@@ -1,0 +1,10 @@
+# Dashboard layout for the Legal Mentor role at a Law College / Law University (ADR-0004 profile law-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: legal-mentor
+title: "Legal Mentor"
+extends: faculty
+widgets:
+  - projects.to-review
+  - selection-process.to-judge
+  - field-training.trainees-to-assess
+  - productions.in-preparation

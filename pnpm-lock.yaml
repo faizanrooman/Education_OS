@@ -494,6 +494,120 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
+  modules/practice/field-training/frontend:
+    dependencies:
+      '@eos/contracts':
+        specifier: workspace:*
+        version: link:../../../../packages/contracts
+      '@eos/ui-kit':
+        specifier: workspace:*
+        version: link:../../../../packages/ui-kit
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  modules/practice/portfolio/frontend:
+    dependencies:
+      '@eos/contracts':
+        specifier: workspace:*
+        version: link:../../../../packages/contracts
+      '@eos/ui-kit':
+        specifier: workspace:*
+        version: link:../../../../packages/ui-kit
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  modules/practice/productions/frontend:
+    dependencies:
+      '@eos/contracts':
+        specifier: workspace:*
+        version: link:../../../../packages/contracts
+      '@eos/ui-kit':
+        specifier: workspace:*
+        version: link:../../../../packages/ui-kit
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  modules/practice/projects/frontend:
+    dependencies:
+      '@eos/contracts':
+        specifier: workspace:*
+        version: link:../../../../packages/contracts
+      '@eos/ui-kit':
+        specifier: workspace:*
+        version: link:../../../../packages/ui-kit
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  modules/practice/selection-process/frontend:
+    dependencies:
+      '@eos/contracts':
+        specifier: workspace:*
+        version: link:../../../../packages/contracts
+      '@eos/ui-kit':
+        specifier: workspace:*
+        version: link:../../../../packages/ui-kit
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  modules/practice/skill-progress/frontend:
+    dependencies:
+      '@eos/contracts':
+        specifier: workspace:*
+        version: link:../../../../packages/contracts
+      '@eos/ui-kit':
+        specifier: workspace:*
+        version: link:../../../../packages/ui-kit
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
   modules/sports/athlete-performance/frontend:
     dependencies:
       '@eos/contracts':

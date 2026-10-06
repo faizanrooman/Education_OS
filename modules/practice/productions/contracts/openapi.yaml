@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: productions API
+  version: 0.1.0
+  description: "Productions and events: performances, exhibitions, recitals, screenings, hackathons, competitions, conferences."
+servers:
+  - url: /api/v1/productions
+paths: {}
+components:
+  schemas: {}

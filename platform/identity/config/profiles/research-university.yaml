@@ -1,0 +1,84 @@
+# Institution profile: everything one organisation of this academy type enables (ADR-0004, ADR-0005).
+# Chosen at registration as the academy type. The plan then decides how much of it is unlocked.
+profile: research-university
+title: "Research / Doctoral University"
+description: "PhD lifecycle, supervisors, proposals, ethics, grants, publications, conferences, viva."
+
+suites:
+  common: [student-lifecycle, academics, practice, facilities, finance-operations, campus-life, governance, support]
+  specialized: []
+
+# <domain>/<module> under modules/. Field-specific behaviour comes from the practice suite plus vocabulary.
+modules:
+  - student-lifecycle/web-portal-cms
+  - student-lifecycle/admissions
+  - student-lifecycle/student-information
+  - student-lifecycle/enrolment-registration
+  - academics/academic-management
+  - academics/lms
+  - academics/examinations
+  - academics/timetable-attendance
+  - practice/portfolio
+  - practice/projects
+  - practice/selection-process
+  - practice/productions
+  - practice/field-training
+  - practice/skill-progress
+  - facilities/facility-booking
+  - facilities/inventory-equipment
+  - facilities/asset-management
+  - facilities/maintenance
+  - finance-operations/fees-accounts
+  - finance-operations/budget-grants
+  - finance-operations/procurement
+  - finance-operations/hr-payroll
+  - finance-operations/e-office
+  - campus-life/hostel
+  - campus-life/transport
+  - campus-life/library
+  - campus-life/placement-career
+  - campus-life/alumni
+  - governance/grievance
+  - governance/rti
+  - governance/iqac-accreditation
+  - governance/regulatory-reports
+  - support/helpdesk
+  - support/sla-management
+  - support/knowledge-base
+  - support/incident-management
+  - support/amc-vendor-support
+
+integrations:
+  - payment-sbiepay
+  - digilocker
+  - nad
+  - government-portals
+  - messaging-providers
+  - video-conferencing
+  - external-university-portals
+
+# Roles for this academy. id = dashboard layout file in ../dashboards/<id>.yaml.
+roles:
+  - { id: applicant,            title: "Applicant" }
+  - { id: student,              title: "Student" }
+  - { id: research-scholar,     title: "Research Scholar" }
+  - { id: faculty,              title: "Faculty / Instructor" }
+  - { id: research-supervisor,  title: "Research Supervisor" }
+  - { id: research-office,      title: "Research Office" }
+  - { id: examination-staff,    title: "Examination Staff" }
+  - { id: department-admin,     title: "Department Admin / HoD" }
+  - { id: finance-staff,        title: "Finance Staff" }
+  - { id: hr-staff,             title: "HR Staff" }
+  - { id: facility-staff,       title: "Facility / Inventory Staff" }
+  - { id: governance,           title: "Governance (Grievance / RTI / IQAC)" }
+  - { id: support-staff,        title: "Support Staff (Helpdesk)" }
+  - { id: management,           title: "Management (VC, Registrar)" }
+  - { id: org-admin,            title: "Organisation Admin" }
+
+# Field vocabulary for generic modules. Key = <module>.<term>, value = the word this academy uses.
+vocabulary:
+  projects.project: "Research project"
+  portfolio.item: "Publication"
+  productions.production: "Conference"
+  selection-process.selection: "Supervisor allocation / viva"
+  projects.milestone: "Thesis milestone"

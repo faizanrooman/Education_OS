@@ -1,0 +1,10 @@
+# Dashboard layout for the Music Teacher role at a Music Academy / Conservatory (ADR-0004 profile music-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: music-teacher
+title: "Music Teacher"
+extends: faculty
+widgets:
+  - skill-progress.assessments-due
+  - selection-process.to-judge
+  - portfolio.reviews-pending
+  - facility-booking.bookings-today

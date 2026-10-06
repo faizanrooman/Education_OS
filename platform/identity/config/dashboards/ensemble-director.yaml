@@ -1,0 +1,9 @@
+# Dashboard layout for the Ensemble / Orchestra Director role at a Music Academy / Conservatory (ADR-0004 profile music-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: ensemble-director
+title: "Ensemble / Orchestra Director"
+widgets:
+  - productions.in-preparation
+  - productions.calendar
+  - selection-process.open-calls
+  - inventory-equipment.low-stock

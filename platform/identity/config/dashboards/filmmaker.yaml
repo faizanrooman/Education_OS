@@ -1,0 +1,12 @@
+# Dashboard layout for the Filmmaker role at a Film / Media / Animation Institute (ADR-0004 profile film-media-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: filmmaker
+title: "Filmmaker"
+extends: student
+widgets:
+  - projects.my-projects
+  - projects.milestones-due
+  - facility-booking.my-bookings
+  - inventory-equipment.my-loans
+  - portfolio.my-portfolio
+  - productions.upcoming

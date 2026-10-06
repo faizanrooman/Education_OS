@@ -1,0 +1,10 @@
+# Dashboard layout for the Director role at a Theatre / Drama Academy (ADR-0004 profile theatre-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: director
+title: "Director"
+extends: faculty
+widgets:
+  - productions.in-preparation
+  - selection-process.to-judge
+  - projects.to-review
+  - facility-booking.bookings-today

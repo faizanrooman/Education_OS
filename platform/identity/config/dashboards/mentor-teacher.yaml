@@ -1,0 +1,10 @@
+# Dashboard layout for the Mentor Teacher role at a Teacher Education / B.Ed. (ADR-0004 profile teacher-education-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: mentor-teacher
+title: "Mentor Teacher"
+extends: faculty
+widgets:
+  - field-training.trainees-to-assess
+  - portfolio.reviews-pending
+  - projects.to-review
+  - skill-progress.assessments-due

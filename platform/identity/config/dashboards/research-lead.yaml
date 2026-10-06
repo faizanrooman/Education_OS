@@ -1,0 +1,9 @@
+# Dashboard layout for the Research Lead role at a Agriculture / Veterinary / Field Sciences (ADR-0004 profile agriculture-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: research-lead
+title: "Research Lead"
+widgets:
+  - projects.active
+  - projects.to-review
+  - productions.upcoming
+  - field-training.placements-open

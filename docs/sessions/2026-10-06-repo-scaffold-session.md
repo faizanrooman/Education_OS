@@ -150,3 +150,9 @@ A module imports only from its own folder and from `packages/`. It talks to othe
   `apps/admin`. New core services `platform/tenancy` (organisations, registration, entitlements)
   and `platform/billing` (plans, trials, subscriptions). Every module becomes tenant-aware
   (`organisation_id` + RLS, module standard rule 11). Roles `org-admin` and `super-admin` added.
+- **Every academy gets its own roles and dashboards:** new common suite `modules/practice/`
+  (portfolio, projects, selection-process, productions, field-training, skill-progress) = the eight
+  generic patterns. 15 academy profiles, each with a learner role extending `student`, an instructor
+  role extending `faculty` and a field staff role; 44 field role layouts. Roles moved out of code:
+  `packages/contracts` keeps only org-admin and super-admin; the web shell reads roles from the
+  profile and has an academy switcher.

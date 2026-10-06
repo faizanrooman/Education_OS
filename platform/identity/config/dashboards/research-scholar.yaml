@@ -1,0 +1,12 @@
+# Dashboard layout for the Research Scholar role at a Research / Doctoral University (ADR-0004 profile research-university).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: research-scholar
+title: "Research Scholar"
+extends: student
+widgets:
+  - projects.my-projects
+  - projects.milestones-due
+  - portfolio.my-portfolio
+  - productions.upcoming
+  - selection-process.my-applications
+  - budget-grants.my-grants

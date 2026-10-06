@@ -1,0 +1,12 @@
+# Dashboard layout for the Management Student role at a Management / Business School (ADR-0004 profile management-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: management-student
+title: "Management Student"
+extends: student
+widgets:
+  - productions.upcoming
+  - projects.my-projects
+  - field-training.my-placement
+  - placement-career.openings
+  - alumni.mentoring
+  - lms.course-materials

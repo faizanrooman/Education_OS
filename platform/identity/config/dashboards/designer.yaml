@@ -1,0 +1,12 @@
+# Dashboard layout for the Designer role at a Design / Fashion Institute (ADR-0004 profile design-fashion-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: designer
+title: "Designer"
+extends: student
+widgets:
+  - portfolio.my-portfolio
+  - projects.my-projects
+  - productions.upcoming
+  - facility-booking.my-bookings
+  - field-training.my-placement
+  - selection-process.upcoming

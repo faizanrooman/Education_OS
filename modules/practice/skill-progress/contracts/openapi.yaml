@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: skill-progress API
+  version: 0.1.0
+  description: "Skill assessments and progression over time: technique, fitness, practicum, competencies."
+servers:
+  - url: /api/v1/skill-progress
+paths: {}
+components:
+  schemas: {}

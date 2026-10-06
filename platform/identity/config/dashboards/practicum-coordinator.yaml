@@ -1,0 +1,9 @@
+# Dashboard layout for the Practicum Coordinator role at a Teacher Education / B.Ed. (ADR-0004 profile teacher-education-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: practicum-coordinator
+title: "Practicum Coordinator"
+widgets:
+  - field-training.placements-open
+  - field-training.active-placements
+  - skill-progress.cohort-overview
+  - placement-career.openings

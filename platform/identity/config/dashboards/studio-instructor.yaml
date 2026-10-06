@@ -1,0 +1,11 @@
+# Dashboard layout for the Studio Instructor role at a Arts Academy / Fine Arts College (ADR-0004 profile arts-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: studio-instructor
+title: "Studio Instructor"
+extends: faculty
+widgets:
+  - portfolio.reviews-pending
+  - projects.to-review
+  - selection-process.to-judge
+  - facility-booking.bookings-today
+  - productions.in-preparation

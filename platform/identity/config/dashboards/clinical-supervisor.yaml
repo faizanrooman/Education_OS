@@ -1,0 +1,10 @@
+# Dashboard layout for the Clinical Supervisor role at a Medical / Health Sciences College (ADR-0004 profile medical-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: clinical-supervisor
+title: "Clinical Supervisor"
+extends: faculty
+widgets:
+  - field-training.trainees-to-assess
+  - skill-progress.assessments-due
+  - field-training.placements-open
+  - facility-booking.bookings-today

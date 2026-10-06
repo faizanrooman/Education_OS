@@ -39,6 +39,7 @@ The diagram below is the first customer's view, a sports university. Each layer 
 |---|---|---|---|
 | `student-lifecycle` | Suite A | common | web-portal-cms, admissions, student-information, enrolment-registration |
 | `academics` | Suite B | common | academic-management, lms, examinations, timetable-attendance |
+| `practice` | (new) | common | portfolio, projects, selection-process, productions, field-training, skill-progress |
 | `sports` | Suite C | specialized (sports) | athlete-performance, training-video-analysis, sports-nutrition-health, tournament-events |
 | `facilities` | Suite D | common, except sports-facilities | sports-facilities, facility-booking, inventory-equipment, asset-management, maintenance |
 | `finance-operations` | Suite E | common | fees-accounts, budget-grants, procurement, hr-payroll, e-office |
@@ -66,9 +67,9 @@ institution. Installing Education OS for an institution means choosing a profile
 - `apps/*` take their enabled-module list from the profile.
 - `platform/api-gateway` refuses routes of modules the profile does not list. A disabled suite is
   blocked server-side, not only hidden in the UI.
-- Roles and dashboards are data in the profile, never hard-coded.
+- Roles and dashboards are data in the profile, never hard-coded. Only `org-admin` and `super-admin` are fixed in `packages/contracts`.
 
-`sports-college` is the only profile today. A new institution type starts as a profile.
+All 15 academy profiles exist. A new institution type starts as a profile.
 Since ADR-0005 the profile is chosen by the organisation at registration and is the template
 for its own configuration.
 
@@ -101,16 +102,21 @@ module and takes its vocabulary from the profile; a specialized module is writte
 behaviour a pattern cannot express. The mapping from institution type to pattern is in
 [institution-types.md](docs/architecture/institution-types.md).
 
-| Pattern | Examples across fields |
-|---|---|
-| Resource booking | Practice rooms, studios, labs, pitches, training kitchens, equipment |
-| Specialized inventory | Instruments, costumes, lab gear, art materials, sports equipment |
-| Portfolio | Artist, design, showreel, teaching portfolio, publications |
-| Selection process | Auditions, casting, squad selection, moot court teams |
-| Productions and events | Tournaments, performances, exhibitions, screenings, hackathons |
-| Projects | Capstone, film, live business, research, artwork |
-| Field training | Clinical rotations, teaching practice, farm rotations, internships |
-| Skill progress | Athlete metrics, dance progression, practicum assessment |
+| Pattern | Module | Examples across fields |
+|---|---|---|
+| Resource booking | `facilities/facility-booking` | Practice rooms, studios, labs, pitches, training kitchens, equipment |
+| Specialized inventory | `facilities/inventory-equipment` | Instruments, costumes, lab gear, art materials, sports equipment |
+| Portfolio | `practice/portfolio` | Artist, design, showreel, teaching portfolio, publications |
+| Selection process | `practice/selection-process` | Auditions, casting, squad selection, moot court teams |
+| Productions and events | `practice/productions` | Performances, exhibitions, screenings, hackathons, competitions |
+| Projects | `practice/projects` | Capstone, film, live business, research, artwork |
+| Field training | `practice/field-training` | Clinical rotations, teaching practice, farm rotations, internships |
+| Skill progress | `practice/skill-progress` | Technique grades, practicum assessment, competencies |
+
+Every academy profile has its own learner, instructor and field staff roles (artist and studio
+instructor, musician and music teacher, medical student and clinical supervisor, and so on), each
+with a dashboard layout built from these modules. The full list is in
+[institution-types.md](docs/architecture/institution-types.md#roles-per-academy).
 
 ## Dependency direction
 

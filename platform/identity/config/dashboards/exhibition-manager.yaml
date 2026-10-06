@@ -1,0 +1,9 @@
+# Dashboard layout for the Exhibition & Gallery Manager role at a Arts Academy / Fine Arts College (ADR-0004 profile arts-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: exhibition-manager
+title: "Exhibition & Gallery Manager"
+widgets:
+  - productions.calendar
+  - productions.upcoming
+  - facility-booking.bookings-today
+  - inventory-equipment.low-stock

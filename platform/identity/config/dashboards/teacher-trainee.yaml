@@ -1,0 +1,11 @@
+# Dashboard layout for the Teacher Trainee role at a Teacher Education / B.Ed. (ADR-0004 profile teacher-education-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: teacher-trainee
+title: "Teacher Trainee"
+extends: student
+widgets:
+  - field-training.my-placement
+  - projects.my-projects
+  - portfolio.my-portfolio
+  - skill-progress.my-progress
+  - field-training.hours-logged

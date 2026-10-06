@@ -1,24 +1,35 @@
-import type { Entitlement, Plan } from "./entitlements";
+import type { AcademyProfile, Entitlement, Plan } from "./entitlements";
 
 export interface TenantBarProps {
   organisation: string;
-  academyTitle: string;
+  profile: AcademyProfile;
+  profiles: Record<string, AcademyProfile>;
   entitlement: Entitlement;
   plans: Record<string, Plan>;
   onChangePlan: (plan: string) => void;
+  onChangeAcademy: (profile: string) => void;
 }
 
 /**
  * Shows which organisation, academy type and plan the dashboard is rendered for.
- * Until platform/tenancy ships, the plan is switchable here to preview what each plan unlocks.
+ * Until platform/tenancy ships, academy and plan are switchable here to preview each one.
  */
-export function TenantBar({ organisation, academyTitle, entitlement, plans, onChangePlan }: TenantBarProps) {
+export function TenantBar({ organisation, profile, profiles, entitlement, plans, onChangePlan, onChangeAcademy }: TenantBarProps) {
   const plan = plans[entitlement.plan];
   const locked = entitlement.upgradableModules.length;
   return (
     <div className="eos-tenant" aria-label="Organisation and plan">
       <span className="eos-tenant__org">{organisation}</span>
-      <span className="eos-tenant__meta">{academyTitle}</span>
+      <label className="eos-tenant__plan">
+        Academy
+        <select value={profile.profile} onChange={(e) => onChangeAcademy(e.target.value)}>
+          {Object.values(profiles).map((p) => (
+            <option key={p.profile} value={p.profile}>
+              {p.title}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="eos-tenant__plan">
         Plan
         <select value={entitlement.plan} onChange={(e) => onChangePlan(e.target.value)}>

@@ -1,0 +1,9 @@
+# Dashboard layout for the Placement Officer role at a Management / Business School (ADR-0004 profile management-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: placement-officer
+title: "Placement Officer"
+widgets:
+  - field-training.placements-open
+  - placement-career.openings
+  - placement-career.drives
+  - productions.calendar

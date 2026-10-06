@@ -1,0 +1,10 @@
+# Dashboard layout for the Research Office role at a Research / Doctoral University (ADR-0004 profile research-university).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: research-office
+title: "Research Office"
+widgets:
+  - selection-process.open-calls
+  - projects.active
+  - budget-grants.budget-vs-spend
+  - productions.calendar
+  - regulatory-reports.due

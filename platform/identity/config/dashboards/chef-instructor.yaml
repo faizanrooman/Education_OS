@@ -1,0 +1,10 @@
+# Dashboard layout for the Chef / Operations Instructor role at a Hospitality / Hotel Management (ADR-0004 profile hospitality-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: chef-instructor
+title: "Chef / Operations Instructor"
+extends: faculty
+widgets:
+  - skill-progress.assessments-due
+  - facility-booking.bookings-today
+  - inventory-equipment.low-stock
+  - productions.in-preparation

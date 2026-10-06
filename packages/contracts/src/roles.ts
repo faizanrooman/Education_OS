@@ -1,31 +1,23 @@
 /**
- * The 15 user roles from the high-level architecture diagram.
- * The id is the file name of the role's dashboard layout in
- * platform/identity/config/dashboards/<id>.yaml.
+ * Roles are data, not code (ADR-0004, ADR-0005). Each academy profile in
+ * platform/identity/config/profiles/<profile>.yaml lists its own roles, and every role id
+ * has a dashboard layout in platform/identity/config/dashboards/<id>.yaml.
+ *
+ * Only the platform-level roles that exist regardless of academy are fixed here.
  */
-export const ROLES = [
-  { id: "applicant", title: "Applicant" },
-  { id: "student", title: "Student" },
-  { id: "athlete", title: "Athlete" },
-  { id: "faculty", title: "Faculty / Instructor" },
-  { id: "coach", title: "Coach" },
-  { id: "medical-staff", title: "Medical Staff (Doctor / Physio)" },
-  { id: "nutritionist", title: "Nutritionist" },
-  { id: "examination-staff", title: "Examination Staff" },
-  { id: "department-admin", title: "Department Admin / HoD" },
-  { id: "finance-staff", title: "Finance Staff" },
-  { id: "hr-staff", title: "HR Staff" },
-  { id: "facility-staff", title: "Facility / Inventory Staff" },
-  { id: "governance", title: "Governance (Grievance / RTI / IQAC)" },
-  { id: "support-staff", title: "Support Staff (Helpdesk)" },
-  { id: "management", title: "Management (VC, Registrar)" },
-  // Platform-level roles (ADR-0005). org-admin exists in every organisation; super-admin is outside all of them.
+export interface RoleRef {
+  id: string;
+  title: string;
+}
+
+/** Exists in every organisation (org-admin) or outside all of them (super-admin). */
+export const PLATFORM_ROLES: readonly RoleRef[] = [
   { id: "org-admin", title: "Organisation Admin" },
   { id: "super-admin", title: "Super Admin (platform operator)" },
 ] as const;
 
-export type RoleId = (typeof ROLES)[number]["id"];
-
-export function isRoleId(value: string): value is RoleId {
-  return ROLES.some((r) => r.id === value);
+/** The roles a user of one organisation can hold: the academy's roles plus org-admin. */
+export function rolesForProfile(profileRoles: readonly RoleRef[]): RoleRef[] {
+  const ids = new Set(profileRoles.map((r) => r.id));
+  return [...profileRoles, ...PLATFORM_ROLES.filter((r) => !ids.has(r.id))];
 }

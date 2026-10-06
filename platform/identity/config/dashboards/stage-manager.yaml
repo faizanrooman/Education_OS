@@ -1,0 +1,9 @@
+# Dashboard layout for the Stage Manager role at a Theatre / Drama Academy (ADR-0004 profile theatre-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: stage-manager
+title: "Stage Manager"
+widgets:
+  - productions.calendar
+  - facility-booking.bookings-today
+  - inventory-equipment.low-stock
+  - productions.upcoming

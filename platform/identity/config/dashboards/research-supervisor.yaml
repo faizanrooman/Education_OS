@@ -1,0 +1,10 @@
+# Dashboard layout for the Research Supervisor role at a Research / Doctoral University (ADR-0004 profile research-university).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: research-supervisor
+title: "Research Supervisor"
+extends: faculty
+widgets:
+  - projects.to-review
+  - projects.active
+  - selection-process.to-judge
+  - portfolio.reviews-pending

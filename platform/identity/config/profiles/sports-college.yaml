@@ -6,7 +6,7 @@ title: "Sports University / Sports College"
 description: "Reference profile. Common suites plus the sports specialization."
 
 suites:
-  common: [student-lifecycle, academics, facilities, finance-operations, campus-life, governance, support]
+  common: [student-lifecycle, academics, practice, facilities, finance-operations, campus-life, governance, support]
   specialized: [sports]
 
 # <domain>/<module> under modules/. Everything not listed is disabled, in the UI and at the API.
@@ -19,6 +19,12 @@ modules:
   - academics/lms
   - academics/examinations
   - academics/timetable-attendance
+  - practice/portfolio
+  - practice/projects
+  - practice/selection-process
+  - practice/productions
+  - practice/field-training
+  - practice/skill-progress
   - sports/athlete-performance
   - sports/training-video-analysis
   - sports/sports-nutrition-health

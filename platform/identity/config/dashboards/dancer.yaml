@@ -1,0 +1,12 @@
+# Dashboard layout for the Dancer role at a Dance / Performing Arts Academy (ADR-0004 profile dance-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: dancer
+title: "Dancer"
+extends: student
+widgets:
+  - skill-progress.my-progress
+  - productions.my-roles
+  - selection-process.upcoming
+  - facility-booking.my-bookings
+  - inventory-equipment.my-loans
+  - timetable-attendance.today

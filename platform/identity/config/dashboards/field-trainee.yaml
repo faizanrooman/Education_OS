@@ -1,0 +1,11 @@
+# Dashboard layout for the Field Trainee role at a Agriculture / Veterinary / Field Sciences (ADR-0004 profile agriculture-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: field-trainee
+title: "Field Trainee"
+extends: student
+widgets:
+  - field-training.my-placement
+  - field-training.hours-logged
+  - projects.my-projects
+  - facility-booking.my-bookings
+  - skill-progress.my-progress

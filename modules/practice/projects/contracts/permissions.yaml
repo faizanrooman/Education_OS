@@ -1,0 +1,11 @@
+# Permission catalogue for projects. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: projects
+permissions: []
+#  - key: projects:record:read
+#    description: ...
+#  - key: projects:record:write
+#    description: ...
+roles: []
+#  - name: projects-admin
+#    grants: [projects:record:read, projects:record:write]

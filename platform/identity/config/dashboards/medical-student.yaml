@@ -1,0 +1,12 @@
+# Dashboard layout for the Medical Student role at a Medical / Health Sciences College (ADR-0004 profile medical-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: medical-student
+title: "Medical Student"
+extends: student
+widgets:
+  - field-training.my-placement
+  - field-training.hours-logged
+  - skill-progress.my-progress
+  - facility-booking.my-bookings
+  - projects.my-projects
+  - lms.course-materials

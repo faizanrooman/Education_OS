@@ -1,0 +1,9 @@
+# Dashboard layout for the Lab In-charge role at a Engineering / Technology College (ADR-0004 profile engineering-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: lab-in-charge
+title: "Lab In-charge"
+widgets:
+  - facility-booking.bookings-today
+  - inventory-equipment.low-stock
+  - inventory-equipment.overdue-loans
+  - maintenance.tickets

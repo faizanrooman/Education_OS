@@ -1,0 +1,11 @@
+# Permission catalogue for skill-progress. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: skill-progress
+permissions: []
+#  - key: skill-progress:record:read
+#    description: ...
+#  - key: skill-progress:record:write
+#    description: ...
+roles: []
+#  - name: skill-progress-admin
+#    grants: [skill-progress:record:read, skill-progress:record:write]

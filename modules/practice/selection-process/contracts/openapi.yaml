@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: selection-process API
+  version: 0.1.0
+  description: "Auditions, casting, squad selection, jury rounds, moot court teams, supervisor allocation."
+servers:
+  - url: /api/v1/selection-process
+paths: {}
+components:
+  schemas: {}

@@ -11,7 +11,7 @@ PRs to their module and maintain its contracts and docs. Fill in handles, then m
 | Platform services | | | `platform/notification`, `documents`, `search`, `workflow`, `audit`, `scheduler`, `reporting`, `integration-hub` |
 | Student lifecycle | | | `modules/student-lifecycle/*` |
 | Academics | | | `modules/academics/*` |
-| Sports | | | `modules/sports/*` |
+| Sports & practice patterns | | | `modules/sports/*`, `modules/practice/*` (portfolio, projects, selection, productions, field training, skill progress) |
 | Facilities | | | `modules/facilities/*` |
 | Finance & operations | | | `modules/finance-operations/*`, `integrations/payment-sbiepay` |
 | Campus life | | | `modules/campus-life/*` |
@@ -54,6 +54,12 @@ A specialized suite for a new field gets its own owner row when the field has a 
 | `modules/finance-operations/hr-payroll` | | | planned |
 | `modules/finance-operations/procurement` | | | planned |
 | `modules/governance/grievance` | | | planned |
+| `modules/practice/portfolio` | | | planned |
+| `modules/practice/projects` | | | planned |
+| `modules/practice/selection-process` | | | planned |
+| `modules/practice/productions` | | | planned |
+| `modules/practice/field-training` | | | planned |
+| `modules/practice/skill-progress` | | | planned |
 | `modules/governance/iqac-accreditation` | | | planned |
 | `modules/governance/regulatory-reports` | | | planned |
 | `modules/governance/rti` | | | planned |

@@ -1,0 +1,10 @@
+# Dashboard layout for the Design Mentor role at a Design / Fashion Institute (ADR-0004 profile design-fashion-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: design-mentor
+title: "Design Mentor"
+extends: faculty
+widgets:
+  - portfolio.reviews-pending
+  - projects.to-review
+  - selection-process.to-judge
+  - field-training.trainees-to-assess

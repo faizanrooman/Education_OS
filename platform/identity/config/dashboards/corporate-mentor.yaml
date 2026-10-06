@@ -1,0 +1,10 @@
+# Dashboard layout for the Corporate Mentor role at a Management / Business School (ADR-0004 profile management-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: corporate-mentor
+title: "Corporate Mentor"
+extends: faculty
+widgets:
+  - projects.to-review
+  - field-training.trainees-to-assess
+  - selection-process.to-judge
+  - productions.in-preparation

@@ -1,0 +1,9 @@
+# Dashboard layout for the Industry Coordinator role at a Hospitality / Hotel Management (ADR-0004 profile hospitality-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: industry-coordinator
+title: "Industry Coordinator"
+widgets:
+  - field-training.placements-open
+  - field-training.active-placements
+  - placement-career.openings
+  - productions.calendar

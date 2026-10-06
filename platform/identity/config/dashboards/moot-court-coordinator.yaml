@@ -1,0 +1,9 @@
+# Dashboard layout for the Moot Court Coordinator role at a Law College / Law University (ADR-0004 profile law-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: moot-court-coordinator
+title: "Moot Court Coordinator"
+widgets:
+  - selection-process.open-calls
+  - productions.calendar
+  - productions.upcoming
+  - field-training.placements-open

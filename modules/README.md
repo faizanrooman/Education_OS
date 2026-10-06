@@ -7,6 +7,7 @@ Domain folders are for navigation only and contain no shared code.
 |---|---|---|---|
 | [student-lifecycle/](student-lifecycle/) | A | common | web-portal-cms, admissions, student-information, enrolment-registration |
 | [academics/](academics/) | B | common | academic-management, lms, examinations, timetable-attendance |
+| [practice/](practice/) | — | common | portfolio, projects, selection-process, productions, field-training, skill-progress (the generic patterns every academy's field needs reduce to) |
 | [sports/](sports/) | C | specialized (sports) | athlete-performance, training-video-analysis, sports-nutrition-health, tournament-events |
 | [facilities/](facilities/) | D | common (sports-facilities is specialized) | sports-facilities, facility-booking, inventory-equipment, asset-management, maintenance |
 | [finance-operations/](finance-operations/) | E | common | fees-accounts, budget-grants, procurement, hr-payroll, e-office |

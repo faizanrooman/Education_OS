@@ -1,0 +1,9 @@
+# Dashboard layout for the Industry Liaison role at a Design / Fashion Institute (ADR-0004 profile design-fashion-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: industry-liaison
+title: "Industry Liaison"
+widgets:
+  - field-training.placements-open
+  - projects.active
+  - productions.calendar
+  - placement-career.openings

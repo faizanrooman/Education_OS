@@ -1,0 +1,12 @@
+# Dashboard layout for the Artist role at a Arts Academy / Fine Arts College (ADR-0004 profile arts-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: artist
+title: "Artist"
+extends: student
+widgets:
+  - portfolio.my-portfolio
+  - projects.my-projects
+  - facility-booking.my-bookings
+  - selection-process.upcoming
+  - productions.upcoming
+  - inventory-equipment.my-loans

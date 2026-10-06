@@ -1,0 +1,12 @@
+# Dashboard layout for the Law Student role at a Law College / Law University (ADR-0004 profile law-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: law-student
+title: "Law Student"
+extends: student
+widgets:
+  - selection-process.upcoming
+  - productions.upcoming
+  - field-training.my-placement
+  - projects.my-projects
+  - field-training.hours-logged
+  - placement-career.openings

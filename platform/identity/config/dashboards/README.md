@@ -12,6 +12,10 @@ widgets:
   - athlete-performance.training-schedule   # <module>.<widget>, exported by that module
 ```
 
+There is a layout for every role of every academy profile: the common roles, plus each academy's
+learner (artist, musician, dancer, medical student, ...), instructor and field staff roles. Field
+role layouts use the generic `practice/*` and `facilities/*` modules; the profile vocabulary names them.
+
 Two layouts are platform-level rather than academy-level: `org-admin` (one per organisation,
 created at registration) and `super-admin` (the operator, served by `apps/admin`).
 

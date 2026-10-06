@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { isRoleId, type RoleId } from "@eos/contracts";
+import { rolesForProfile } from "@eos/contracts";
 import { Dashboard } from "./dashboard/Dashboard";
 import { RoleSwitcher } from "./dashboard/RoleSwitcher";
 import { loadLayouts } from "./dashboard/layouts";
@@ -9,9 +9,6 @@ import { computeEntitlement, loadPlans, loadProfiles, TenantBar } from "./tenant
 const layouts = loadLayouts();
 const profiles = loadProfiles();
 const plans = loadPlans();
-
-/** Development stand-in for the signed-in organisation until platform/tenancy ships. */
-const DEMO_ORGANISATION = { name: "Demo Sports College", academyType: "sports-college" };
 
 function fromUrl(key: string, fallback: string, valid: (v: string) => boolean): string {
   const value = new URLSearchParams(window.location.search).get(key) ?? fallback;
@@ -25,27 +22,26 @@ function setUrl(key: string, value: string) {
 }
 
 /**
- * Until platform/identity and platform/tenancy ship, the role comes from `?role=<id>`, the
- * plan from `?plan=<id>`, and every permission is granted. The entitlement rule itself is the
- * real one (profile ∩ plan), so what each plan unlocks can be previewed here.
+ * Until platform/identity and platform/tenancy ship, the academy comes from `?academy=<profile>`,
+ * the role from `?role=<id>`, the plan from `?plan=<id>`, and every permission is granted.
+ * The entitlement rule itself is the real one (profile ∩ plan).
  */
 export function App() {
-  const [role, setRole] = useState<RoleId>(() => fromUrl("role", "student", isRoleId) as RoleId);
+  const [academy, setAcademy] = useState(() => fromUrl("academy", "sports-college", (v) => v in profiles));
   const [planId, setPlanId] = useState(() => fromUrl("plan", "trial", (v) => v in plans));
+  const profile = profiles[academy]!;
+  const roles = useMemo(() => rolesForProfile(profile.roles), [profile]);
+  const [role, setRole] = useState(() => fromUrl("role", "student", (v) => roles.some((r) => r.id === v)));
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     registerEnabledModules().then(() => setReady(true));
   }, []);
 
-  const profile = profiles[DEMO_ORGANISATION.academyType];
-  const plan = plans[planId];
-  const entitlement = useMemo(
-    () => (profile && plan ? computeEntitlement(profile, plan) : undefined),
-    [profile, plan],
-  );
+  const plan = plans[planId]!;
+  const entitlement = useMemo(() => computeEntitlement(profile, plan), [profile, plan]);
 
-  const changeRole = (next: RoleId) => {
+  const changeRole = (next: string) => {
     setUrl("role", next);
     setRole(next);
   };
@@ -53,22 +49,28 @@ export function App() {
     setUrl("plan", next);
     setPlanId(next);
   };
+  const changeAcademy = (next: string) => {
+    setUrl("academy", next);
+    setAcademy(next);
+    const nextRoles = rolesForProfile(profiles[next]!.roles);
+    if (!nextRoles.some((r) => r.id === role)) changeRole("student");
+  };
 
   return (
     <main className="eos-app">
       <header className="eos-app__bar">
         <strong>Education OS</strong>
-        <RoleSwitcher value={role} onChange={changeRole} />
+        <RoleSwitcher roles={roles} value={role} onChange={changeRole} />
       </header>
-      {entitlement && profile ? (
-        <TenantBar
-          organisation={DEMO_ORGANISATION.name}
-          academyTitle={profile.title}
-          entitlement={entitlement}
-          plans={plans}
-          onChangePlan={changePlan}
-        />
-      ) : null}
+      <TenantBar
+        organisation={`Demo ${profile.title.split(" / ")[0]}`}
+        profile={profile}
+        profiles={profiles}
+        entitlement={entitlement}
+        plans={plans}
+        onChangePlan={changePlan}
+        onChangeAcademy={changeAcademy}
+      />
       {ready ? (
         <Dashboard
           role={role}

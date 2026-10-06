@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: projects API
+  version: 0.1.0
+  description: "Projects with milestones, teams and reviews: capstone, film, live business, research, artwork."
+servers:
+  - url: /api/v1/projects
+paths: {}
+components:
+  schemas: {}

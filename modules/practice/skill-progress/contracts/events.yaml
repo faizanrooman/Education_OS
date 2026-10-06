@@ -1,0 +1,9 @@
+# Domain events published by skill-progress.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: skill-progress
+version: 1
+events: []
+#  - name: skill-progress.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

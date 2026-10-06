@@ -1,0 +1,11 @@
+# Permission catalogue for portfolio. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: portfolio
+permissions: []
+#  - key: portfolio:record:read
+#    description: ...
+#  - key: portfolio:record:write
+#    description: ...
+roles: []
+#  - name: portfolio-admin
+#    grants: [portfolio:record:read, portfolio:record:write]

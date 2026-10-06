@@ -1,0 +1,10 @@
+# Dashboard layout for the Farm Supervisor role at a Agriculture / Veterinary / Field Sciences (ADR-0004 profile agriculture-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: farm-supervisor
+title: "Farm Supervisor"
+extends: faculty
+widgets:
+  - field-training.trainees-to-assess
+  - facility-booking.bookings-today
+  - inventory-equipment.low-stock
+  - projects.active

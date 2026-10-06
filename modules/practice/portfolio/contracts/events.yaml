@@ -1,0 +1,9 @@
+# Domain events published by portfolio.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: portfolio
+version: 1
+events: []
+#  - name: portfolio.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

@@ -9,7 +9,7 @@ plans:
     trial_days: 30
     price_per_month: 0
     currency: INR
-    suites: [student-lifecycle, academics, support]
+    suites: [student-lifecycle, academics, practice, support]
     modules: []
     specialized_suites: 1        # how many of the profile's specialized suites are on
     integrations: [messaging-providers]
@@ -21,7 +21,7 @@ plans:
     description: "Every common suite plus the profile's specialized suites."
     price_per_month: 24999
     currency: INR
-    suites: [student-lifecycle, academics, facilities, finance-operations, campus-life, governance, support]
+    suites: [student-lifecycle, academics, practice, facilities, finance-operations, campus-life, governance, support]
     modules: []
     specialized_suites: all
     integrations: [messaging-providers, payment-sbiepay, video-conferencing, digilocker]

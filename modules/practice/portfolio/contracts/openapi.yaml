@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: portfolio API
+  version: 0.1.0
+  description: "Learner portfolios: artworks, repertoire, showreels, designs, teaching and research portfolios."
+servers:
+  - url: /api/v1/portfolio
+paths: {}
+components:
+  schemas: {}

@@ -18,7 +18,7 @@ Architecture diagram: [docs/architecture/diagrams/high-level-architecture.png](d
 
 | Folder | What lives here | Portable? |
 |---|---|---|
-| [`modules/`](modules/) | Business feature modules, grouped by domain (suite) | Yes, one folder each |
+| [`modules/`](modules/) | Business feature modules, grouped by domain (suite). `practice/` holds the generic patterns every academy type shares | Yes, one folder each |
 | [`platform/`](platform/) | Core services: identity, events, notification, workflow, audit, search, documents, reporting, scheduler, gateway, integration hub. Institution profiles and dashboard layouts live under `platform/identity/config/` | Yes |
 | [`integrations/`](integrations/) | Adapters to external systems (payment, DigiLocker, NAD, government portals, messaging, video, wearables) | Yes |
 | [`packages/`](packages/) | Shared libraries: contracts, ui-kit, core, sdk, testing | Versioned |

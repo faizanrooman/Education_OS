@@ -1,0 +1,10 @@
+# Dashboard layout for the Project Guide role at a Engineering / Technology College (ADR-0004 profile engineering-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: project-guide
+title: "Project Guide"
+extends: faculty
+widgets:
+  - projects.to-review
+  - projects.active
+  - skill-progress.assessments-due
+  - field-training.trainees-to-assess

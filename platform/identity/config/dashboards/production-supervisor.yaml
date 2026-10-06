@@ -1,0 +1,10 @@
+# Dashboard layout for the Production Supervisor role at a Film / Media / Animation Institute (ADR-0004 profile film-media-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: production-supervisor
+title: "Production Supervisor"
+extends: faculty
+widgets:
+  - projects.to-review
+  - projects.active
+  - productions.in-preparation
+  - selection-process.to-judge

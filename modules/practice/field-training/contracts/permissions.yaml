@@ -1,0 +1,11 @@
+# Permission catalogue for field-training. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: field-training
+permissions: []
+#  - key: field-training:record:read
+#    description: ...
+#  - key: field-training:record:write
+#    description: ...
+roles: []
+#  - name: field-training-admin
+#    grants: [field-training:record:read, field-training:record:write]

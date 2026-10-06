@@ -1,0 +1,9 @@
+# Dashboard layout for the Hospital Coordinator role at a Medical / Health Sciences College (ADR-0004 profile medical-college).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: hospital-coordinator
+title: "Hospital Coordinator"
+widgets:
+  - field-training.active-placements
+  - field-training.placements-open
+  - facility-booking.bookings-today
+  - regulatory-reports.due

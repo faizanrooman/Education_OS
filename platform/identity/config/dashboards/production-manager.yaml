@@ -1,0 +1,9 @@
+# Dashboard layout for the Production Manager role at a Dance / Performing Arts Academy (ADR-0004 profile dance-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: production-manager
+title: "Production Manager"
+widgets:
+  - productions.calendar
+  - productions.upcoming
+  - inventory-equipment.low-stock
+  - facility-booking.bookings-today

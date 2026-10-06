@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: field-training API
+  version: 0.1.0
+  description: "Field training placements: clinical rotations, teaching practice, farm rotations, internships, court visits."
+servers:
+  - url: /api/v1/field-training
+paths: {}
+components:
+  schemas: {}

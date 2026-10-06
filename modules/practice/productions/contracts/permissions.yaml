@@ -1,0 +1,11 @@
+# Permission catalogue for productions. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: productions
+permissions: []
+#  - key: productions:record:read
+#    description: ...
+#  - key: productions:record:write
+#    description: ...
+roles: []
+#  - name: productions-admin
+#    grants: [productions:record:read, productions:record:write]

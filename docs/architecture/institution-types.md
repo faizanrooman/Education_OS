@@ -46,14 +46,18 @@ common module. The profile supplies the vocabulary.
 
 | Pattern | Common module | Appears as |
 |---|---|---|
-| Resource booking | `facilities/facility-booking` (generalise) | Practice rooms, studios, labs, pitches, training kitchens, equipment, venues |
-| Specialized inventory | `facilities/inventory-equipment` (generalise) | Instruments, costumes and props, lab gear, art materials, sports equipment |
-| Portfolio | new, common | Artist portfolio, design portfolio, showreel, teaching portfolio, research publications |
-| Selection process | new, common | Auditions, casting, squad selection, moot court teams, supervisor allocation |
-| Productions and events | `sports/tournament-events` (generalise) | Tournaments, performances, exhibitions, screenings, hackathons, case competitions, conferences |
-| Projects | new, common | Capstone, film, live business, research, artwork projects, research trials |
-| Field training | `campus-life/placement-career` (extend) | Clinical rotations, teaching practice, farm rotations, internships, residency, court visits |
-| Skill progress | `sports/athlete-performance` (generalise the assessment core) | Athlete metrics, dance progression, practicum assessment, skills training |
+| Resource booking | `facilities/facility-booking` | Practice rooms, studios, labs, pitches, training kitchens, equipment, venues |
+| Specialized inventory | `facilities/inventory-equipment` | Instruments, costumes and props, lab gear, art materials, sports equipment |
+| Portfolio | `practice/portfolio` | Artist portfolio, design collection, showreel, teaching portfolio, publications |
+| Selection process | `practice/selection-process` | Auditions, casting, squad selection, jury rounds, moot court teams, supervisor allocation |
+| Productions and events | `practice/productions` | Performances, exhibitions, recitals, screenings, hackathons, case competitions, conferences |
+| Projects | `practice/projects` | Capstone, film, live business, research, artwork projects, research trials |
+| Field training | `practice/field-training` | Clinical rotations, teaching practice, farm rotations, internships, residency, court visits |
+| Skill progress | `practice/skill-progress` | Technique grades, practicum assessment, skills training, competency tracking |
+
+The `practice` suite is common: every academy gets it. Sports keeps its own specialized modules
+(athlete-performance, training-video-analysis, sports-nutrition-health, tournament-events) because
+it was built first; they are candidates to fold into the patterns later.
 
 What stays specialized: anything with domain rules a pattern cannot carry, such as injury
 and physio records, hospital integration, scripts and rights, thesis and viva, wearables.
@@ -71,9 +75,33 @@ and physio records, hospital integration, scripts and rights, thesis and viva, w
 | engineering-college | all | labs (booking), capstone (projects), industrial training (field training), innovation, placements |
 | management-institute | all | case competitions (events), corporate relations, live projects (projects), internships, alumni |
 
-Only `sports-college` exists today. Each other profile is created when there is a customer for it.
-An organisation picks one of these at registration as its academy type (ADR-0005); the plan it is on
-then decides how much of the profile is unlocked.
+All 15 profiles exist in `platform/identity/config/profiles/`. An organisation picks one at
+registration as its academy type (ADR-0005); the plan it is on decides how much is unlocked.
+
+## Roles per academy
+
+Every academy has the common roles (applicant, student, faculty, examination staff, department
+admin, finance, HR, facilities, governance, support, management, organisation admin) plus its own
+learner role extending `student`, instructor role extending `faculty`, and one field staff role.
+Each has a dashboard layout built from the generic modules above, named by the profile vocabulary.
+
+| Academy | Learner | Instructor | Field staff |
+|---|---|---|---|
+| Sports college | Athlete | Coach | Medical staff, Nutritionist |
+| Arts academy | Artist | Studio instructor | Exhibition and gallery manager |
+| Design / fashion | Designer | Design mentor | Industry liaison |
+| Music academy | Musician | Music teacher | Ensemble / orchestra director |
+| Dance academy | Dancer | Choreographer | Production manager |
+| Theatre academy | Actor | Director | Stage manager |
+| Film / media | Filmmaker | Production supervisor | Equipment manager |
+| Medical college | Medical student | Clinical supervisor | Hospital coordinator |
+| Law college | Law student | Legal mentor | Moot court coordinator |
+| Engineering college | Engineering student | Project guide | Lab in-charge |
+| Management institute | Management student | Corporate mentor | Placement officer |
+| Agriculture college | Field trainee | Farm supervisor | Research lead |
+| Hospitality institute | Hospitality trainee | Chef / operations instructor | Industry coordinator |
+| Teacher education | Teacher trainee | Mentor teacher | Practicum coordinator |
+| Research university | Research scholar | Research supervisor | Research office |
 
 ## Positioning
 

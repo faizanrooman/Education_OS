@@ -1,0 +1,9 @@
+# Dashboard layout for the Equipment Manager role at a Film / Media / Animation Institute (ADR-0004 profile film-media-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: equipment-manager
+title: "Equipment Manager"
+widgets:
+  - inventory-equipment.low-stock
+  - inventory-equipment.overdue-loans
+  - facility-booking.bookings-today
+  - maintenance.tickets

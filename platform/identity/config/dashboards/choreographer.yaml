@@ -1,0 +1,10 @@
+# Dashboard layout for the Choreographer role at a Dance / Performing Arts Academy (ADR-0004 profile dance-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: choreographer
+title: "Choreographer"
+extends: faculty
+widgets:
+  - productions.in-preparation
+  - selection-process.to-judge
+  - skill-progress.assessments-due
+  - facility-booking.bookings-today

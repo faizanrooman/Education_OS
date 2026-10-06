@@ -1,0 +1,12 @@
+# Dashboard layout for the Hospitality Trainee role at a Hospitality / Hotel Management (ADR-0004 profile hospitality-institute).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: hospitality-trainee
+title: "Hospitality Trainee"
+extends: student
+widgets:
+  - field-training.my-placement
+  - skill-progress.my-progress
+  - facility-booking.my-bookings
+  - productions.upcoming
+  - inventory-equipment.my-loans
+  - placement-career.openings

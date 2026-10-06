@@ -1,0 +1,11 @@
+# Permission catalogue for selection-process. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: selection-process
+permissions: []
+#  - key: selection-process:record:read
+#    description: ...
+#  - key: selection-process:record:write
+#    description: ...
+roles: []
+#  - name: selection-process-admin
+#    grants: [selection-process:record:read, selection-process:record:write]

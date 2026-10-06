@@ -1,0 +1,12 @@
+# Dashboard layout for the Musician role at a Music Academy / Conservatory (ADR-0004 profile music-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: musician
+title: "Musician"
+extends: student
+widgets:
+  - portfolio.my-portfolio
+  - facility-booking.my-bookings
+  - selection-process.upcoming
+  - productions.upcoming
+  - skill-progress.my-progress
+  - inventory-equipment.my-loans

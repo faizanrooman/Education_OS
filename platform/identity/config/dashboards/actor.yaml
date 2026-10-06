@@ -1,0 +1,11 @@
+# Dashboard layout for the Actor role at a Theatre / Drama Academy (ADR-0004 profile theatre-academy).
+# Widgets come from the generic practice, facilities and academics modules; the profile vocabulary names them.
+role: actor
+title: "Actor"
+extends: student
+widgets:
+  - productions.my-roles
+  - selection-process.upcoming
+  - facility-booking.my-bookings
+  - portfolio.my-portfolio
+  - inventory-equipment.my-loans
