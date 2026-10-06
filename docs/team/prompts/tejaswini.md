@@ -57,7 +57,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - field-training contract as the generic pattern
   - projects contract as the generic pattern
   - Agree the Student dashboard widgets with Shivani and Gokula Lakshmi
-  - **Who I depend on:** The Student dashboard pulls widgets from Shivani's academics modules and Gokula Lakshmi's fees-accounts; I add those widgets in their modules and they review.
+- **Who I depend on:** The Student dashboard pulls widgets from Shivani's academics modules and Gokula Lakshmi's fees-accounts; I add those widgets in their modules and they review.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

@@ -55,7 +55,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - PRD and contracts for admissions and student-information (the Person system of record)
   - PRD and contracts for web-portal-cms including the sign-up page
   - Contracts for portfolio and selection-process as generic patterns
-  - **Who I depend on:** student-information is referenced by almost every module; I publish its contract first. Gokula Lakshmi owns fees-accounts (the Applicant dashboard's fee widget). Himanshu owns notification (sign-up emails).
+- **Who I depend on:** student-information is referenced by almost every module; I publish its contract first. Gokula Lakshmi owns fees-accounts (the Applicant dashboard's fee widget). Himanshu owns notification (sign-up emails).
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

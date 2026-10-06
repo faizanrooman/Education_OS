@@ -55,7 +55,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - payment-sbiepay adapter contract (billing upgrades and fee payments)
   - PRD and contracts for fees-accounts
   - Contracts for hr-payroll, budget-grants, procurement, e-office
-  - **Who I depend on:** Faizan's billing service needs your payment adapter for paid upgrades. Praveen (Applicant) and Tejaswini (Student) need fee widgets from fees-accounts.
+- **Who I depend on:** Faizan's billing service needs my payment adapter for paid upgrades. Praveen (Applicant) and Tejaswini (Student) need fee widgets from fees-accounts.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

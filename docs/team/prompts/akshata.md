@@ -55,7 +55,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - PRD and contracts for the sports modules
   - skill-progress contract as a generic pattern
   - Split the Examination Staff widgets with Shivani
-  - **Who I depend on:** Shivani owns examinations, where my first dashboard's widgets live; agree with her which widgets I add there.
+- **Who I depend on:** Shivani owns examinations, where my first dashboard's widgets live; I agree with her which widgets I add there.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

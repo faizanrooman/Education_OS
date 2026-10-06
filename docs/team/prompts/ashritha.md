@@ -53,7 +53,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - facility-booking contract as the generic resource-booking pattern
   - inventory-equipment contract as the generic inventory pattern
   - Contracts for maintenance and asset-management
-  - **Who I depend on:** facility-booking is used by 27 dashboards: I keep its names generic (resource, booking) and take labels from the academy profile vocabulary. Akshata owns sports-facilities next to your folder.
+- **Who I depend on:** facility-booking is used by 27 dashboards: I keep its names generic (resource, booking) and take labels from the academy profile vocabulary. Akshata owns sports-facilities next to your folder.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

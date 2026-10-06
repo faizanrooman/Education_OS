@@ -61,7 +61,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - messaging-providers adapter contract (email first)
   - Outbox relay design
   - Audit contract
-  - **Who I depend on:** Every module depends on notification, audit and the event bus; I publish their contracts early. Faizan reviews contracts. Praveen's sign-up flow needs email from notification.
+- **Who I depend on:** Every module depends on notification, audit and the event bus; I publish their contracts early. Faizan reviews contracts. Praveen's sign-up flow needs email from notification.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

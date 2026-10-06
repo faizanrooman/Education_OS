@@ -64,7 +64,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - Permission enforcement from the role catalogue in every platform router
   - ADR-0006: OIDC provider (Keycloak recommended)
   - Pair with Srujan on the API deployment
-  - **Who I depend on:** I review every contract PR; contract reviews are the one thing all nine teammates wait on, so I do them first each morning. Srujan (apps, infra) for the API deployment; Gokula Lakshmi for the payment adapter that billing depends on.
+- **Who I depend on:** I review every contract PR; contract reviews are the one thing all nine teammates wait on, so I do them first each morning. Srujan (apps, infra) for the API deployment; Gokula Lakshmi for the payment adapter that billing depends on.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

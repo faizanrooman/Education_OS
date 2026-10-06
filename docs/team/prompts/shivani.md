@@ -53,7 +53,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - PRD and contracts for academic-management and timetable-attendance
   - PRD and contracts for examinations and lms; agree the events other dashboards consume
   - Review Akshata's Examination Staff widget list
-  - **Who I depend on:** My modules feed the Student (Tejaswini), Examination Staff (Akshata) and Department Admin (Himanshu) dashboards; they will add widgets in your modules and I review those PRs.
+- **Who I depend on:** My modules feed the Student (Tejaswini), Examination Staff (Akshata) and Department Admin (Himanshu) dashboards; they will add widgets in your modules and I review those PRs.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

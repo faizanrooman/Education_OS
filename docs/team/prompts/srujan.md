@@ -57,7 +57,7 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
   - CI: boundary lint, manifest check, migration check for organisation_id
   - packages/testing platform stubs
   - Playwright end-to-end skeleton: register, approve, sign in, dashboard
-  - **Who I depend on:** Faizan for the API deployment and anything in tools/ or workflows. Everyone registers their module in apps/backend and apps/frontend; I review those small PRs quickly.
+- **Who I depend on:** Faizan for the API deployment and anything in tools/ or workflows. Everyone registers their module in apps/backend and apps/frontend; I review those small PRs quickly.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**
