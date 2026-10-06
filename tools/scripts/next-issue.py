@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REPO = "faizanrooman/Education_OS"
 WAVE_ORDER = {"week-1": 0, "wave:A": 1, "wave:B": 2, "wave:C": 3, "wave:D": 4}
 IN_PROGRESS = "status:in-progress"
-OWNER_RE = re.compile(r"\*\*Owner:\*\*\s*([^\n]+)")
+OWNER_RE = re.compile(r"\*\*Owner:\*\*\s*([^\n·]+?)\s*(?:·|$)", re.M)
 
 
 def gh(*args: str, check: bool = True) -> str:
