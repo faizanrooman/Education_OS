@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Continuous assignment: one open issue per person, the next one handed out the moment the last closes.
 
-Queue order for a person: their "Week 1" task, then their own dashboards by wave A, B, C, D (lowest
-issue number first), then the pool (label `pool`) by wave and number. Run by
+Queue order for a person: Week 1 task, foundation tasks (phase:foundation), their modules to build
+(type:module, in dependency order), their dashboards by wave A, B, C, D, production readiness
+(phase:production), then the pool (label `pool`) in the same order. Run by
 .github/workflows/auto-assign.yml on every issue close and on demand (kickoff).
 
   next-issue.py --event closed --issue 42      # the person who closed #42 gets their next issue
@@ -23,7 +24,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 REPO = "faizanrooman/Education_OS"
-WAVE_ORDER = {"week-1": 0, "wave:A": 1, "wave:B": 2, "wave:C": 3, "wave:D": 4}
+# Queue order per person. Lower first. Within a rank, lowest issue number first (issues were created in dependency order).
+WAVE_ORDER = {"week-1": 0, "phase:foundation": 1, "type:module": 2, "wave:A": 3, "wave:B": 4, "wave:C": 5, "wave:D": 6, "phase:production": 7}
 IN_PROGRESS = "status:in-progress"
 OWNER_RE = re.compile(r"\*\*Owner:\*\*\s*([^\n·]+?)\s*(?:·|$)", re.M)
 
