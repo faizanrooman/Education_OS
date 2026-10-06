@@ -6,8 +6,10 @@ and supports its students.**
 A configurable higher-education platform: a core, common suites every institution runs
 (admissions, academics, examinations, finance, campus life, governance, support), specialized
 suites per field (sports first; arts, music, design, film, medical, law, engineering, management,
-research planned), and an institution profile that says which are on. Built as a **monorepo of
-independent modules**: every feature is a self-contained folder that can be copied into another
+research planned), and an institution profile that says which are on. It is **multi-tenant SaaS**:
+an organisation registers, picks its academy type, starts on a trial and upgrades for more, under
+a super admin who runs the platform ([ADR-0005](docs/architecture/adr/0005-multi-tenant-saas.md)).
+Built as a **monorepo of independent modules**: every feature is a self-contained folder that can be copied into another
 repository and run there.
 
 Architecture diagram: [docs/architecture/diagrams/high-level-architecture.png](docs/architecture/diagrams/high-level-architecture.png)
@@ -20,7 +22,7 @@ Architecture diagram: [docs/architecture/diagrams/high-level-architecture.png](d
 | [`platform/`](platform/) | Core services: identity, events, notification, workflow, audit, search, documents, reporting, scheduler, gateway, integration hub. Institution profiles and dashboard layouts live under `platform/identity/config/` | Yes |
 | [`integrations/`](integrations/) | Adapters to external systems (payment, DigiLocker, NAD, government portals, messaging, video, wearables) | Yes |
 | [`packages/`](packages/) | Shared libraries: contracts, ui-kit, core, sdk, testing | Versioned |
-| [`apps/`](apps/) | Composition roots: web, mobile, api. No business logic | No |
+| [`apps/`](apps/) | Composition roots: web, mobile, api, admin (super admin console). No business logic | No |
 | [`data/`](data/) | Data-layer conventions and shared reference data | No |
 | [`infra/`](infra/) | Docker, Kubernetes, Terraform, monitoring, backup/DR | No |
 | [`docs/`](docs/) | Architecture, ADRs, team ownership, onboarding | No |

@@ -7,8 +7,12 @@ research and others use the same foundation ([ADR-0004](docs/architecture/adr/00
 [institution-types.md](docs/architecture/institution-types.md)).
 
 ```
-platform/ (core)  →  common suites  →  specialized suites  →  institution profile
+platform/ (core)  →  common suites  →  specialized suites  →  academy profile  →  plan  →  organisation
 ```
+
+It is a **multi-tenant SaaS** ([ADR-0005](docs/architecture/adr/0005-multi-tenant-saas.md)): one
+deployment serves many organisations. An organisation registers itself, picks its academy type,
+starts on a trial plan and upgrades for more. A super admin operates the whole platform.
 
 The diagram below is the first customer's view, a sports university. Each layer maps to one folder.
 
@@ -21,6 +25,7 @@ The diagram below is the first customer's view, a sports university. Each layer 
 | Users (roles) | `platform/identity/contracts/permissions.yaml` + each module's `contracts/permissions.yaml` | Roles are compositions of module permissions |
 | Access channels | `apps/web` (browser + PWA), `apps/mobile` | Thin shells that compose module UIs |
 | Identity & security | `platform/identity`, `platform/api-gateway`, `platform/audit` | SSO, RBAC, MFA, sessions, audit |
+| Organisations, plans | `platform/tenancy`, `platform/billing`, `apps/admin` | Registration, entitlements, trial and upgrade, super admin console |
 | Application layer (suites A–G, Global) | `modules/<domain>/<module>` | One folder per box in the diagram |
 | Shared platform services | `platform/*` | Notification, documents, search, workflow, audit, reporting, scheduler, integration hub |
 | API & integration layer | `platform/api-gateway`, `platform/integration-hub`, `integrations/*` | Gateway in front, adapters behind |
@@ -64,6 +69,30 @@ institution. Installing Education OS for an institution means choosing a profile
 - Roles and dashboards are data in the profile, never hard-coded.
 
 `sports-college` is the only profile today. A new institution type starts as a profile.
+Since ADR-0005 the profile is chosen by the organisation at registration and is the template
+for its own configuration.
+
+## Tenancy, plans and the super admin
+
+| Concept | Owner | Meaning |
+|---|---|---|
+| Organisation | `platform/tenancy` | The tenant. Registers itself, chooses an academy type, has one admin, one subscription |
+| Plan | `platform/billing` | `trial`, `standard`, `premium` (super admin can add more): suites, modules, integrations, limits, price |
+| Entitlement | `platform/tenancy` | `profile.modules ∩ plan.modules ∪ overrides − disabled`. Evaluated by the gateway on every request |
+| Super admin | `apps/admin` | Platform operator outside every organisation: organisations, plans, subscriptions, overrides, audited impersonation |
+| Organisation admin | per organisation | Users, roles, settings, subscription of one organisation |
+
+Isolation rules every module follows (module standard, rule 11):
+- every table has `organisation_id`; PostgreSQL row-level security on `app.organisation_id`, set by the gateway from the session;
+- every event envelope carries `organisation_id`; consumers never cross it;
+- documents, search indexes and cache keys are prefixed by organisation;
+- `packages/testing` ships a cross-tenant leak test that every module runs.
+
+Registration flow: `web-portal-cms` sign-up page → `tenancy.register` → organisation pending →
+email verified → `tenancy.organisation.registered` → `billing` starts the trial → `identity`
+creates the org admin → `tenancy.entitlement.changed` → apps show the academy's dashboards.
+Upgrade flow: org admin → `billing.subscription.upgrade` → payment adapter → webhook →
+`billing.subscription.upgraded` → entitlement widens at once, no redeploy.
 
 ## Generic patterns behind specialized suites
 
@@ -128,7 +157,8 @@ Example: `fees-accounts` does not query the admissions tables. It subscribes to
 
 ## Security
 
-- Every request enters via `platform/api-gateway`, which validates the session and attaches the identity.
+- Every request enters via `platform/api-gateway`, which validates the session, attaches the identity and the
+  organisation, sets `app.organisation_id` for row-level security, and refuses routes outside the organisation's entitlement.
 - Modules check permissions by key (`<module>:<resource>:<action>`) via the identity SDK. They never inspect roles directly.
 - Every state change writes to `platform/audit`. Audit records are immutable.
 - MFA, SSO (SAML / OAuth2 / OIDC) and session rules are configured once in `platform/identity`.
@@ -155,8 +185,9 @@ The same modules can be deployed three ways without code changes:
 
 | Shape | How | When |
 |---|---|---|
-| Modular monolith | `apps/api` mounts the profile's modules in one process | Default. One deployment per institution |
-| Grouped services | Several `apps/api` instances, each with a different `modules.enabled.yaml` | Scale hot suites (exams, fees) separately |
+| Multi-tenant monolith | `apps/api` mounts every module; the entitlement decides per organisation and per request what is on | Default. One deployment for all organisations |
+| Grouped services | Several `apps/api` instances, each with a different `modules.enabled.yaml`, behind the gateway | Scale hot suites (exams, fees) separately |
+| Dedicated instance | One `apps/api` and database for a single organisation | A customer who requires physical isolation |
 | Standalone module | Copy one module folder into another repo with `packages/` as a dependency | Reuse in a different product |
 
 ## Stack
@@ -164,4 +195,4 @@ React + TypeScript frontend, FastAPI backend, PostgreSQL database. See [ADR-0002
 
 ## Open decisions
 See [docs/architecture/adr/](docs/architecture/adr/). Pending: event broker, workflow engine, identity provider,
-and the gateway's per-route module-enabled check from ADR-0004.
+the gateway's per-request entitlement check and the row-level-security conventions from ADR-0005.

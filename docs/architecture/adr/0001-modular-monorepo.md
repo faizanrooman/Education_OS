@@ -21,6 +21,8 @@ composition roots that enable modules by config.
 - Some duplication inside modules is accepted over cross-module imports.
 - CI must enforce the import boundary once the stack is chosen.
 - Cross-module reporting is done through the warehouse, not cross-schema joins.
+- Since [ADR-0005](0005-multi-tenant-saas.md), one deployment serves many organisations; every
+  module is tenant-aware.
 
 ## Alternatives considered
 - Polyrepo per module — too much overhead for 11 people at the start; can be done later by copying folders.

@@ -8,6 +8,9 @@ layouts and the field vocabulary. Format and rationale: [ADR-0004](../../../../d
 |---|---|
 | [sports-college.yaml](sports-college.yaml) | Reference profile, matches the first customer |
 
+Since ADR-0005 a profile is also an **academy type** offered at registration. The organisation's
+entitlement is this profile filtered by its plan (`platform/billing/config/plans.yaml`).
+
 Rules
 - Apps take their enabled-module list from the profile. The API gateway refuses routes of
   modules the profile does not list, so disabling a suite is enforced server-side.

@@ -1,0 +1,94 @@
+openapi: 3.1.0
+info:
+  title: billing API
+  version: 0.1.0
+  description: "Plans, trials, subscriptions, upgrades and invoices. See ADR-0005."
+servers:
+  - url: /api/v1/billing
+paths:
+  /plans:
+    get:
+      summary: Plans an organisation can choose (public, used on the pricing and upgrade pages).
+      security: []
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Plan" } } } } } }
+  /subscription:
+    get:
+      summary: The caller's organisation subscription, trial end and usage against limits.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Subscription" } } } } }
+  /subscription/upgrade:
+    post:
+      summary: Start an upgrade to a plan. Returns a payment session from the payment adapter. Permission billing:subscription:manage.
+      requestBody: { content: { application/json: { schema: { type: object, required: [plan], properties: { plan: { type: string }, billing_cycle: { type: string, enum: [monthly, yearly] } } } } } }
+      responses: { "201": { description: Payment session, content: { application/json: { schema: { type: object, properties: { payment_url: { type: string }, reference: { type: string } } } } } } }
+  /subscription/cancel:
+    post:
+      summary: Cancel at the end of the current period. Permission billing:subscription:manage.
+      responses: { "204": { description: Scheduled } }
+  /invoices:
+    get:
+      summary: Invoices of the caller's organisation.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Invoice" } } } } } }
+  /webhooks/payment:
+    post:
+      summary: Payment adapter callback. Confirms an upgrade and activates the subscription.
+      security: []
+      responses: { "204": { description: Processed } }
+  /admin/plans:
+    get:
+      summary: All plans including unpublished. Super admin (platform:plans:manage).
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Plan" } } } } } }
+    post:
+      summary: Create a plan. Super admin.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/Plan" } } } }
+      responses: { "201": { description: Created } }
+  /admin/plans/{id}:
+    put:
+      summary: Edit a plan. Changes apply to existing subscribers at their next period. Super admin.
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/Plan" } } } }
+      responses: { "200": { description: OK } }
+  /admin/subscriptions/{organisation_id}:
+    put:
+      summary: Set an organisation's plan, extend a trial, or comp a subscription. Super admin (platform:subscriptions:manage).
+      parameters: [{ name: organisation_id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { plan: { type: string }, trial_ends_at: { type: string, format: date-time }, comped_until: { type: string, format: date-time }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Subscription" } } } } }
+  /admin/revenue:
+    get:
+      summary: Subscriptions and revenue by plan and month. Super admin.
+      responses: { "200": { description: OK } }
+components:
+  schemas:
+    Plan:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        price_per_month: { type: number }
+        currency: { type: string }
+        trial_days: { type: integer, nullable: true }
+        suites: { type: array, items: { type: string } }
+        modules: { type: array, items: { type: string } }
+        specialized_suites: { oneOf: [{ type: integer }, { type: string, enum: [all] }] }
+        integrations: { type: array, items: { type: string } }
+        limits: { type: object, properties: { users: { type: integer }, students: { type: integer }, storage_gb: { type: integer } } }
+        published: { type: boolean }
+    Subscription:
+      type: object
+      properties:
+        organisation_id: { type: string, format: uuid }
+        plan: { type: string }
+        status: { type: string, enum: [trialing, active, past_due, cancelled, read_only] }
+        trial_ends_at: { type: string, format: date-time, nullable: true }
+        current_period_ends_at: { type: string, format: date-time, nullable: true }
+        usage: { type: object, properties: { users: { type: integer }, students: { type: integer }, storage_gb: { type: number } } }
+    Invoice:
+      type: object
+      properties:
+        id: { type: string }
+        amount: { type: number }
+        currency: { type: string }
+        status: { type: string, enum: [draft, due, paid, void] }
+        issued_at: { type: string, format: date-time }
+        document_id: { type: string, description: "PDF in platform/documents" }

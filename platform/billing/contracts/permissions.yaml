@@ -1,0 +1,17 @@
+module: billing
+permissions:
+  - key: billing:subscription:read
+    description: View own plan, trial, usage and invoices.
+  - key: billing:subscription:manage
+    description: Upgrade, downgrade or cancel own subscription.
+  - key: platform:plans:manage
+    description: Super admin. Create and edit plans.
+  - key: platform:subscriptions:manage
+    description: Super admin. Set any organisation's plan, extend trials, comp subscriptions.
+  - key: platform:revenue:read
+    description: Super admin. Revenue and subscription reports.
+roles:
+  - name: org-admin
+    grants: [billing:subscription:read, billing:subscription:manage]
+  - name: super-admin
+    grants: [platform:plans:manage, platform:subscriptions:manage, platform:revenue:read]

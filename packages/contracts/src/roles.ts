@@ -19,6 +19,9 @@ export const ROLES = [
   { id: "governance", title: "Governance (Grievance / RTI / IQAC)" },
   { id: "support-staff", title: "Support Staff (Helpdesk)" },
   { id: "management", title: "Management (VC, Registrar)" },
+  // Platform-level roles (ADR-0005). org-admin exists in every organisation; super-admin is outside all of them.
+  { id: "org-admin", title: "Organisation Admin" },
+  { id: "super-admin", title: "Super Admin (platform operator)" },
 ] as const;
 
 export type RoleId = (typeof ROLES)[number]["id"];

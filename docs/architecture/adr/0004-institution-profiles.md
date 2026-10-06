@@ -43,8 +43,9 @@ profile's list today and moves into the profile as the identity service is built
   only when there is a second customer; its first deliverable is a profile file.
 - The gateway needs a module-enabled check per route, and CI should fail a profile that
   references a module or role that does not exist.
-- Each institution remains a separate deployment (modular monolith per institution, per
-  ADR-0001). Multi-tenancy in one deployment is out of scope.
+- ~~Each institution remains a separate deployment. Multi-tenancy is out of scope.~~ Superseded
+  by [ADR-0005](0005-multi-tenant-saas.md): one deployment serves many organisations, and the
+  profile is chosen at registration.
 
 ## Alternatives considered
 - One suite per institution type — fifteen suites, mostly duplicates, never finished.

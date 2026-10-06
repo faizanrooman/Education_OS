@@ -6,12 +6,12 @@
 #   tier:   common (default) | specialized | core   field: required when tier is specialized
 set -euo pipefail
 KIND="${1:?kind}"; DOMAIN="${2:?domain}"; NAME="${3:?module-name}"; DESC="${4:?description}"
-TIER="${5:-common}"; FIELD="${6:-}"
+TIER="${5:-common}"; FIELD="${6:-}"; FIX_TSCONFIG=0
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 case "$KIND" in
   feature)     DEST="$ROOT/modules/$DOMAIN/$NAME" ;;
-  platform)    DEST="$ROOT/platform/$NAME"; TIER=core ;;
-  integration) DEST="$ROOT/integrations/$NAME" ;;
+  platform)    DEST="$ROOT/platform/$NAME"; TIER=core; FIX_TSCONFIG=1 ;;
+  integration) DEST="$ROOT/integrations/$NAME"; FIX_TSCONFIG=1 ;;
   *) echo "kind must be feature, platform or integration"; exit 1 ;;
 esac
 [ "$TIER" = specialized ] && [ -z "$FIELD" ] && { echo "specialized modules need a field, e.g. sports"; exit 1; }
@@ -25,5 +25,7 @@ grep -rl -e __MODULE_NAME__ -e __DOMAIN__ -e MODULE_NAME_ -e '<ONE LINE DESCRIPT
 done
 [ -n "$FIELD" ] && sed -i "/^tier: /a field: $FIELD       # only for specialized: sports | music | arts | ..." "$DEST/module.yaml"
 sed -i '/canonical module template/,/replaces placeholders\./d' "$DEST/README.md"
+# platform/ and integrations/ are one level shallower than modules/<domain>/<name>
+[ "$FIX_TSCONFIG" = 1 ] && sed -i 's|"../../../../tsconfig.base.json"|"../../../tsconfig.base.json"|' "$DEST/frontend/tsconfig.json"
 echo "created $DEST"
 echo "next: add it to CODEOWNERS and docs/team/ownership.md"

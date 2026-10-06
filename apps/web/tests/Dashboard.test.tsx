@@ -50,6 +50,27 @@ describe("Dashboard", () => {
     expect(screen.getByRole("heading", { name: "library.loans" })).toBeTruthy();
   });
 
+  it("hides widgets of modules outside the entitlement, or shows them locked for an org admin", () => {
+    const registry = new WidgetRegistry();
+    registry.register([feeDues]);
+    const entitlement = {
+      plan: "trial",
+      academyType: "sports-college",
+      modules: new Set(["campus-life/library"]),
+      moduleNames: new Set(["library"]),
+      upgradableModules: ["finance-operations/fees-accounts"],
+      limits: { users: 1, students: 1, storage_gb: 1 },
+    };
+    const { unmount } = render(<Dashboard role="student" layouts={layouts} registry={registry} permissions="all" entitlement={entitlement} />);
+    expect(screen.queryByText("₹ 1,200 due")).toBeNull();
+    expect(screen.getByRole("heading", { name: "library.loans" })).toBeTruthy();
+    unmount();
+
+    render(<Dashboard role="student" layouts={layouts} registry={registry} permissions="all" entitlement={entitlement} canUpgrade />);
+    expect(screen.getByText(/Not in your plan/)).toBeTruthy();
+    expect(screen.queryByText("₹ 1,200 due")).toBeNull();
+  });
+
   it("reports a role with no layout", () => {
     render(<Dashboard role="ghost" layouts={layouts} registry={new WidgetRegistry()} permissions="all" />);
     expect(screen.getByRole("alert").textContent).toContain('No dashboard layout for role "ghost"');

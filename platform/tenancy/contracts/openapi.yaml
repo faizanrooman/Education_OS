@@ -1,0 +1,158 @@
+openapi: 3.1.0
+info:
+  title: tenancy API
+  version: 0.1.0
+  description: "Organisations (tenants), self-service registration, academy type, entitlements. See ADR-0005."
+servers:
+  - url: /api/v1/tenancy
+paths:
+  /register:
+    post:
+      summary: Register a new organisation (public). Creates it on the trial plan with its first admin user.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegistrationRequest" }
+      responses:
+        "201": { description: Organisation created, verification email sent, content: { application/json: { schema: { $ref: "#/components/schemas/Organisation" } } } }
+        "409": { description: Slug or admin email already in use }
+  /register/verify:
+    post:
+      summary: Confirm the admin email and activate the organisation.
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, required: [token], properties: { token: { type: string } } } } } }
+      responses: { "204": { description: Activated } }
+  /academy-types:
+    get:
+      summary: Academy types an organisation can choose at registration (the institution profiles).
+      security: []
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/AcademyType" } } } } }
+  /organisation:
+    get:
+      summary: The caller's organisation.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Organisation" } } } } }
+    patch:
+      summary: Update name, branding or settings. Permission tenancy:organisation:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/OrganisationUpdate" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Organisation" } } } } }
+  /organisation/entitlement:
+    get:
+      summary: Effective entitlement of the caller's organisation. The gateway and apps use this.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Entitlement" } } } } }
+  /organisation/modules/{module}:
+    put:
+      summary: Turn one entitled module on or off for this organisation. Permission tenancy:organisation:manage.
+      parameters: [{ name: module, in: path, required: true, schema: { type: string } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [enabled], properties: { enabled: { type: boolean } } } } } }
+      responses: { "200": { description: OK }, "402": { description: Module not in the current plan } }
+  /admin/organisations:
+    get:
+      summary: List every organisation. Super admin only (platform:organisations:read).
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/OrganisationStatus" } }
+        - { name: plan, in: query, schema: { type: string } }
+        - { name: academy_type, in: query, schema: { type: string } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Organisation" } } } } } }
+  /admin/organisations/{id}:
+    get:
+      summary: One organisation with its entitlement and usage. Super admin only.
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/OrganisationDetail" } } } } }
+  /admin/organisations/{id}/status:
+    put:
+      summary: Activate, suspend or archive an organisation. Super admin only (platform:organisations:manage).
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [status, reason], properties: { status: { $ref: "#/components/schemas/OrganisationStatus" }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK } }
+  /admin/organisations/{id}/overrides:
+    put:
+      summary: Grant or revoke modules outside the plan for one organisation. Super admin only (platform:entitlements:manage).
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/Overrides" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Entitlement" } } } } }
+  /admin/organisations/{id}/impersonate:
+    post:
+      summary: Start an audited impersonation session as an organisation user. Super admin only (platform:organisations:impersonate).
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [user_id, reason], properties: { user_id: { type: string, format: uuid }, reason: { type: string } } } } } }
+      responses: { "201": { description: Session token, content: { application/json: { schema: { type: object, properties: { token: { type: string }, expires_at: { type: string, format: date-time } } } } } } }
+components:
+  schemas:
+    OrganisationStatus:
+      type: string
+      enum: [pending_verification, active, suspended, archived]
+    AcademyType:
+      type: object
+      properties:
+        id: { type: string, description: "Institution profile id, e.g. sports-college" }
+        title: { type: string }
+        description: { type: string }
+        specialized_suites: { type: array, items: { type: string } }
+    RegistrationRequest:
+      type: object
+      required: [organisation_name, slug, academy_type, admin]
+      properties:
+        organisation_name: { type: string }
+        slug: { type: string, pattern: "^[a-z0-9-]{3,40}$", description: "Used in the organisation's URL" }
+        academy_type: { type: string, description: "AcademyType.id" }
+        country: { type: string }
+        admin:
+          type: object
+          required: [name, email, password]
+          properties:
+            name: { type: string }
+            email: { type: string, format: email }
+            password: { type: string, format: password }
+        accepted_terms: { type: boolean }
+    Organisation:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        academy_type: { type: string }
+        status: { $ref: "#/components/schemas/OrganisationStatus" }
+        plan: { type: string, description: "Current plan id from billing" }
+        trial_ends_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+    OrganisationUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        logo_document_id: { type: string }
+        settings: { type: object, additionalProperties: true }
+    Entitlement:
+      type: object
+      description: "What this organisation may use right now. Evaluated by the gateway on every request."
+      properties:
+        organisation_id: { type: string, format: uuid }
+        plan: { type: string }
+        academy_type: { type: string }
+        modules: { type: array, items: { type: string }, description: "<domain>/<module> paths that are on" }
+        integrations: { type: array, items: { type: string } }
+        limits: { $ref: "#/components/schemas/Limits" }
+        upgradable_modules: { type: array, items: { type: string }, description: "In the profile but not in the plan; show an upgrade prompt" }
+        evaluated_at: { type: string, format: date-time }
+    Limits:
+      type: object
+      properties:
+        users: { type: integer }
+        students: { type: integer }
+        storage_gb: { type: integer }
+    Overrides:
+      type: object
+      properties:
+        grant_modules: { type: array, items: { type: string } }
+        revoke_modules: { type: array, items: { type: string } }
+        reason: { type: string }
+    OrganisationDetail:
+      allOf:
+        - { $ref: "#/components/schemas/Organisation" }
+        - type: object
+          properties:
+            entitlement: { $ref: "#/components/schemas/Entitlement" }
+            usage: { type: object, properties: { users: { type: integer }, students: { type: integer }, storage_gb: { type: number } } }
+            admin_email: { type: string, format: email }

@@ -1,0 +1,31 @@
+# Module manifest — the single source of truth about this module.
+# Read docs/architecture/module-standard.md before editing.
+name: tenancy
+kind: platform              # feature | platform | integration
+domain: platform
+tier: core          # core (platform) | common (every institution) | specialized (one field)
+version: 0.1.0
+status: planned           # planned | in-progress | stable | deprecated
+description: "Organisations (tenants), self-service registration, academy type, entitlements."
+owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
+
+# Platform services this module calls through packages/sdk. Nothing else.
+depends_on:
+  platform: [identity, audit, notification, billing]
+  integrations: []
+
+# Public surface. Other modules may ONLY use these.
+exposes:
+  api: contracts/openapi.yaml
+  events: contracts/events.yaml
+  permissions: contracts/permissions.yaml
+
+# Events this module subscribes to (by name, from other modules' events.yaml).
+consumes_events:
+  - billing.subscription.started
+  - billing.subscription.upgraded
+  - billing.subscription.expired
+  - billing.trial.expired
+
+config: config/env.example
+portable: false

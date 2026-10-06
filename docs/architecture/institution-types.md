@@ -72,6 +72,8 @@ and physio records, hospital integration, scripts and rights, thesis and viva, w
 | management-institute | all | case competitions (events), corporate relations, live projects (projects), internships, alumni |
 
 Only `sports-college` exists today. Each other profile is created when there is a customer for it.
+An organisation picks one of these at registration as its academy type (ADR-0005); the plan it is on
+then decides how much of the profile is unlocked.
 
 ## Positioning
 

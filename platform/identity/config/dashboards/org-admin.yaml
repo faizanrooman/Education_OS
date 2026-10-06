@@ -1,0 +1,10 @@
+# Dashboard layout for the Organisation Admin role (ADR-0005). Exists in every organisation.
+role: org-admin
+title: "Organisation Admin"
+widgets:
+  - billing.plan-and-trial
+  - billing.usage-vs-limits
+  - tenancy.enabled-modules
+  - identity.users-and-roles
+  - billing.invoices
+  - audit.recent-activity

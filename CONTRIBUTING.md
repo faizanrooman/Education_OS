@@ -32,6 +32,7 @@ A PR touches **one module** unless it is a contract change plus its consumers.
 - [ ] README and CHANGELOG updated
 - [ ] Audit events emitted for every state change
 - [ ] Permission keys registered
+- [ ] Every new table has `organisation_id` and an RLS policy; cross-tenant leak test passes
 
 ## Commits
 Conventional commits scoped by module: `feat(admissions): add merit list generation`.

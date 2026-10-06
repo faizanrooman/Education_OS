@@ -12,6 +12,9 @@ widgets:
   - athlete-performance.training-schedule   # <module>.<widget>, exported by that module
 ```
 
+Two layouts are platform-level rather than academy-level: `org-admin` (one per organisation,
+created at registration) and `super-admin` (the operator, served by `apps/admin`).
+
 Rules
 - A widget id must be exported by exactly one module's `frontend/src/widgets/index.ts`.
   Until the module ships it, the shell renders a "not built yet" card with the id, so a

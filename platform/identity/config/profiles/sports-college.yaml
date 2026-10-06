@@ -75,6 +75,7 @@ roles:
   - { id: governance,         title: "Governance (Grievance / RTI / IQAC)" }
   - { id: support-staff,      title: "Support Staff (Helpdesk)" }
   - { id: management,         title: "Management (VC, Registrar)" }
+  - { id: org-admin,          title: "Organisation Admin" }     # created at registration (ADR-0005)
 
 # Field vocabulary for generic modules. Key = <module>.<term>, value = the word this institution uses.
 vocabulary:

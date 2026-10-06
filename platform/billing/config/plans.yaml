@@ -1,0 +1,40 @@
+# Plans. The super admin edits these in apps/admin; this file is the seed and the default.
+# An organisation's entitlement = modules in its academy profile that its plan allows,
+# plus super-admin overrides. "suites" and "modules" accept suite names (every module in the
+# suite) or <domain>/<module> paths. "*" means everything.
+plans:
+  - id: trial
+    title: "Trial"
+    description: "Try the common platform and one specialized suite, free for 30 days."
+    trial_days: 30
+    price_per_month: 0
+    currency: INR
+    suites: [student-lifecycle, academics, support]
+    modules: []
+    specialized_suites: 1        # how many of the profile's specialized suites are on
+    integrations: [messaging-providers]
+    limits: { users: 25, students: 500, storage_gb: 2 }
+    after_trial: read_only       # read_only | suspend
+
+  - id: standard
+    title: "Standard"
+    description: "Every common suite plus the profile's specialized suites."
+    price_per_month: 24999
+    currency: INR
+    suites: [student-lifecycle, academics, facilities, finance-operations, campus-life, governance, support]
+    modules: []
+    specialized_suites: all
+    integrations: [messaging-providers, payment-sbiepay, video-conferencing, digilocker]
+    limits: { users: 500, students: 10000, storage_gb: 100 }
+
+  - id: premium
+    title: "Premium"
+    description: "Everything, every integration, priority support."
+    price_per_month: 59999
+    currency: INR
+    suites: ["*"]
+    modules: []
+    specialized_suites: all
+    integrations: ["*"]
+    limits: { users: 5000, students: 100000, storage_gb: 1000 }
+    support: priority

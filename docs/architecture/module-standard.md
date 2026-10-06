@@ -50,8 +50,11 @@ checklist that makes it portable to another repo.
    something it did not declare.
 9. **Tier is declared.** `tier: core | common | specialized`, with `field:` for specialized. A common
    module must not assume one field; its labels come from the profile vocabulary. See ADR-0004.
-10. **Enabled means listed in the profile.** A module is on only if the institution profile lists it.
-   Nothing in a module may depend on another module being enabled; it reacts to events if they come.
+10. **Enabled means entitled.** A module is on for an organisation only if its entitlement (profile ∩ plan,
+   ADR-0005) includes it. Nothing in a module may depend on another module being enabled; it reacts to events if they come.
+11. **Tenant-aware from the first migration.** Every table has `organisation_id` with a row-level-security
+   policy on `app.organisation_id`; every query is scoped; every event carries `organisation_id`; documents,
+   search and cache keys are prefixed by organisation. The cross-tenant leak test from `packages/testing` runs in the module's suite.
 
 ## Portability checklist
 
@@ -66,6 +69,7 @@ Set `portable: true` in `module.yaml` only when all of these pass:
 - [ ] README states what the module needs from the host repo (which packages, which platform services)
 - [ ] No reference to university-specific names in code; those live in config and reference data
 - [ ] No field-specific words in a `common` module; terms come from the profile vocabulary
+- [ ] Every table has `organisation_id` and an RLS policy; the cross-tenant leak test passes
 
 ## Moving a module to another repo
 
@@ -93,7 +97,7 @@ Set `portable: true` in `module.yaml` only when all of these pass:
 | `backend/` | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, pytest | `backend/src/api/router.py` exports `router: APIRouter` |
 | `frontend/` | React, TypeScript, Vite, Vitest | `frontend/src/index.ts` exports `routes` and `widgets` |
 | `mobile/` | React Native (proposed) | `mobile/src/index.ts` exports `screens` |
-| `db/migrations` | Alembic, one version chain per module, own schema only | `db/alembic.ini` |
+| `db/migrations` | Alembic, one version chain per module, own schema only, `organisation_id` + RLS on every table | `db/alembic.ini` |
 | `contracts/` | OpenAPI 3.1 → Pydantic + TS types via `packages/contracts` | — |
 | `tests/e2e` | pytest (API) + Playwright (UI) against platform stubs | — |
 

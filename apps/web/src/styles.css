@@ -58,3 +58,19 @@ body {
 .eos-widget__status { margin: 0; color: var(--eos-muted); font-size: 13px; }
 .eos-widget__status--error { color: var(--eos-error); }
 .eos-widget[data-state="empty"] .eos-widget__title { color: var(--eos-muted); font-weight: 500; }
+
+.eos-tenant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  padding: 8px var(--eos-gap);
+  font-size: 13px;
+  color: var(--eos-muted);
+  border-bottom: 1px solid var(--eos-border);
+  background: var(--eos-card);
+}
+.eos-tenant__org { color: var(--eos-text); font-weight: 600; }
+.eos-tenant__plan { display: flex; gap: 6px; align-items: center; }
+.eos-tenant__trial { color: #92400e; background: #fef3c7; padding: 2px 8px; border-radius: 999px; }
+.eos-tenant__upgrade a { color: #1d4ed8; font-weight: 600; }

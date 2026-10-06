@@ -1,0 +1,23 @@
+# Permission catalogue for tenancy. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>. platform:* keys are super-admin only and never grantable inside an organisation.
+module: tenancy
+permissions:
+  - key: tenancy:organisation:read
+    description: View own organisation and its entitlement.
+  - key: tenancy:organisation:manage
+    description: Update own organisation settings and toggle entitled modules.
+  - key: platform:organisations:read
+    description: Super admin. List and inspect every organisation.
+  - key: platform:organisations:manage
+    description: Super admin. Activate, suspend, archive organisations.
+  - key: platform:entitlements:manage
+    description: Super admin. Grant or revoke modules outside the plan.
+  - key: platform:organisations:impersonate
+    description: Super admin. Start an audited session as an organisation user.
+roles:
+  - name: org-admin
+    description: Organisation administrator, created at registration. Scoped to one organisation.
+    grants: [tenancy:organisation:read, tenancy:organisation:manage]
+  - name: super-admin
+    description: Platform operator. Outside every organisation.
+    grants: [platform:organisations:read, platform:organisations:manage, platform:entitlements:manage, platform:organisations:impersonate]

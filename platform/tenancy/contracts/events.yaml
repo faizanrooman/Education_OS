@@ -1,0 +1,21 @@
+# Domain events published by tenancy.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
+module: tenancy
+version: 1
+events:
+  - name: tenancy.organisation.registered
+    description: A new organisation signed up and chose an academy type. Billing starts the trial; identity creates the admin user.
+    payload: { organisation_id: uuid, slug: string, academy_type: string, admin_email: string }
+  - name: tenancy.organisation.activated
+    description: Admin email verified; the organisation can sign in.
+    payload: { organisation_id: uuid }
+  - name: tenancy.organisation.suspended
+    description: Super admin suspended the organisation. Gateway refuses all its requests.
+    payload: { organisation_id: uuid, reason: string }
+  - name: tenancy.organisation.archived
+    description: Organisation closed. Data retained per policy, then deleted.
+    payload: { organisation_id: uuid }
+  - name: tenancy.entitlement.changed
+    description: The set of modules, integrations or limits an organisation may use changed (plan change, override, toggle). Apps refresh.
+    payload: { organisation_id: uuid, modules: [string], integrations: [string], plan: string }

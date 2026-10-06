@@ -144,3 +144,9 @@ A module imports only from its own folder and from `packages/`. It talks to othe
   types, not a sports ERP. Modules carry `tier` (core / common / specialized) and `field`. An
   institution is a profile (`platform/identity/config/profiles/`). Fifteen institution types reduce
   to eight generic patterns built once as common modules. Reference: `docs/architecture/institution-types.md`.
+- **ADR-0005 Multi-tenant SaaS:** the product owner chose one shared deployment over an instance
+  per organisation (the alternative was raised and declined). Organisations self-register, pick
+  an academy type, start on a 30-day trial and upgrade; a super admin runs the platform via
+  `apps/admin`. New core services `platform/tenancy` (organisations, registration, entitlements)
+  and `platform/billing` (plans, trials, subscriptions). Every module becomes tenant-aware
+  (`organisation_id` + RLS, module standard rule 11). Roles `org-admin` and `super-admin` added.

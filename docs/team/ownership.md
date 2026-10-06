@@ -7,7 +7,7 @@ PRs to their module and maintain its contracts and docs. Fill in handles, then m
 
 | Area | Owner | Backup | Modules |
 |---|---|---|---|
-| Architecture & platform lead | | | `platform/identity`, `platform/api-gateway`, `platform/event-bus`, `packages/*` |
+| Architecture & platform lead | | | `platform/identity`, `platform/api-gateway`, `platform/event-bus`, `platform/tenancy`, `platform/billing`, `apps/admin`, `packages/*` |
 | Platform services | | | `platform/notification`, `documents`, `search`, `workflow`, `audit`, `scheduler`, `reporting`, `integration-hub` |
 | Student lifecycle | | | `modules/student-lifecycle/*` |
 | Academics | | | `modules/academics/*` |
@@ -71,6 +71,9 @@ A specialized suite for a new field gets its own owner row when the field has a 
 | `modules/support/knowledge-base` | | | planned |
 | `modules/support/sla-management` | | | planned |
 | `platform/api-gateway` | | | planned |
+| `platform/tenancy` | | | planned |
+| `platform/billing` | | | planned |
+| `apps/admin` | | | planned |
 | `platform/audit` | | | planned |
 | `platform/documents` | | | planned |
 | `platform/event-bus` | | | planned |

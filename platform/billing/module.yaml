@@ -1,0 +1,26 @@
+# Module manifest — the single source of truth about this module.
+# Read docs/architecture/module-standard.md before editing.
+name: billing
+kind: platform              # feature | platform | integration
+domain: platform
+tier: core          # core (platform) | common (every institution) | specialized (one field)
+version: 0.1.0
+status: planned           # planned | in-progress | stable | deprecated
+description: "Plans, trials, subscriptions, upgrades and invoices."
+owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
+
+depends_on:
+  platform: [identity, audit, notification, scheduler, documents]
+  integrations: [payment-sbiepay]
+
+exposes:
+  api: contracts/openapi.yaml
+  events: contracts/events.yaml
+  permissions: contracts/permissions.yaml
+
+consumes_events:
+  - tenancy.organisation.registered
+  - tenancy.organisation.archived
+
+config: config/env.example
+portable: false

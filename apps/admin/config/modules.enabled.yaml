@@ -1,0 +1,3 @@
+# Platform services whose admin screens this console mounts.
+modules: []
+platform: [tenancy, billing, identity, audit]

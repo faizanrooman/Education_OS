@@ -11,7 +11,9 @@ Rules:
 | Service | Responsibility |
 |---|---|
 | [identity](identity/) | SSO (SAML / OAuth2 / OIDC), RBAC with fine-grained permissions, MFA, session management. Holds institution profiles (`config/profiles/`) and role dashboard layouts (`config/dashboards/`). |
-| [api-gateway](api-gateway/) | Edge routing, auth enforcement, rate limiting, request logging and monitoring. Refuses routes of modules the institution profile does not enable. |
+| [tenancy](tenancy/) | Organisations (tenants), self-service registration, academy type, entitlements. |
+| [billing](billing/) | Plans, trials, subscriptions, upgrades, invoices. Plans are data in `config/plans.yaml`. |
+| [api-gateway](api-gateway/) | Edge routing, auth enforcement, rate limiting, request logging and monitoring. Sets the organisation for row-level security and refuses routes outside the organisation's entitlement. |
 | [event-bus](event-bus/) | Domain event contracts and broker abstraction. The only async channel between modules. |
 | [notification](notification/) | Email, SMS, WhatsApp, push and in-app notifications with templates. |
 | [documents](documents/) | Document and media management: storage abstraction, versioning, access control. |

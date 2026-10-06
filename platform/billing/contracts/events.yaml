@@ -1,0 +1,26 @@
+# Domain events published by billing.
+module: billing
+version: 1
+events:
+  - name: billing.subscription.started
+    description: Trial or paid subscription began. tenancy recomputes the entitlement.
+    payload: { organisation_id: uuid, plan: string, status: string, trial_ends_at: datetime }
+  - name: billing.subscription.upgraded
+    description: Payment confirmed for a higher plan. Entitlement widens immediately.
+    payload: { organisation_id: uuid, from_plan: string, to_plan: string }
+  - name: billing.subscription.downgraded
+    description: Plan lowered at period end. Entitlement narrows; data is kept.
+    payload: { organisation_id: uuid, from_plan: string, to_plan: string }
+  - name: billing.trial.expiring
+    description: Sent 7, 3 and 1 days before trial end. notification emails the org admin.
+    payload: { organisation_id: uuid, days_left: integer }
+  - name: billing.trial.expired
+    description: Trial ended without upgrade. Organisation goes read-only or is suspended per plan policy.
+    payload: { organisation_id: uuid, after_trial: string }
+  - name: billing.subscription.expired
+    description: Paid period ended unpaid.
+    payload: { organisation_id: uuid, plan: string }
+  - name: billing.invoice.issued
+    payload: { organisation_id: uuid, invoice_id: string, amount: number, currency: string }
+  - name: billing.invoice.paid
+    payload: { organisation_id: uuid, invoice_id: string }
