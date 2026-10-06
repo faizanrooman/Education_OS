@@ -26,6 +26,39 @@ per-widget checklist: the "Dashboard Assignment Plan" doc.
 Institution profiles (`platform/identity/config/profiles/`) and dashboard layouts belong to the Architecture & platform lead.
 A specialized suite for a new field gets its own owner row when the field has a customer.
 
+## Dashboard owners (one person, one dashboard, end to end)
+
+A dashboard owner builds everything their dashboard needs, across every module it touches, and
+takes the next dashboard only when theirs is Done. Module owners (table above) review every PR into
+their modules. Live tracker with status: the "Dashboard Assignment Plan" doc.
+
+| Wave | Dashboard / academy | Owner (area) |
+|---|---|---|
+| 1 | Organisation Admin | Architecture & platform lead |
+| 1 | Department Admin / HoD | Platform services |
+| 1 | Applicant | Student lifecycle |
+| 1 | Faculty / Instructor | Academics |
+| 1 | Athlete | Sports |
+| 1 | Facility / Inventory Staff | Facilities |
+| 1 | Finance Staff | Finance & operations |
+| 1 | Student | Campus life |
+| 1 | Support Staff (Helpdesk) | Governance & support |
+| 1 | Coach | Integrations |
+| 1 | Examination Staff | Apps, infra & QA |
+| 1 pool | Management, Super Admin, Medical Staff, HR Staff, Governance, Nutritionist | first to finish, in that order |
+| 2 | Research university (3 dashboards) | Architecture & platform lead |
+| 2 | Theatre academy | Platform services |
+| 2 | Arts academy | Student lifecycle |
+| 2 | Teacher education | Academics |
+| 2 | Dance academy | Sports |
+| 2 | Music academy | Facilities |
+| 2 | Management institute | Finance & operations |
+| 2 | Medical college | Campus life |
+| 2 | Law college | Governance & support |
+| 2 | Film / media institute | Integrations |
+| 2 | Engineering college | Apps, infra & QA |
+| 2 pool | Design / fashion, Agriculture, Hospitality | first to finish |
+
 ## Full module list
 
 | Module | Owner | Backup | Status |

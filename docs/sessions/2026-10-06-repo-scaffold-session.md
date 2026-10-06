@@ -165,3 +165,7 @@ A module imports only from its own folder and from `packages/`. It talks to othe
   do not reach the endpoint; the organisation now rides on the DB session and scoping fails closed.
   `api.yml` CI runs the tests on SQLite and Postgres. API deploy is prepared (`api.Dockerfile`,
   `docker-compose.api.yml`) but needs a Docker host; the web app stays in preview mode until then.
+- **Assignment model changed (product owner):** one person, one dashboard, end to end across every
+  module it touches; module owners keep contracts and backend coherent and review. Wave 1 = the sports
+  college's 17 dashboards (11 assigned + pool of 6); wave 2 = one academy (3 dashboards) per person,
+  3 academies in the pool. Recorded in the Dashboard Assignment Plan doc and `docs/team/ownership.md`.
