@@ -21,7 +21,8 @@ Bootstrap, jQuery, Django, Flask, requests.
 
 ## 2. Nothing reaches main without a pull request
 
-`main` is protected: no direct pushes, no force pushes, linear history. Every PR needs
+`main` is protected: no direct pushes, no force pushes, linear history. The lead's admin account
+may bypass review in an emergency; nobody else can. Every PR needs
 
 - every required check green: `api / test`, `web / build`, `governance / rules`;
 - one approving review from a code owner of every file touched (CODEOWNERS);
@@ -50,6 +51,10 @@ table carries `organisation_id` with an RLS policy; every module runs the cross-
 Full list: [module-standard.md](../architecture/module-standard.md).
 
 ## 6. Work is tracked in GitHub Issues and the project board
+
+Board: https://github.com/users/faizanrooman/projects/1 (every issue, with Wave and Status).
+Issues: https://github.com/faizanrooman/Education_OS/issues. Status report:
+https://github.com/faizanrooman/Education_OS/blob/team-status/STATUS.md.
 
 - Every dashboard and every week's task is an issue, assigned to one person, with labels
   `wave:A..D`, `area:<area>`, `type:dashboard|task|bug`.

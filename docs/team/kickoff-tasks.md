@@ -1,6 +1,7 @@
 # Kickoff tasks, by person
 
-Kickoff 7 Oct 2026. Week 1 is 7 to 10 Oct. Everyone's week 1 ends with `docs/prd.md` and reviewed
+Kickoff 7 Oct 2026. Week 1 is 7 to 10 Oct. Your tasks are GitHub issues on the board
+(https://github.com/users/faizanrooman/projects/1): one "Week 1: <name>" issue and your dashboards. Everyone's week 1 ends with `docs/prd.md` and reviewed
 `contracts/*.yaml` for every module they own. Code starts in week 2. The live tracker with tick
 boxes is the "Kickoff tasks" tab of the Dashboard Assignment Plan doc; this file is the copy next
 to the code. Module standard: [docs/architecture/module-standard.md](../architecture/module-standard.md).
