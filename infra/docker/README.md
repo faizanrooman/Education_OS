@@ -6,6 +6,7 @@ Dockerfiles and compose files for local and deployment.
 |---|---|
 | `web.Dockerfile` | Builds `apps/web` with pnpm and serves the static output with nginx |
 | `nginx.web.conf` | SPA fallback, asset caching, placeholder for the API proxy |
+| `nginx.static-vhost.conf` | Vhost for serving the build as static files from an existing nginx container on port 8080 |
 | `docker-compose.yml` | Runs the `eos-web` image on the deployment host. `.env` beside it is written by the deploy script and git-ignored |
 
 ## Deployment target
@@ -30,7 +31,19 @@ pct start <vmid>
 pct exec <vmid> -- bash -c 'apt-get update && apt-get install -y curl git ca-certificates && curl -fsSL https://get.docker.com | sh'
 ```
 
-### Every deploy
+### Option A: static files in the existing nginx reverse-proxy container (current)
+
+No Docker on the target. Builds locally, pushes the `dist` folder into the container with
+`pct push`, installs `nginx.static-vhost.conf` on port 8080, tests and reloads nginx.
+
+```
+PVE_HOST=root@<proxmox-ip> CTID=<nginx container id> tools/scripts/deploy-web-static.sh
+```
+
+Site: `http://<container-ip>:8080/?role=student`. Previous release is kept at
+`/var/www/education-os.old` for a quick rollback (`mv` it back and `nginx -s reload`).
+
+### Option B: Docker in a dedicated container
 
 From your laptop, on the office LAN, with the commit you want deployed pushed to `main`:
 
