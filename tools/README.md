@@ -1,8 +1,6 @@
 # tools/
 
-Repo tooling. `scaffold-module.sh` creates a new module from `modules/_template`.
-
-```
-tools/scaffold-module.sh feature academics new-module "One line description"
-tools/scaffold-module.sh platform platform new-service "One line description"
-```
+| Script | Purpose |
+|---|---|
+| `scaffold-module.sh <kind> <domain> <name> "<desc>"` | Create a module from `modules/_template` |
+| `scripts/deploy-web.sh` | Build the web image locally and deploy it to `DEPLOY_HOST` over SSH. See `infra/docker/README.md` |

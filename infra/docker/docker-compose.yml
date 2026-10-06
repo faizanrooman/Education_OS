@@ -1,0 +1,9 @@
+# Runs on the deployment host. Image is built locally by tools/scripts/deploy-web.sh
+# and loaded here, so the host needs Docker only, not Node.
+services:
+  web:
+    image: eos-web:${EOS_WEB_TAG:-latest}
+    container_name: eos-web
+    restart: unless-stopped
+    ports:
+      - "${EOS_WEB_PORT:-8080}:80"
