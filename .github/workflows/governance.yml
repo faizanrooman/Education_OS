@@ -18,6 +18,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -q pyyaml ruff
+      - name: Root layout (nothing outside the folders)
+        run: python tools/scripts/check-root.py
       - name: Approved stack only
         run: python tools/scripts/check-stack.py
       - name: Module boundaries

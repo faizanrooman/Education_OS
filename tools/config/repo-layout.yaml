@@ -1,0 +1,37 @@
+# The only things allowed at the top of the repository. Everything else lives inside a folder.
+# Enforced by tools/scripts/check-root.py (CI governance job and precheck) and by the Claude Code
+# guard in .claude/settings.json. Changing this list is a PR the lead approves.
+
+# Files that must stay at the top because a tool requires it.
+root_files:
+  - .gitignore            # git applies top-level ignore rules only from here
+  - package.json          # pnpm workspace root
+  - pnpm-workspace.yaml   # pnpm workspace definition
+  - pnpm-lock.yaml        # pnpm lockfile, beside the workspace root
+
+# The only top-level folders. A new one needs a PR to this list.
+root_dirs:
+  - .claude        # Claude Code project instructions and guard
+  - .cursor        # Cursor rules
+  - .github        # README, CONTRIBUTING, CODEOWNERS, workflows, templates, Copilot instructions
+  - .vscode        # shared editor settings
+  - apps
+  - data
+  - docs
+  - infra
+  - integrations
+  - modules
+  - packages
+  - platform
+  - tests
+  - tools
+
+# Where things go (shown in the error message).
+where:
+  documentation: docs/ (architecture in docs/architecture/, team process in docs/team/)
+  repo files GitHub reads: .github/ (README.md, CONTRIBUTING.md, CODEOWNERS, workflows)
+  tool configuration: tools/config/
+  scripts: tools/scripts/
+  docker and deployment: infra/
+  code: inside its module (modules/<domain>/<module>, platform/<service>, integrations/<adapter>), apps/ or packages/
+  tests across modules: tests/

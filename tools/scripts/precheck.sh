@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"; cd "$ROOT"
 [ -x .venv/bin/ruff ] || { echo "run tools/scripts/py-setup.sh first (installs ruff)"; exit 1; }
 RUFF=".venv/bin/ruff"; CFG="--config tools/config/ruff.toml"
 if [ "${1:-}" = "--fix" ]; then $RUFF check $CFG --fix -q . ; $RUFF format $CFG -q . ; fi
+echo "== root layout";      python3 tools/scripts/check-root.py --worktree
 echo "== approved stack";   python3 tools/scripts/check-stack.py
 echo "== module boundaries"; python3 tools/scripts/check-boundaries.py
 echo "== ruff";             $RUFF check $CFG . && $RUFF format $CFG --check .
