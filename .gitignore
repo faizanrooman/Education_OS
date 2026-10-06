@@ -43,3 +43,6 @@ infra/docker/.env.api
 
 # personal Claude Code settings stay local; .claude/settings.json and CLAUDE.md are shared
 .claude/settings.local.json
+# skills installed by tools such as uipro or npx skills belong in ~/.claude/skills, not the repo
+.claude/skills/
+.agents/
