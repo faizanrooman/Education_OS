@@ -29,3 +29,6 @@ coverage/
 .pytest_cache/
 *.egg-info/
 .pnpm-store/
+
+# written by tools/scripts/deploy-web.sh
+infra/docker/.env

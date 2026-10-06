@@ -6,19 +6,19 @@ Dockerfiles and compose files for local and deployment.
 |---|---|
 | `web.Dockerfile` | Builds `apps/web` with pnpm and serves the static output with nginx |
 | `nginx.web.conf` | SPA fallback, asset caching, placeholder for the API proxy |
-| `docker-compose.yml` | Runs the `eos-web` image on the deployment host |
+| `docker-compose.yml` | Runs the `eos-web` image on the deployment host. `.env` beside it is written by the deploy script and git-ignored |
 
 ## Deployment target
 
 A Proxmox VE host on the office LAN. The app does not run on the Proxmox host itself. It runs
 in a dedicated Debian 12 LXC container (unprivileged, nesting on, Docker inside), the same
-shape as the other app containers on that host. Concrete host names, IPs and container ids
-are kept out of this public repo; ask the platform lead.
+shape as the other app containers on that host. Host names, IPs and container ids are kept
+out of this public repo; ask the platform lead.
 
 ### One-time: create the app container
 
-On the Proxmox host as root, with your SSH public key saved at `/root/eos-deploy.pub`
-(pick a free VMID and a free static IP on the LAN first):
+On the Proxmox host as root, with your SSH public key saved at `/root/eos-deploy.pub`.
+Pick a free VMID and a free static IP on the LAN first.
 
 ```
 pct create <vmid> local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
@@ -32,14 +32,21 @@ pct exec <vmid> -- bash -c 'apt-get update && apt-get install -y curl git ca-cer
 
 ### Every deploy
 
-From your laptop, on the same LAN:
+From your laptop, on the office LAN, with the commit you want deployed pushed to `main`:
 
 ```
-DEPLOY_HOST=root@192.168.1.60 tools/scripts/deploy-web.sh
+DEPLOY_HOST=root@<container-ip> tools/scripts/deploy-web.sh
 ```
 
-The script builds the image locally, streams it to the host over SSH, and restarts the
-compose stack. The site is then at `http://<container ip>:8080/?role=student`.
+The container pulls the repo at your checked-out commit, builds the image, and restarts the
+compose stack. The site is then at `http://<container-ip>/?role=student`.
+`DEPLOY_MODE=local` builds on your machine instead and streams the image over SSH.
+
+### Public hostname
+
+Not configured yet. The LAN's nginx reverse-proxy container serves the public vhosts. To
+expose the app, add a vhost there that proxies to the container's port 80 and point DNS at
+the proxy.
 
 ### Local check
 
