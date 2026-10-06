@@ -61,8 +61,9 @@ https://github.com/faizanrooman/Education_OS/blob/team-status/STATUS.md.
 - Every dashboard and every week's task is an issue, with labels `wave:A..D`, `area:<area>`,
   `type:dashboard|task|bug`. **One open issue per person.** When yours closes, the next one in your
   queue is assigned to you automatically within a minute (`.github/workflows/auto-assign.yml`):
-  your Week 1 task, then your foundation tasks, then the modules you own (in dependency order), then
-  your dashboards by wave, then production readiness, then the pool in priority order. The whole road
+  your own issues in the global order shown by the `[NNN]` number in every issue title (milestone
+  M1 to M5; within each: week 1, foundation, modules, dashboards by wave, production), then the pool
+  in the same order. The whole road
   to production is already on the board as issues with milestones M1 to M5; there is no waiting for
   the next assignment and no picking. Handles live in `docs/team/members.yaml`.
 - An issue closes through its PR (`Closes #N`). When your PR merges, the issue it references closes and
