@@ -29,7 +29,9 @@ may bypass review in an emergency; nobody else can. Every PR needs
 - every review conversation resolved;
 - the PR template filled in: module, task link, time spent.
 
-Red CI is never "fixed later". A PR that is red is not reviewed.
+Red CI is never "fixed later". A PR that is red is not reviewed. Run `tools/scripts/precheck.sh`
+before every push; it is the same set of checks CI runs. The admin bypass is for outages, not for
+red checks; a bypass is noted in the PR and reviewed at the next standup.
 
 ## 3. One module per pull request
 

@@ -25,7 +25,16 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 REPO = "faizanrooman/Education_OS"
 # Queue order per person. Lower first. Within a rank, lowest issue number first (issues were created in dependency order).
-WAVE_ORDER = {"week-1": 0, "phase:foundation": 1, "type:module": 2, "wave:A": 3, "wave:B": 4, "wave:C": 5, "wave:D": 6, "phase:production": 7}
+WAVE_ORDER = {
+    "week-1": 0,
+    "phase:foundation": 1,
+    "type:module": 2,
+    "wave:A": 3,
+    "wave:B": 4,
+    "wave:C": 5,
+    "wave:D": 6,
+    "phase:production": 7,
+}
 IN_PROGRESS = "status:in-progress"
 OWNER_RE = re.compile(r"\*\*Owner:\*\*\s*([^\n·]+?)\s*(?:·|$)", re.M)
 
