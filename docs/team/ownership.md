@@ -5,21 +5,25 @@ PRs to their module and maintain its contracts and docs. Fill in handles, then m
 
 ## Suggested split (edit freely)
 
-| Area | Owner | Backup | Modules |
-|---|---|---|---|
-| Architecture & platform lead | | | `platform/identity`, `platform/api-gateway`, `platform/event-bus`, `platform/tenancy`, `platform/billing`, `apps/admin`, `packages/*` |
-| Platform services | | | `platform/notification`, `documents`, `search`, `workflow`, `audit`, `scheduler`, `reporting`, `integration-hub` |
-| Student lifecycle | | | `modules/student-lifecycle/*` |
-| Academics | | | `modules/academics/*` |
-| Sports & practice patterns | | | `modules/sports/*`, `modules/practice/*` (portfolio, projects, selection, productions, field training, skill progress) |
-| Facilities | | | `modules/facilities/*` |
-| Finance & operations | | | `modules/finance-operations/*`, `integrations/payment-sbiepay` |
-| Campus life | | | `modules/campus-life/*` |
-| Governance & support | | | `modules/governance/*`, `modules/support/*` |
-| Integrations | | | `integrations/*` except payment |
-| Apps, infra & QA | | | `apps/*`, `infra/*`, `packages/testing`, CI |
+Widget counts come from the 59 role layouts in `platform/identity/config/dashboards/` (110 widgets in
+all). The six generic `practice` modules are spread across four members. Full split, build order and
+per-widget checklist: the "Dashboard Assignment Plan" doc.
 
-Institution profiles (`platform/identity/config/profiles/`) belong to the Architecture & platform lead.
+| # | Area | Owner | Backup | Modules | Widgets |
+|---|---|---|---|---|---|
+| 1 | Architecture & platform lead | | | `platform/identity`, `api-gateway`, `tenancy`, `billing`, `packages/*` | 10 |
+| 2 | Platform services | | | `platform/event-bus`, `notification`, `documents`, `workflow`, `audit`, `search`, `scheduler`, `reporting`, `integration-hub`, `modules/practice/productions` | 9 |
+| 3 | Student lifecycle | | | `modules/student-lifecycle/*`, `modules/practice/portfolio`, `modules/practice/selection-process` | 11 |
+| 4 | Academics | | | `modules/academics/*` | 15 |
+| 5 | Sports | | | `modules/sports/*`, `modules/facilities/sports-facilities`, `modules/practice/skill-progress` | 17 |
+| 6 | Facilities | | | `modules/facilities/*` except sports-facilities | 8 |
+| 7 | Finance & operations | | | `modules/finance-operations/*`, `integrations/payment-sbiepay` | 13 |
+| 8 | Campus life | | | `modules/campus-life/*`, `modules/practice/field-training`, `modules/practice/projects` | 15 |
+| 9 | Governance & support | | | `modules/governance/*`, `modules/support/*` | 11 |
+| 10 | Integrations | | | `integrations/*` except payment | 1 |
+| 11 | Apps, infra & QA | | | `apps/*` (web, admin, api, mobile), `infra/*`, `packages/testing`, CI | 0 |
+
+Institution profiles (`platform/identity/config/profiles/`) and dashboard layouts belong to the Architecture & platform lead.
 A specialized suite for a new field gets its own owner row when the field has a customer.
 
 ## Full module list
