@@ -9,6 +9,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+!*.example
 **/config/*.local.*
 
 # Build output and dependencies (extend once ADR-0002 is accepted)
