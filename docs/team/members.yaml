@@ -1,0 +1,13 @@
+# Team members: the name used in issues and docs, the GitHub handle, the area.
+# tools/scripts/next-issue.py assigns work by handle. A member without a handle gets nothing until it is filled.
+members:
+  - { name: "Faizan",         handle: "faizanrooman", area: "architecture-platform" }
+  - { name: "Himanshu",       handle: "",             area: "platform-services" }
+  - { name: "Praveen",        handle: "",             area: "student-lifecycle" }
+  - { name: "Shivani",        handle: "",             area: "academics" }
+  - { name: "Akshata",        handle: "",             area: "sports" }
+  - { name: "Ashritha",       handle: "",             area: "facilities" }
+  - { name: "Gokula Lakshmi", handle: "",             area: "finance-operations" }
+  - { name: "Tejaswini",      handle: "",             area: "campus-life" }
+  - { name: "Madhumita",      handle: "",             area: "governance-support" }
+  - { name: "Srujan",         handle: "",             area: "apps-infra-qa" }

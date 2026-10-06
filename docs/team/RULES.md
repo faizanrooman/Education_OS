@@ -56,10 +56,13 @@ Board: https://github.com/users/faizanrooman/projects/1 (every issue, with Wave 
 Issues: https://github.com/faizanrooman/Education_OS/issues. Status report:
 https://github.com/faizanrooman/Education_OS/blob/team-status/STATUS.md.
 
-- Every dashboard and every week's task is an issue, assigned to one person, with labels
-  `wave:A..D`, `area:<area>`, `type:dashboard|task|bug`.
-- Move the issue on the board: Backlog → In progress → In review → Done. Done means merged and
-  visible on the live site.
+- Every dashboard and every week's task is an issue, with labels `wave:A..D`, `area:<area>`,
+  `type:dashboard|task|bug`. **One open issue per person.** When yours closes, the next one in your
+  queue is assigned to you automatically within a minute (`.github/workflows/auto-assign.yml`):
+  your Week 1 task, then your dashboards by wave, then the pool in priority order. There is no
+  waiting for the next assignment and no picking. Handles live in `docs/team/members.yaml`.
+- An issue closes only through its PR (`Closes #N`). Done means merged and visible on the live
+  site. Closing an issue by hand without a PR is reverted.
 - Link the issue in the PR (`Closes #123`) so it closes on merge. Unlinked PRs are sent back.
 - Put `Time spent: <hours>h` in the PR body. It feeds the team status report.
 

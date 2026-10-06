@@ -2,7 +2,7 @@
 
 Live: `api.yml` installs every Python package and runs the foundation tests on SQLite and on Postgres with row-level security, on every push and PR. `web.yml` runs typecheck, tests and the web build on every push and PR, and on `main` publishes the build to the `web-dist` branch for the server to pull (see `infra/autodeploy/`).
 
-`governance.yml` enforces the team rules on every PR: approved stack only, module boundaries, ruff, conventional commits scoped by module, one module per PR. `metrics.yml` publishes the per-person status report to the `team-status` branch every 6 hours.
+`governance.yml` enforces the team rules on every PR: approved stack only, module boundaries, ruff, conventional commits scoped by module, one module per PR. `auto-assign.yml` hands each person their next issue the moment their current one closes (one open issue per person). `metrics.yml` publishes the per-person status report to the `team-status` branch every 6 hours.
 
 Planned jobs (stack: FastAPI + React + PostgreSQL, see ADR-0002):
 
