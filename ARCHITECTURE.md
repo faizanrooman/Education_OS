@@ -25,7 +25,7 @@ The diagram below is the first customer's view, a sports university. Each layer 
 | Users (roles) | `platform/identity/contracts/permissions.yaml` + each module's `contracts/permissions.yaml` | Roles are compositions of module permissions |
 | Access channels | `apps/web` (browser + PWA), `apps/mobile` | Thin shells that compose module UIs |
 | Identity & security | `platform/identity`, `platform/api-gateway`, `platform/audit` | SSO, RBAC, MFA, sessions, audit |
-| Organisations, plans | `platform/tenancy`, `platform/billing`, `apps/admin` | Registration, entitlements, trial and upgrade, super admin console |
+| Organisations, plans | `platform/tenancy`, `platform/billing`, `apps/web/src/admin` | Registration, academic package approval, entitlements, trial and upgrade, super admin screens |
 | Application layer (suites A–G, Global) | `modules/<domain>/<module>` | One folder per box in the diagram |
 | Shared platform services | `platform/*` | Notification, documents, search, workflow, audit, reporting, scheduler, integration hub |
 | API & integration layer | `platform/api-gateway`, `platform/integration-hub`, `integrations/*` | Gateway in front, adapters behind |
@@ -78,9 +78,10 @@ for its own configuration.
 | Concept | Owner | Meaning |
 |---|---|---|
 | Organisation | `platform/tenancy` | The tenant. Registers itself, chooses an academy type, has one admin, one subscription |
+| Academic package | `platform/tenancy` + profile | What the academy type gives the organisation inside the one application: the profile's suites, roles and dashboards, filtered by the plan. Approved by the super admin at registration and on change |
 | Plan | `platform/billing` | `trial`, `standard`, `premium` (super admin can add more): suites, modules, integrations, limits, price |
 | Entitlement | `platform/tenancy` | `profile.modules ∩ plan.modules ∪ overrides − disabled`. Evaluated by the gateway on every request |
-| Super admin | `apps/admin` | Platform operator outside every organisation: organisations, plans, subscriptions, overrides, audited impersonation |
+| Super admin | `apps/web/src/admin` | Platform operator outside every organisation: approves academic packages, organisations, plans, subscriptions, overrides, audited impersonation |
 | Organisation admin | per organisation | Users, roles, settings, subscription of one organisation |
 
 Isolation rules every module follows (module standard, rule 11):
@@ -89,9 +90,11 @@ Isolation rules every module follows (module standard, rule 11):
 - documents, search indexes and cache keys are prefixed by organisation;
 - `packages/testing` ships a cross-tenant leak test that every module runs.
 
-Registration flow: `web-portal-cms` sign-up page → `tenancy.register` → organisation pending →
-email verified → `tenancy.organisation.registered` → `billing` starts the trial → `identity`
-creates the org admin → `tenancy.entitlement.changed` → apps show the academy's dashboards.
+Registration flow: sign-up page → `tenancy.register` (academy type = academic package) →
+`billing` starts the trial, `identity` creates the org admin → email verified →
+`pending_approval` → **super admin approves the package** → `tenancy.organisation.approved` →
+users can sign in and see the academy's dashboards. A package change is a request the super
+admin approves the same way; the entitlement switches at approval.
 Upgrade flow: org admin → `billing.subscription.upgrade` → payment adapter → webhook →
 `billing.subscription.upgraded` → entitlement widens at once, no redeploy.
 
@@ -178,7 +181,7 @@ Example: `fees-accounts` does not query the admissions tables. It subscribes to
 | `apps/api` | FastAPI host with the entitlement gate; 11 foundation tests pass on SQLite and Postgres |
 | `packages/testing` | `register_and_login`, `assert_no_cross_tenant_leak` |
 | `apps/web` | Sign-up, sign-in, real entitlement from the API; preview mode when no API is reachable |
-| Not yet | Alembic chains, platform/notification (email is stubbed), payment adapter (upgrade applies directly when `BILLING_PAYMENT_ADAPTER=none`), apps/admin screens, every feature module |
+| Not yet | Alembic chains, platform/notification (email is stubbed), payment adapter (upgrade applies directly when `BILLING_PAYMENT_ADAPTER=none`), the super admin screens in apps/web, every feature module |
 
 ## Role dashboards
 

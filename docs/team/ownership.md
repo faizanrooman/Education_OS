@@ -21,43 +21,33 @@ per-widget checklist: the "Dashboard Assignment Plan" doc.
 | 8 | Campus life | | | `modules/campus-life/*`, `modules/practice/field-training`, `modules/practice/projects` | 15 |
 | 9 | Governance & support | | | `modules/governance/*`, `modules/support/*` | 11 |
 | 10 | Integrations | | | `integrations/*` except payment | 1 |
-| 11 | Apps, infra & QA | | | `apps/*` (web, admin, api, mobile), `infra/*`, `packages/testing`, CI | 0 |
+| 11 | Apps, infra & QA | | | `apps/*` (web incl. admin screens, api, mobile), `infra/*`, `packages/testing`, CI | 0 |
 
 Institution profiles (`platform/identity/config/profiles/`) and dashboard layouts belong to the Architecture & platform lead.
 A specialized suite for a new field gets its own owner row when the field has a customer.
 
 ## Dashboard owners (one person, one dashboard, end to end)
 
-A dashboard owner builds everything their dashboard needs, across every module it touches, and
-takes the next dashboard only when theirs is Done. Module owners (table above) review every PR into
-their modules. Live tracker with status: the "Dashboard Assignment Plan" doc.
+One application for every academy. A dashboard owner builds everything their dashboard needs,
+across every module it touches, and takes the next only when theirs is Done. Module owners (table
+above) review every PR into their modules. All academies are built together: wave A = the 13
+common dashboards, then every academy's learner (B), instructor (C) and field staff (D) dashboards.
+Each person keeps one academy through B to D. Live tracker: the "Dashboard Assignment Plan" doc.
 
-| Wave | Dashboard / academy | Owner (area) |
+| Person (area) | Wave A (common) | Academy for waves B to D |
 |---|---|---|
-| 1 | Organisation Admin | Architecture & platform lead |
-| 1 | Department Admin / HoD | Platform services |
-| 1 | Applicant | Student lifecycle |
-| 1 | Faculty / Instructor | Academics |
-| 1 | Athlete | Sports |
-| 1 | Facility / Inventory Staff | Facilities |
-| 1 | Finance Staff | Finance & operations |
-| 1 | Student | Campus life |
-| 1 | Support Staff (Helpdesk) | Governance & support |
-| 1 | Coach | Integrations |
-| 1 | Examination Staff | Apps, infra & QA |
-| 1 pool | Management, Super Admin, Medical Staff, HR Staff, Governance, Nutritionist | first to finish, in that order |
-| 2 | Research university (3 dashboards) | Architecture & platform lead |
-| 2 | Theatre academy | Platform services |
-| 2 | Arts academy | Student lifecycle |
-| 2 | Teacher education | Academics |
-| 2 | Dance academy | Sports |
-| 2 | Music academy | Facilities |
-| 2 | Management institute | Finance & operations |
-| 2 | Medical college | Campus life |
-| 2 | Law college | Governance & support |
-| 2 | Film / media institute | Integrations |
-| 2 | Engineering college | Apps, infra & QA |
-| 2 pool | Design / fashion, Agriculture, Hospitality | first to finish |
+| Architecture & platform lead | Organisation Admin | Research university |
+| Platform services | Department Admin / HoD | Theatre academy |
+| Student lifecycle | Applicant | Arts academy |
+| Academics | Faculty / Instructor | Teacher education |
+| Sports | Examination Staff | Sports college |
+| Facilities | Facility / Inventory Staff | Music academy |
+| Finance & operations | Finance Staff | Management institute |
+| Campus life | Student | Medical college |
+| Governance & support | Support Staff | Law college |
+| Integrations | Governance | Film / media institute |
+| Apps, infra & QA | Super Admin | Engineering college |
+| pool (first to finish) | Management, HR Staff | Dance, Design / fashion, Agriculture, Hospitality |
 
 ## Full module list
 
@@ -116,7 +106,6 @@ their modules. Live tracker with status: the "Dashboard Assignment Plan" doc.
 | `platform/api-gateway` | | | planned |
 | `platform/tenancy` | | | planned |
 | `platform/billing` | | | planned |
-| `apps/admin` | | | planned |
 | `platform/audit` | | | planned |
 | `platform/documents` | | | planned |
 | `platform/event-bus` | | | planned |

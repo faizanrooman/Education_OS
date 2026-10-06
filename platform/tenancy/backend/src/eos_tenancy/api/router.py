@@ -52,6 +52,14 @@ class Overrides(BaseModel):
     reason: str = ""
 
 
+class PackageRequest(BaseModel):
+    academy_type: str
+
+
+class Approve(BaseModel):
+    reason: str = ""
+
+
 class Impersonate(BaseModel):
     user_id: str
     reason: str
@@ -75,10 +83,11 @@ def register(body: RegistrationRequest, db: Session = Depends(get_db)):
     return out
 
 
-@router.post("/register/verify", status_code=204)
+@router.post("/register/verify")
 def verify(body: Verify, db: Session = Depends(get_db)):
+    """Returns the organisation; status is pending_approval until a super admin approves the package."""
     try:
-        service.verify(db, body.token)
+        return service.verify(db, body.token).to_dict()
     except TenancyError as e:
         raise _err(e)
 
@@ -100,6 +109,23 @@ def entitlement(p: Principal = Depends(require_organisation), db: Session = Depe
 def toggle(module: str, body: Toggle, p: Principal = Depends(require("tenancy:organisation:manage")), db: Session = Depends(get_db)):
     try:
         return service.toggle_module(db, p.organisation_id, module, body.enabled)
+    except TenancyError as e:
+        raise _err(e)
+
+
+@router.put("/organisation/academy-package")
+def request_package(body: PackageRequest, p: Principal = Depends(require("tenancy:organisation:manage")), db: Session = Depends(get_db)):
+    try:
+        return service.request_package(db, p.organisation_id, body.academy_type).to_dict()
+    except TenancyError as e:
+        raise _err(e)
+
+
+@router.post("/admin/organisations/{org_id}/approve")
+def admin_approve(org_id: str, body: Approve, p: Principal = Depends(require("platform:organisations:manage")), db: Session = Depends(get_db)):
+    """Approve the organisation's academic package (registration or a requested change)."""
+    try:
+        return service.approve(db, org_id, approved_by=p.user_id, reason=body.reason).to_dict()
     except TenancyError as e:
         raise _err(e)
 

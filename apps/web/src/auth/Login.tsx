@@ -17,7 +17,8 @@ export function Login({ slug, onDone, onSignUp }: { slug?: string; onDone: () =>
       await login(email, password, org || undefined);
       onDone();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : String(err));
+      const msg = err instanceof ApiError ? err.message : String(err);
+      setError(msg.includes("pending_approval") ? "Your organisation's academic package is waiting for platform approval. Try again once you receive the approval email." : msg);
     } finally {
       setBusy(false);
     }

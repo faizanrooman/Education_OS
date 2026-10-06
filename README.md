@@ -22,7 +22,7 @@ Architecture diagram: [docs/architecture/diagrams/high-level-architecture.png](d
 | [`platform/`](platform/) | Core services: identity, events, notification, workflow, audit, search, documents, reporting, scheduler, gateway, integration hub. Institution profiles and dashboard layouts live under `platform/identity/config/` | Yes |
 | [`integrations/`](integrations/) | Adapters to external systems (payment, DigiLocker, NAD, government portals, messaging, video, wearables) | Yes |
 | [`packages/`](packages/) | Shared libraries: contracts, ui-kit, core, sdk, testing | Versioned |
-| [`apps/`](apps/) | Composition roots: web, mobile, api, admin (super admin console). No business logic | No |
+| [`apps/`](apps/) | Composition roots: web (incl. super admin screens), api, mobile. One application for every academy. No business logic | No |
 | [`data/`](data/) | Data-layer conventions and shared reference data | No |
 | [`infra/`](infra/) | Docker, Kubernetes, Terraform, monitoring, backup/DR | No |
 | [`docs/`](docs/) | Architecture, ADRs, team ownership, onboarding | No |

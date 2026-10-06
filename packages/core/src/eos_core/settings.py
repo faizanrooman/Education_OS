@@ -23,6 +23,8 @@ class Settings:
     super_admin_password: str = field(default_factory=lambda: os.environ.get("EOS_SUPER_ADMIN_PASSWORD", ""))
     payment_adapter: str = field(default_factory=lambda: os.environ.get("BILLING_PAYMENT_ADAPTER", "none"))
     registration_open: bool = field(default_factory=lambda: os.environ.get("TENANCY_REGISTRATION_OPEN", "true").lower() == "true")
+    # ADR-0005: a super admin approves an organisation's academic package before it goes live.
+    auto_approve: bool = field(default_factory=lambda: os.environ.get("TENANCY_AUTO_APPROVE", "false").lower() == "true")
     cors_origins: list[str] = field(default_factory=lambda: [o for o in os.environ.get("EOS_CORS_ORIGINS", "http://localhost:5173").split(",") if o])
 
     @property

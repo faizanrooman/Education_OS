@@ -7,6 +7,7 @@ os.environ.setdefault("EOS_DEV_MODE", "true")
 os.environ.setdefault("EOS_SUPER_ADMIN_EMAIL", "root@platform.example.com")
 os.environ.setdefault("EOS_SUPER_ADMIN_PASSWORD", "RootPassw0rd!")
 os.environ.setdefault("BILLING_PAYMENT_ADAPTER", "none")
+os.environ.setdefault("TENANCY_AUTO_APPROVE", "true")
 os.environ.setdefault("EOS_REPO_ROOT", str(Path(__file__).resolve().parents[3]))
 
 import pytest

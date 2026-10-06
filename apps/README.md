@@ -10,7 +10,6 @@ Removing a module from an app = removing one line from the enabled list.
 
 | App | Purpose |
 |---|---|
-| [web](web/) | Responsive web client (also served as PWA). Composes module frontends. |
+| [web](web/) | The one web client for every academy (also served as PWA): sign-up, sign-in, every role dashboard, and the super admin screens under `src/admin`. |
 | [mobile](mobile/) | Android / iOS client. Composes module mobile screens. |
 | [api](api/) | Backend composition host. Mounts every module; the entitlement decides per organisation what answers. |
-| [admin](admin/) | Super admin console: organisations, plans, subscriptions, overrides, audit. |

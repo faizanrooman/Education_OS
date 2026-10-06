@@ -7,8 +7,20 @@ events:
   - name: tenancy.organisation.registered
     description: A new organisation signed up and chose an academy type. Billing starts the trial; identity creates the admin user.
     payload: { organisation_id: uuid, slug: string, academy_type: string, admin_email: string }
+  - name: tenancy.organisation.verified
+    description: Admin email verified. The organisation now waits for super admin approval of its academic package.
+    payload: { organisation_id: uuid, academy_type: string }
+  - name: tenancy.package.requested
+    description: An academic package needs super admin approval, at registration (kind=registration) or as a change (kind=change). The admin console shows the queue.
+    payload: { organisation_id: uuid, academy_type: string, kind: string }
+  - name: tenancy.organisation.approved
+    description: Super admin approved the academic package.
+    payload: { organisation_id: uuid, academy_type: string, approved_by: uuid }
+  - name: tenancy.package.changed
+    description: A package change was approved; the entitlement now follows the new academy profile.
+    payload: { organisation_id: uuid, from: string, to: string, approved_by: uuid }
   - name: tenancy.organisation.activated
-    description: Admin email verified; the organisation can sign in.
+    description: The organisation can sign in (after approval).
     payload: { organisation_id: uuid }
   - name: tenancy.organisation.suspended
     description: Super admin suspended the organisation. Gateway refuses all its requests.

@@ -20,10 +20,21 @@ paths:
         "409": { description: Slug or admin email already in use }
   /register/verify:
     post:
-      summary: Confirm the admin email and activate the organisation.
+      summary: Confirm the admin email. The organisation becomes pending_approval until a super admin approves its academic package.
       security: []
       requestBody: { content: { application/json: { schema: { type: object, required: [token], properties: { token: { type: string } } } } } }
-      responses: { "204": { description: Activated } }
+      responses: { "200": { description: Organisation with its status, content: { application/json: { schema: { $ref: "#/components/schemas/Organisation" } } } } }
+  /organisation/academy-package:
+    put:
+      summary: Ask to change academic package (academy type). Takes effect only when a super admin approves. Permission tenancy:organisation:manage.
+      requestBody: { content: { application/json: { schema: { type: object, required: [academy_type], properties: { academy_type: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Organisation" } } } } }
+  /admin/organisations/{id}/approve:
+    post:
+      summary: Approve the organisation's academic package, at registration or for a requested change. Super admin only (platform:organisations:manage).
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Organisation" } } } }, "409": { description: Nothing to approve } }
   /academy-types:
     get:
       summary: Academy types an organisation can choose at registration (the institution profiles).
@@ -83,7 +94,7 @@ components:
   schemas:
     OrganisationStatus:
       type: string
-      enum: [pending_verification, active, suspended, archived]
+      enum: [pending_verification, pending_approval, active, suspended, archived]
     AcademyType:
       type: object
       properties:
@@ -113,7 +124,8 @@ components:
         id: { type: string, format: uuid }
         name: { type: string }
         slug: { type: string }
-        academy_type: { type: string }
+        academy_type: { type: string, description: "The academic package in effect" }
+        requested_academy_type: { type: string, nullable: true, description: "A package change awaiting super admin approval" }
         status: { $ref: "#/components/schemas/OrganisationStatus" }
         plan: { type: string, description: "Current plan id from billing" }
         trial_ends_at: { type: string, format: date-time, nullable: true }

@@ -17,7 +17,7 @@ learner (artist, musician, dancer, medical student, ...), instructor and field s
 role layouts use the generic `practice/*` and `facilities/*` modules; the profile vocabulary names them.
 
 Two layouts are platform-level rather than academy-level: `org-admin` (one per organisation,
-created at registration) and `super-admin` (the operator, served by `apps/admin`).
+created at registration) and `super-admin` (the operator, served by the admin screens in `apps/web`).
 
 Rules
 - A widget id must be exported by exactly one module's `frontend/src/widgets/index.ts`.

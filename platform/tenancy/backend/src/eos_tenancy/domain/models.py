@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from eos_core.db import Base, TenantMixin, TimestampMixin, new_id
 
-STATUSES = ("pending_verification", "active", "suspended", "archived")
+STATUSES = ("pending_verification", "pending_approval", "active", "suspended", "archived")
 
 
 class Organisation(Base, TimestampMixin):
@@ -18,6 +18,8 @@ class Organisation(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(200))
     slug: Mapped[str] = mapped_column(String(40), unique=True, index=True)
     academy_type: Mapped[str] = mapped_column(String(60))
+    # A package change the organisation asked for, waiting for super admin approval.
+    requested_academy_type: Mapped[str | None] = mapped_column(String(60), nullable=True)
     country: Mapped[str | None] = mapped_column(String(2), nullable=True)
     status: Mapped[str] = mapped_column(String(30), default="pending_verification")
     status_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -25,7 +27,8 @@ class Organisation(Base, TimestampMixin):
 
     def to_dict(self, **extra) -> dict:
         return {"id": self.id, "name": self.name, "slug": self.slug, "academy_type": self.academy_type,
-                "country": self.country, "status": self.status, "created_at": self.created_at.isoformat() if self.created_at else None, **extra}
+                "requested_academy_type": self.requested_academy_type, "country": self.country, "status": self.status,
+                "status_reason": self.status_reason, "created_at": self.created_at.isoformat() if self.created_at else None, **extra}
 
 
 class RegistrationToken(Base, TenantMixin):

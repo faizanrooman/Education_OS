@@ -19,6 +19,7 @@ from eos_identity.application import service as identity
 
 from ..domain.models import Organisation, OrganisationModule, RegistrationToken
 
+AUTO_APPROVE = settings.auto_approve  # module-level so tests can flip it
 SLUG_RE = re.compile(r"^[a-z0-9-]{3,40}$")
 RESERVED = {"admin", "api", "www", "app", "platform"}
 
@@ -72,10 +73,57 @@ def verify(db: Session, token: str) -> Organisation:
             raise TenancyError("invalid or expired token", 400)
         org = db.get(Organisation, rt.organisation_id)
         rt.used = True
-        org.status = "active"
-        events.publish(db, "tenancy.organisation.activated", org.id, {"organisation_id": org.id})
+        events.publish(db, "tenancy.organisation.verified", org.id, {"organisation_id": org.id, "academy_type": org.academy_type})
+        if AUTO_APPROVE:
+            _activate(db, org, approved_by=None, reason="auto-approved")
+        else:
+            org.status = "pending_approval"
+            events.publish(db, "tenancy.package.requested", org.id,
+                           {"organisation_id": org.id, "academy_type": org.academy_type, "kind": "registration"})
         db.commit()
         return org
+
+
+def _activate(db: Session, org: Organisation, *, approved_by: str | None, reason: str) -> None:
+    org.status, org.status_reason = "active", reason
+    events.publish(db, "tenancy.organisation.approved", org.id,
+                   {"organisation_id": org.id, "academy_type": org.academy_type, "approved_by": approved_by}, actor=approved_by)
+    events.publish(db, "tenancy.organisation.activated", org.id, {"organisation_id": org.id})
+
+
+def approve(db: Session, organisation_id: str, *, approved_by: str, reason: str = "") -> Organisation:
+    """Super admin approves the academic package: at registration, or a requested package change."""
+    org = get_organisation(db, organisation_id)
+    with platform_scope():
+        if org.requested_academy_type:
+            previous = org.academy_type
+            org.academy_type, org.requested_academy_type = org.requested_academy_type, None
+            events.publish(db, "tenancy.package.changed", org.id,
+                           {"organisation_id": org.id, "from": previous, "to": org.academy_type, "approved_by": approved_by}, actor=approved_by)
+            _changed(db, org.id)
+            if org.status == "active":
+                db.commit()
+                return org
+        if org.status != "pending_approval":
+            raise TenancyError(f"organisation is {org.status}, nothing to approve", 409)
+        _activate(db, org, approved_by=approved_by, reason=reason or "approved")
+        db.commit()
+    return org
+
+
+def request_package(db: Session, organisation_id: str, academy_type: str) -> Organisation:
+    """An organisation asks to switch academic package. Takes effect only when a super admin approves."""
+    if academy_type not in load_profiles():
+        raise TenancyError(f"unknown academy type {academy_type}")
+    org = get_organisation(db, organisation_id)
+    if academy_type == org.academy_type:
+        raise TenancyError("already on this academic package", 409)
+    with platform_scope():
+        org.requested_academy_type = academy_type
+        events.publish(db, "tenancy.package.requested", org.id,
+                       {"organisation_id": org.id, "academy_type": academy_type, "kind": "change"})
+        db.commit()
+    return org
 
 
 def get_organisation(db: Session, organisation_id: str) -> Organisation:

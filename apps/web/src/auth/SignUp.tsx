@@ -19,6 +19,7 @@ export function SignUp({ onDone, onLogin }: { onDone: (slug: string) => void; on
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [registered, setRegistered] = useState<Registered | null>(null);
+  const [verified, setVerified] = useState<{ status: string } | null>(null);
   const [token, setToken] = useState("");
 
   useEffect(() => {
@@ -59,14 +60,25 @@ export function SignUp({ onDone, onLogin }: { onDone: (slug: string) => void; on
     setBusy(true);
     setError(null);
     try {
-      await api("/tenancy/register/verify", { method: "POST", json: { token } });
-      onDone(registered!.slug);
+      const org = await api<{ status: string }>("/tenancy/register/verify", { method: "POST", json: { token } });
+      if (org.status === "active") onDone(registered!.slug);
+      else setVerified(org);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : String(err));
     } finally {
       setBusy(false);
     }
   };
+
+  if (verified) {
+    return (
+      <div className="eos-auth">
+        <h1>Email verified</h1>
+        <p>{form.organisation_name} is waiting for the platform administrator to approve its academic package. You will get an email when it is approved, and can then sign in.</p>
+        <p className="eos-auth__hint"><a href="#login" onClick={(e) => { e.preventDefault(); onLogin(); }}>Back to sign in</a></p>
+      </div>
+    );
+  }
 
   if (registered) {
     return (

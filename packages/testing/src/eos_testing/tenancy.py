@@ -5,7 +5,7 @@ from eos_core import notify
 
 
 def register_and_login(client, *, slug: str, academy_type: str = "sports-college", email: str | None = None,
-                       password: str = "Passw0rd!x") -> dict:
+                       password: str = "Passw0rd!x", super_admin: tuple[str, str] | None = None) -> dict:
     """Register an organisation, verify it with the dev-mode token, log the admin in. Returns {org, token}."""
     email = email or f"admin@{slug}.example.com"
     r = client.post("/api/v1/tenancy/register", json={
@@ -14,7 +14,15 @@ def register_and_login(client, *, slug: str, academy_type: str = "sports-college
     assert r.status_code == 201, r.text
     org = r.json()
     token = org.get("verification_token") or next(m["token"] for m in reversed(notify.sent) if m.get("to") == email)
-    assert client.post("/api/v1/tenancy/register/verify", json={"token": token}).status_code == 204
+    v = client.post("/api/v1/tenancy/register/verify", json={"token": token})
+    assert v.status_code == 200, v.text
+    if v.json()["status"] == "pending_approval":
+        if not super_admin:
+            raise AssertionError("organisation needs super admin approval; pass super_admin=(email, password) or set TENANCY_AUTO_APPROVE=true")
+        r = client.post("/api/v1/identity/auth/login", json={"email": super_admin[0], "password": super_admin[1]})
+        assert r.status_code == 200, r.text
+        a = client.post(f"/api/v1/tenancy/admin/organisations/{org['id']}/approve", json={"reason": "test"}, headers=auth(r.json()["token"]))
+        assert a.status_code == 200, a.text
     r = client.post("/api/v1/identity/auth/login", json={"email": email, "password": password, "organisation_slug": slug})
     assert r.status_code == 200, r.text
     return {"org": org, "token": r.json()["token"], "email": email, "password": password}

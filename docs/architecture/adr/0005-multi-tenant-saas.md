@@ -20,9 +20,13 @@ One deployment serves many organisations.
    setting `app.organisation_id`, which the gateway sets from the authenticated session. Every
    event carries `organisation_id` in its envelope (the `tenant` field already in the template).
    Documents, search indexes and cache keys are prefixed by organisation.
-2. **Registration.** A public flow in `platform/tenancy`: organisation name, academy type
-   (an institution profile from ADR-0004), admin user. The organisation starts on the
-   `trial` plan. Its effective configuration is a copy of the profile that it can later adjust.
+2. **Registration and the academic package.** A public flow in `platform/tenancy`: organisation
+   name, academy type, admin user. The academy type selects the organisation's **academic
+   package**: the academy profile (ADR-0004) with its suites, roles and dashboards, filtered by
+   the plan. There is one application; a package is configuration inside it, never a separate
+   deployment. After email verification the organisation is `pending_approval` until a **super
+   admin approves the package**; only then can its users sign in. A later package change is a
+   request the super admin approves the same way. The organisation starts on the `trial` plan.
 3. **Plans and entitlements.** `platform/billing` defines plans (`trial`, `standard`,
    `premium`, editable by the super admin) as a set of allowed modules, integrations and
    limits. An organisation's **entitlement** is: modules in its profile that its plan allows,
@@ -32,8 +36,9 @@ One deployment serves many organisations.
 4. **Trial and upgrade.** Trial is time-limited and capped. Upgrade is self-service through
    `platform/billing` and the payment adapter; the entitlement changes the moment the
    subscription does, with no redeploy.
-5. **Super admin.** A platform-level role outside any organisation, served by `apps/admin`.
-   Lists and suspends organisations, edits plans and subscriptions, grants feature overrides,
+5. **Super admin.** A platform-level role outside any organisation, served by the admin
+   screens of the same application. Approves academic packages at registration and on change,
+   lists and suspends organisations, edits plans and subscriptions, grants feature overrides,
    views usage, and may impersonate an organisation user with every action audited. Super
    admin permissions are `platform:*` keys and are never grantable inside an organisation.
 6. **Organisation admin.** A per-organisation role created at registration. Manages the
@@ -44,7 +49,7 @@ One deployment serves many organisations.
   rule; CI will fail a migration that creates a table without `organisation_id` and a policy.
 - Platform services `tenancy` and `billing` become part of the core and are the first backend
   work, before any feature module, because the gateway depends on entitlements.
-- Two more dashboards: organisation admin and super admin.
+- Two more dashboards: organisation admin and super admin. The super admin screens live in `apps/web/src/admin`; there is no separate admin application.
 - Data isolation now depends on code discipline and RLS, not on separate databases. Tests in
   `packages/testing` must include a cross-tenant leak check that every module runs.
 - Backups, exports and deletion must work per organisation.

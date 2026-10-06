@@ -169,3 +169,9 @@ A module imports only from its own folder and from `packages/`. It talks to othe
   module it touches; module owners keep contracts and backend coherent and review. Wave 1 = the sports
   college's 17 dashboards (11 assigned + pool of 6); wave 2 = one academy (3 dashboards) per person,
   3 academies in the pool. Recorded in the Dashboard Assignment Plan doc and `docs/team/ownership.md`.
+- **Academic package and approval (product owner):** one application for all academies; an
+  organisation's academy selection is its academic package, approved by the super admin at
+  registration (`pending_approval`) and on change requests. Backend, contracts, events, tests and
+  web flow updated. `apps/admin` folded into `apps/web/src/admin`. Dashboard plan replanned so all
+  15 academies are built together: wave A common (13), then learner (B), instructor (C), field
+  staff (D) across every academy; each person keeps one academy.

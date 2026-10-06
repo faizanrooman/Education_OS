@@ -1,8 +1,9 @@
 # Dashboard layout for the Super Admin, the platform operator outside every organisation (ADR-0005).
-# Rendered by apps/admin.
+# Rendered by the admin screens in apps/web (one application, ADR-0005).
 role: super-admin
 title: "Super Admin"
 widgets:
+  - tenancy.approval-queue
   - tenancy.organisations-by-status
   - tenancy.recent-registrations
   - billing.trials-expiring

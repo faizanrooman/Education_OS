@@ -76,7 +76,8 @@ and physio records, hospital integration, scripts and rights, thesis and viva, w
 | management-institute | all | case competitions (events), corporate relations, live projects (projects), internships, alumni |
 
 All 15 profiles exist in `platform/identity/config/profiles/`. An organisation picks one at
-registration as its academy type (ADR-0005); the plan it is on decides how much is unlocked.
+registration as its academy type; that is its **academic package** inside the one application,
+approved by the super admin, and the plan it is on decides how much of it is unlocked (ADR-0005).
 
 ## Roles per academy
 
