@@ -5,6 +5,7 @@ Kickoff 7 Oct 2026. Week 1 is 7 to 10 Oct. Your tasks are GitHub issues on the b
 `contracts/*.yaml` for every module they own. Code starts in week 2. The live tracker with tick
 boxes is the "Kickoff tasks" tab of the Dashboard Assignment Plan doc; this file is the copy next
 to the code. Module standard: [docs/architecture/module-standard.md](../architecture/module-standard.md).
+Starter prompt for your Claude Code chat: [prompts/](prompts/).
 
 | Name | Area | Week 1 | Then |
 |---|---|---|---|

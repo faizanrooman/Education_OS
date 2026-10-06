@@ -113,4 +113,5 @@ This applies to people and to every AI assistant equally. CI fails any PR that b
 (`tools/scripts/check-root.py`, also run by `precheck.sh`). Claude Code, GitHub Copilot and Cursor read
 the same rules automatically from `.claude/CLAUDE.md`, `.github/copilot-instructions.md` and
 `.cursor/rules/repository-rules.mdc`, and a Claude Code hook refuses to write files at the top level.
-Using any other assistant? Give it `docs/team/RULES.md` first.
+Using any other assistant? Give it `docs/team/RULES.md` first. Each person's starter prompt for
+Claude Code, with their owned paths and conflict rules, is in [prompts/](prompts/).
