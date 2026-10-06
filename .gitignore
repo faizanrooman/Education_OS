@@ -32,3 +32,9 @@ coverage/
 
 # written by tools/scripts/deploy-web.sh
 infra/docker/.env
+
+# Python venv and local databases
+.venv/
+*.db
+*.db-journal
+infra/docker/.env.api

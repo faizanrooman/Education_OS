@@ -1,0 +1,44 @@
+"""Helpers every module's test suite uses to prove it does not leak across organisations."""
+from __future__ import annotations
+
+from eos_core import notify
+
+
+def register_and_login(client, *, slug: str, academy_type: str = "sports-college", email: str | None = None,
+                       password: str = "Passw0rd!x") -> dict:
+    """Register an organisation, verify it with the dev-mode token, log the admin in. Returns {org, token}."""
+    email = email or f"admin@{slug}.example.com"
+    r = client.post("/api/v1/tenancy/register", json={
+        "organisation_name": slug.replace("-", " ").title(), "slug": slug, "academy_type": academy_type,
+        "admin": {"name": "Admin", "email": email, "password": password}, "accepted_terms": True})
+    assert r.status_code == 201, r.text
+    org = r.json()
+    token = org.get("verification_token") or next(m["token"] for m in reversed(notify.sent) if m.get("to") == email)
+    assert client.post("/api/v1/tenancy/register/verify", json={"token": token}).status_code == 204
+    r = client.post("/api/v1/identity/auth/login", json={"email": email, "password": password, "organisation_slug": slug})
+    assert r.status_code == 200, r.text
+    return {"org": org, "token": r.json()["token"], "email": email, "password": password}
+
+
+def auth(token: str) -> dict:
+    return {"Authorization": f"Bearer {token}"}
+
+
+def assert_no_cross_tenant_leak(client, path: str, token_a: str, token_b: str, id_field: str = "organisation_id") -> None:
+    """GET `path` as A and as B; every returned row must belong to the caller and the sets must not overlap."""
+    ra, rb = client.get(path, headers=auth(token_a)), client.get(path, headers=auth(token_b))
+    assert ra.status_code == 200 and rb.status_code == 200, (ra.text, rb.text)
+    rows_a, rows_b = _rows(ra.json()), _rows(rb.json())
+    orgs_a, orgs_b = {r.get(id_field) for r in rows_a}, {r.get(id_field) for r in rows_b}
+    assert len(orgs_a) <= 1 and len(orgs_b) <= 1, (orgs_a, orgs_b)
+    assert not (orgs_a & orgs_b), f"{path} returned the same organisation to two tenants"
+    ids_a, ids_b = {r.get("id") for r in rows_a}, {r.get("id") for r in rows_b}
+    assert not (ids_a & ids_b), f"{path} returned the same rows to two tenants"
+
+
+def _rows(body):
+    if isinstance(body, list):
+        return body
+    if isinstance(body, dict):
+        return body.get("items") or [body]
+    return []

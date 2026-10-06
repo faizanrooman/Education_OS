@@ -97,7 +97,7 @@ Set `portable: true` in `module.yaml` only when all of these pass:
 | `backend/` | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, pytest | `backend/src/api/router.py` exports `router: APIRouter` |
 | `frontend/` | React, TypeScript, Vite, Vitest | `frontend/src/index.ts` exports `routes` and `widgets` |
 | `mobile/` | React Native (proposed) | `mobile/src/index.ts` exports `screens` |
-| `db/migrations` | Alembic, one version chain per module, own schema only, `organisation_id` + RLS on every table | `db/alembic.ini` |
+| `db/migrations` | Alembic, one version chain per module, own schema only, `organisation_id` + RLS on every table. Until the first chain exists, `eos_core.init_db()` creates tables and applies the RLS policies at startup | `db/alembic.ini` |
 | `contracts/` | OpenAPI 3.1 → Pydantic + TS types via `packages/contracts` | — |
 | `tests/e2e` | pytest (API) + Playwright (UI) against platform stubs | — |
 

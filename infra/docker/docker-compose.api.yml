@@ -1,0 +1,38 @@
+# API host plus Postgres. Run on a Docker host (not the nginx container):
+#   docker compose -f infra/docker/docker-compose.api.yml --env-file infra/docker/.env.api up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eos
+      POSTGRES_PASSWORD: ${EOS_DB_PASSWORD:?set EOS_DB_PASSWORD}
+      POSTGRES_DB: eos
+    volumes:
+      - eos-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/api.Dockerfile
+    image: eos-api:${EOS_API_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      EOS_DATABASE_URL: postgresql+psycopg://eos:${EOS_DB_PASSWORD}@db:5432/eos
+      EOS_JWT_SECRET: ${EOS_JWT_SECRET:?set EOS_JWT_SECRET (32+ random bytes)}
+      EOS_DEV_MODE: ${EOS_DEV_MODE:-false}
+      EOS_SUPER_ADMIN_EMAIL: ${EOS_SUPER_ADMIN_EMAIL:?set EOS_SUPER_ADMIN_EMAIL}
+      EOS_SUPER_ADMIN_PASSWORD: ${EOS_SUPER_ADMIN_PASSWORD:?set EOS_SUPER_ADMIN_PASSWORD}
+      EOS_CORS_ORIGINS: ${EOS_CORS_ORIGINS:-https://educationos.futureacad.ae}
+      BILLING_PAYMENT_ADAPTER: ${BILLING_PAYMENT_ADAPTER:-none}
+    ports:
+      - "${EOS_API_PORT:-8000}:8000"
+volumes:
+  eos-pgdata:

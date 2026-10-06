@@ -74,3 +74,24 @@ body {
 .eos-tenant__plan { display: flex; gap: 6px; align-items: center; }
 .eos-tenant__trial { color: #92400e; background: #fef3c7; padding: 2px 8px; border-radius: 999px; }
 .eos-tenant__upgrade a { color: #1d4ed8; font-weight: 600; }
+
+.eos-auth {
+  max-width: 440px;
+  margin: 40px auto;
+  padding: 24px;
+  background: var(--eos-card);
+  border: 1px solid var(--eos-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.eos-auth h1 { margin: 0; font-size: 20px; }
+.eos-auth label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; }
+.eos-auth input, .eos-auth select { padding: 8px; border: 1px solid var(--eos-border); border-radius: 6px; font: inherit; font-weight: 400; }
+.eos-auth button { padding: 10px; border: 0; border-radius: 6px; background: #1d4ed8; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.eos-auth button:disabled { opacity: 0.6; }
+.eos-auth__error { margin: 0; color: var(--eos-error); font-size: 13px; }
+.eos-auth__hint { margin: 0; color: var(--eos-muted); font-size: 12px; font-weight: 400; }
+.eos-banner { padding: 6px var(--eos-gap); font-size: 12px; background: #fef3c7; color: #92400e; }
+.eos-tenant__signout { margin-left: auto; background: none; border: 0; color: #1d4ed8; cursor: pointer; font: inherit; }

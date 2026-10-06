@@ -169,6 +169,17 @@ Example: `fees-accounts` does not query the admissions tables. It subscribes to
 - Every state change writes to `platform/audit`. Audit records are immutable.
 - MFA, SSO (SAML / OAuth2 / OIDC) and session rules are configured once in `platform/identity`.
 
+## What is built (6 Oct 2026)
+
+| Piece | State |
+|---|---|
+| `packages/core` (`eos_core`) | Settings, DB base with `organisation_id`, tenant context, RLS policies, JWT, config loaders, entitlement rule, outbox |
+| `platform/identity`, `tenancy`, `billing` backends | Sign-in, users and roles; registration, verification, entitlement, overrides, impersonation; plans, trial, upgrade |
+| `apps/api` | FastAPI host with the entitlement gate; 11 foundation tests pass on SQLite and Postgres |
+| `packages/testing` | `register_and_login`, `assert_no_cross_tenant_leak` |
+| `apps/web` | Sign-up, sign-in, real entitlement from the API; preview mode when no API is reachable |
+| Not yet | Alembic chains, platform/notification (email is stubbed), payment adapter (upgrade applies directly when `BILLING_PAYMENT_ADAPTER=none`), apps/admin screens, every feature module |
+
 ## Role dashboards
 
 The 15 roles in the diagram each get a dashboard, but there is only one dashboard page.

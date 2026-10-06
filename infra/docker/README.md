@@ -6,6 +6,7 @@ Dockerfiles and compose files for local and deployment.
 |---|---|
 | `web.Dockerfile` | Builds `apps/web` with pnpm and serves the static output with nginx |
 | `nginx.web.conf` | SPA fallback, asset caching, placeholder for the API proxy |
+| `api.Dockerfile`, `docker-compose.api.yml`, `.env.api.example` | The API host and Postgres on a Docker host. See "API" below |
 | `nginx.static-vhost.conf` | Vhost for serving the build as static files from an existing nginx container on port 8080 |
 | `docker-compose.yml` | Runs the `eos-web` image on the deployment host. `.env` beside it is written by the deploy script and git-ignored |
 
@@ -68,6 +69,28 @@ ln -sfn /etc/nginx/sites-available/educationos.futureacad.ae /etc/nginx/sites-en
 nginx -t && nginx -s reload
 certbot --nginx -d educationos.futureacad.ae
 ```
+
+### API
+
+The API needs Docker and Postgres, so it does not run in the nginx container. It runs in a
+container with Docker (the Debian LXC from option B, with nesting on), reachable from the proxy.
+
+On that Docker host, once:
+
+```
+git clone https://github.com/faizanrooman/Education_OS.git /opt/education-os && cd /opt/education-os
+cp infra/docker/.env.api.example infra/docker/.env.api   # fill in: DB password, 32+ byte JWT secret, super admin login
+docker compose -f infra/docker/docker-compose.api.yml --env-file infra/docker/.env.api up -d --build
+curl http://127.0.0.1:8000/api/v1/health
+```
+
+Every deploy: `git pull && docker compose -f infra/docker/docker-compose.api.yml --env-file infra/docker/.env.api up -d --build`.
+
+Then in the nginx container, set `<api-host>` in the public vhost's `/api/` location to that host's IP
+and reload. The web shell detects the API on load and switches from preview mode to real sign-up and sign-in.
+
+Postgres tables get row-level-security policies automatically at startup (`eos_core.rls`). Backups:
+`docker compose ... exec db pg_dump -U eos eos > eos-$(date +%F).sql`.
 
 ### Local check
 

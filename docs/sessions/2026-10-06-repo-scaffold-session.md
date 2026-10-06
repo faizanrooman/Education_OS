@@ -156,3 +156,12 @@ A module imports only from its own folder and from `packages/`. It talks to othe
   role extending `faculty` and a field staff role; 44 field role layouts. Roles moved out of code:
   `packages/contracts` keeps only org-admin and super-admin; the web shell reads roles from the
   profile and has an academy switcher.
+- **Phase 1 foundation built:** `eos_core` (settings, tenant-scoped DB base, RLS, JWT, config loaders,
+  entitlement rule, outbox), backends for identity, tenancy and billing, `apps/api` with the
+  entitlement gate, `eos_testing` with the cross-tenant leak check, 11 foundation tests (register →
+  verify → login → trial entitlement enforced by the gate → upgrade unlocks → org admin toggles →
+  super admin overrides, impersonation, suspension). Web shell gained sign-up and sign-in with
+  preview mode as fallback. Found and fixed a real leak: contextvars set in sync FastAPI dependencies
+  do not reach the endpoint; the organisation now rides on the DB session and scoping fails closed.
+  `api.yml` CI runs the tests on SQLite and Postgres. API deploy is prepared (`api.Dockerfile`,
+  `docker-compose.api.yml`) but needs a Docker host; the web app stays in preview mode until then.

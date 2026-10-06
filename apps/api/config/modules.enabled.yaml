@@ -1,3 +1,4 @@
-# Modules composed into this app. Path relative to repo root.
+# Feature modules composed into this host, as <domain>/<module>. Platform services are always mounted.
+# A module listed here is still only reachable by organisations whose entitlement includes it.
 modules: []
-platform: []
+platform: [identity, tenancy, billing]

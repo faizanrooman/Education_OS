@@ -1,15 +1,16 @@
 [project]
 name = "eos-billing"
 version = "0.1.0"
-description = "Education OS module: billing (backend)"
+description = "Education OS platform service: plans, trials, subscriptions, upgrades, invoices."
 requires-python = ">=3.12"
-dependencies = [
-  "fastapi",
-  "sqlalchemy>=2",
-  "alembic",
-  "eos-core",
-  "eos-sdk",
-]
+dependencies = ["fastapi>=0.115", "sqlalchemy>=2", "eos-core", "eos-identity"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

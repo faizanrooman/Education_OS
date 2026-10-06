@@ -57,5 +57,14 @@ Full table and follow-up decisions: [ADR-0002](docs/architecture/adr/0002-tech-s
 https://educationos.futureacad.ae — every merge to `main` deploys there within about two minutes
 (see [infra/autodeploy](infra/autodeploy/)). `/VERSION` on the site shows the commit that is live.
 
+## Run the backend
+```
+tools/scripts/py-setup.sh && source .venv/bin/activate
+EOS_SUPER_ADMIN_EMAIL=root@local EOS_SUPER_ADMIN_PASSWORD=change-me uvicorn eos_api.main:app --reload --port 8000
+pnpm --filter @eos/web dev      # proxies /api to :8000; sign-up and sign-in become real
+```
+
 ## Status
-Scaffold plus the dashboard foundation (widget contract, role layouts, web shell). No business modules implemented yet.
+Dashboard foundation (widget contract, 59 role layouts, 15 academy profiles, web shell) and the
+multi-tenant foundation (identity, tenancy, billing, API host with the entitlement gate, row-level
+security, cross-tenant leak test) are built and tested. No business module is implemented yet.
