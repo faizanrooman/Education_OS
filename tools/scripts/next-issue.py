@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Continuous assignment: one open issue per person, the next one handed out the moment the last closes.
 
-Queue order for a person: Week 1 task, foundation tasks (phase:foundation), their modules to build
-(type:module, in dependency order), their dashboards by wave A, B, C, D, production readiness
-(phase:production), then the pool (label `pool`) in the same order. Run by
+Queue order for a person: their own open issues by the global sequence number in the title
+("[NNN]", set by tools/scripts/order-issues.py: milestone, then week 1, foundation, modules,
+dashboards by wave, production), then the pool (label `pool`) in the same order. Run by
 .github/workflows/auto-assign.yml on every issue close and on demand (kickoff).
 
   next-issue.py --event closed --issue 42      # the person who closed #42 gets their next issue
@@ -71,9 +71,16 @@ def open_issues() -> list[dict]:
     return issues
 
 
+SEQ_RE = re.compile(r"^\[(\d+)\]")
+
+
 def wave_rank(it: dict) -> tuple[int, int]:
+    """The global order from tools/scripts/order-issues.py ("[NNN]" title prefix) wins; labels are the fallback."""
+    m = SEQ_RE.match(it["title"])
+    if m:
+        return (int(m.group(1)), it["number"])
     rank = min((WAVE_ORDER[lab] for lab in it["labels"] if lab in WAVE_ORDER), default=9)
-    return (rank, it["number"])
+    return (100_000 + rank, it["number"])
 
 
 def queue_for(name: str, issues: list[dict]) -> list[dict]:
