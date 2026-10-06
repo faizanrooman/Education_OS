@@ -10,7 +10,7 @@ would let strangers' pull requests execute code there).
 | `../../.github/workflows/web.yml` | GitHub. Typecheck, test, build, publish `apps/web/dist` to `web-dist` |
 | `eos-web-autodeploy.sh` | Container, every minute. Fetch `web-dist`; if changed, swap `/var/www/education-os` and reload nginx |
 | `eos-web-autodeploy.{service,timer}` | Container, systemd units for the above |
-| `install.sh` | Container, once. Installs the three files and the vhost, starts the timer |
+| `install.sh` | Container, once. Installs the three files and the vhost, starts the timer. Re-run it after changing `eos-web-autodeploy.sh`; the script itself is not auto-updated |
 
 Install once, as root inside the nginx container:
 

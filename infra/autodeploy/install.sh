@@ -18,6 +18,7 @@ fi
 
 systemctl daemon-reload
 systemctl enable --now eos-web-autodeploy.timer
-/usr/local/bin/eos-web-autodeploy
+# Run once now through systemd so it cannot collide with a timer-triggered run.
+systemctl start eos-web-autodeploy.service
 echo "installed. version now serving: $(cat /var/www/education-os/VERSION)"
 echo "timer: $(systemctl is-active eos-web-autodeploy.timer); logs: journalctl -t eos-web-autodeploy"
