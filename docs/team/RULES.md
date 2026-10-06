@@ -65,7 +65,8 @@ https://github.com/faizanrooman/Education_OS/blob/team-status/STATUS.md.
   your dashboards by wave, then production readiness, then the pool in priority order. The whole road
   to production is already on the board as issues with milestones M1 to M5; there is no waiting for
   the next assignment and no picking. Handles live in `docs/team/members.yaml`.
-- An issue closes only through its PR (`Closes #N`). Done means merged and visible on the live
+- An issue closes through its PR (`Closes #N`). When your PR merges, the issue it references closes and
+  your next issue is assigned to you on the spot; a PR that references no issue gets a reminder. Done means merged and visible on the live
   site. Closing an issue by hand without a PR is reverted.
 - Link the issue in the PR (`Closes #123`) so it closes on merge. Unlinked PRs are sent back.
 - Put `Time spent: <hours>h` in the PR body. It feeds the team status report.

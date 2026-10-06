@@ -1,20 +1,44 @@
-# Mirror of docs/team/ownership.md. One line per module. Fill in handles.
-# Syntax: <path> @github-handle @backup-handle
+# Mirror of docs/team/ownership.md. GitHub routes PR reviews to these owners (branch protection requires one).
+# The lead reviews every contract and architecture change.
 
-/docs/architecture/            @faizanrooman
-/packages/                     @faizanrooman
-/platform/identity/            @faizanrooman
-/platform/api-gateway/         @faizanrooman
-/platform/event-bus/           @faizanrooman
+/docs/architecture/                 @faizanrooman
+/packages/                          @faizanrooman
+/platform/identity/                 @faizanrooman
+/platform/api-gateway/              @faizanrooman
+/platform/tenancy/                  @faizanrooman
+/platform/billing/                  @faizanrooman
+/.github/                           @faizanrooman @srujanrooman
+/tools/                             @faizanrooman @srujanrooman
+/docs/team/                         @faizanrooman
+**/contracts/                       @faizanrooman
 
-# /modules/student-lifecycle/  @owner @backup
-# /modules/academics/          @owner @backup
-# /modules/sports/             @owner @backup
-# /modules/facilities/         @owner @backup
-# /modules/finance-operations/ @owner @backup
-# /modules/campus-life/        @owner @backup
-# /modules/governance/         @owner @backup
-# /modules/support/            @owner @backup
-# /integrations/               @owner @backup
-# /apps/                       @owner @backup
-# /infra/                      @owner @backup
+/platform/                          @himanshu-rooman
+/integrations/                      @himanshu-rooman
+/modules/practice/productions/      @himanshu-rooman
+
+/modules/student-lifecycle/         @praveen-rooman
+/modules/practice/portfolio/        @praveen-rooman
+/modules/practice/selection-process/ @praveen-rooman
+
+/modules/academics/                 @shivanisinghrooman-09
+
+/modules/sports/                    @akshatatrathodrooman
+/modules/facilities/sports-facilities/ @akshatatrathodrooman
+/modules/practice/skill-progress/   @akshatatrathodrooman
+
+/modules/facilities/                @Ashritharooman
+
+/modules/finance-operations/        @gokulalakshmirooman-source
+/integrations/payment-sbiepay/      @gokulalakshmirooman-source
+
+/modules/campus-life/               @tejaswini-rooman
+/modules/practice/field-training/   @tejaswini-rooman
+/modules/practice/projects/         @tejaswini-rooman
+
+/modules/governance/                @madhumitha-rooman
+/modules/support/                   @madhumitha-rooman
+
+/apps/                              @srujanrooman
+/infra/                             @srujanrooman
+/tests/                             @srujanrooman
+/packages/testing/                  @srujanrooman

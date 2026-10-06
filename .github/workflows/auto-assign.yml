@@ -5,10 +5,13 @@ name: auto-assign
 on:
   issues:
     types: [closed]
+  pull_request:
+    types: [closed]
   workflow_dispatch:
 
 permissions:
   issues: write
+  pull-requests: write
   contents: read
 
 jobs:
@@ -26,6 +29,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "issues" ]; then
             python tools/scripts/next-issue.py --event closed --issue ${{ github.event.issue.number }}
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            python tools/scripts/next-issue.py --event pr --pr ${{ github.event.pull_request.number }}
           else
             python tools/scripts/next-issue.py --event kickoff
           fi
