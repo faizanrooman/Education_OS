@@ -1,0 +1,9 @@
+# Dashboard layout for the Medical Staff (Doctor / Physio) role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: medical-staff
+title: "Medical Staff (Doctor / Physio)"
+widgets:
+  - sports-nutrition-health.injured-athletes
+  - sports-nutrition-health.appointments-today
+  - athlete-performance.fitness-clearances
+  - facility-booking.bookings

@@ -1,0 +1,9 @@
+# Dashboard layout for the Facility / Inventory Staff role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: facility-staff
+title: "Facility / Inventory Staff"
+widgets:
+  - facility-booking.bookings-today
+  - maintenance.tickets
+  - inventory-equipment.low-stock
+  - asset-management.audit-due

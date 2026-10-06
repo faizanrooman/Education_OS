@@ -1,3 +1,8 @@
-# Modules composed into this app. Path relative to repo root.
+# Modules composed into this app, as <domain>/<module> under modules/.
+# The dashboard shell registers each listed module's frontend/src/widgets/index.ts.
+# Example:
+#   modules:
+#     - academics/lms
+#     - finance-operations/fees-accounts
 modules: []
 platform: []

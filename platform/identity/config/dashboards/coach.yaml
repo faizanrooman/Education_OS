@@ -1,0 +1,11 @@
+# Dashboard layout for the Coach role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: coach
+title: "Coach"
+widgets:
+  - athlete-performance.squad-overview
+  - athlete-performance.session-plan
+  - training-video-analysis.reviews-pending
+  - facility-booking.bookings
+  - wearables.alerts
+  - tournament-events.calendar

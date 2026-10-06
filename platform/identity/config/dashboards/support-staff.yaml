@@ -1,0 +1,10 @@
+# Dashboard layout for the Support Staff (Helpdesk) role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: support-staff
+title: "Support Staff (Helpdesk)"
+widgets:
+  - helpdesk.open-by-priority
+  - sla-management.breaches
+  - incident-management.open
+  - amc-vendor-support.contracts-expiring
+  - knowledge-base.top-articles

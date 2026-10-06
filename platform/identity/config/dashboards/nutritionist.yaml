@@ -1,0 +1,8 @@
+# Dashboard layout for the Nutritionist role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: nutritionist
+title: "Nutritionist"
+widgets:
+  - sports-nutrition-health.athletes-on-plans
+  - sports-nutrition-health.plan-reviews-due
+  - athlete-performance.body-composition-trend

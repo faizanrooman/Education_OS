@@ -44,4 +44,4 @@ React + TypeScript (web, React Native proposed for mobile), FastAPI (Python), Po
 Full table and follow-up decisions: [ADR-0002](docs/architecture/adr/0002-tech-stack.md).
 
 ## Status
-Scaffold only. No implementation yet.
+Scaffold plus the dashboard foundation (widget contract, role layouts, web shell). No business modules implemented yet.

@@ -1,0 +1,9 @@
+# Dashboard layout for the Applicant role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: applicant
+title: "Applicant"
+widgets:
+  - admissions.application-status
+  - admissions.pending-documents
+  - fees-accounts.fee-due
+  - web-portal-cms.announcements

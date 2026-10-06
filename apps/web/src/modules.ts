@@ -1,0 +1,37 @@
+import { parse } from "yaml";
+import { WidgetRegistry, type DashboardWidget } from "@eos/ui-kit";
+import enabledRaw from "../config/modules.enabled.yaml?raw";
+
+/** One registry for the whole app. Filled once at startup. */
+export const registry = new WidgetRegistry();
+
+interface Enabled {
+  modules?: string[];
+  platform?: string[];
+}
+
+/** Every module widgets entry point in the repo, keyed by path. Loaded lazily. */
+const widgetModules = import.meta.glob<{ widgets?: DashboardWidget[] }>(
+  "../../../modules/*/*/frontend/src/widgets/index.ts",
+);
+
+/**
+ * Register the widgets of every module listed in config/modules.enabled.yaml.
+ * Entries are `<domain>/<module>` paths relative to modules/, e.g. `academics/lms`.
+ */
+export async function registerEnabledModules(): Promise<string[]> {
+  const enabled = (parse(enabledRaw) as Enabled | null)?.modules ?? [];
+  const loaded: string[] = [];
+  for (const name of enabled) {
+    const key = `../../../modules/${name}/frontend/src/widgets/index.ts`;
+    const load = widgetModules[key];
+    if (!load) {
+      console.warn(`modules.enabled.yaml lists "${name}" but it has no frontend/src/widgets/index.ts`);
+      continue;
+    }
+    const mod = await load();
+    registry.register(mod.widgets ?? []);
+    loaded.push(name);
+  }
+  return loaded;
+}

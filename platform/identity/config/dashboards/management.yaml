@@ -1,0 +1,11 @@
+# Dashboard layout for the Management (VC, Registrar) role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: management
+title: "Management (VC, Registrar)"
+widgets:
+  - admissions.funnel
+  - fees-accounts.collection-vs-target
+  - reporting.attendance-and-results-by-department
+  - grievance.open
+  - regulatory-reports.compliance-calendar
+  - tournament-events.results

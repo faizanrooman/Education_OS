@@ -4,6 +4,19 @@
   "private": true,
   "description": "Education OS module: facility-booking (frontend)",
   "main": "src/index.ts",
-  "peerDependencies": { "react": "*", "react-dom": "*" },
-  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "@eos/ui-kit": "workspace:*",
+    "@eos/contracts": "workspace:*"
+  },
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
 }

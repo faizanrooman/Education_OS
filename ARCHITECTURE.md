@@ -84,6 +84,22 @@ Example: `fees-accounts` does not query the admissions tables. It subscribes to
 - Every state change writes to `platform/audit`. Audit records are immutable.
 - MFA, SSO (SAML / OAuth2 / OIDC) and session rules are configured once in `platform/identity`.
 
+## Role dashboards
+
+The 15 roles in the diagram each get a dashboard, but there is only one dashboard page.
+
+| Piece | Where | Owner |
+|---|---|---|
+| Widget contract (`DashboardWidget`, `WidgetFrame`, `WidgetRegistry`) | `packages/ui-kit/src/widget/` | Architecture and platform |
+| Role layouts, one YAML per role listing widget ids | `platform/identity/config/dashboards/` | Architecture and platform |
+| Dashboard shell that reads the layout and renders the widgets | `apps/web/src/dashboard/` | Apps, infra and QA |
+| Widgets themselves | `<module>/frontend/src/widgets/index.ts` | The module's owner |
+
+A widget is module code: it imports only from its module and `packages/`, fetches through the
+module's generated client, and declares the permission key it needs. The shell hides widgets the
+viewer may not see and shows a "Not built yet" card for ids no enabled module exports.
+Assignment and status: the Dashboard Assignment Plan doc.
+
 ## Deployment shapes
 
 The same modules can be deployed three ways without code changes:

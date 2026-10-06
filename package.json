@@ -1,0 +1,14 @@
+{
+  "name": "education-os",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Education OS monorepo root. Modules live under modules/, shared code under packages/, apps under apps/.",
+  "packageManager": "pnpm@9.15.9",
+  "engines": { "node": ">=18.18" },
+  "scripts": {
+    "dev": "pnpm --filter @eos/web dev",
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  }
+}

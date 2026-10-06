@@ -1,0 +1,10 @@
+# Dashboard layout for the Athlete role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: athlete
+title: "Athlete"
+extends: student
+widgets:
+  - athlete-performance.training-schedule
+  - athlete-performance.performance-trend
+  - sports-nutrition-health.nutrition-plan
+  - tournament-events.upcoming

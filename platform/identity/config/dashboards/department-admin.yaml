@@ -1,0 +1,10 @@
+# Dashboard layout for the Department Admin / HoD role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: department-admin
+title: "Department Admin / HoD"
+widgets:
+  - workflow.approvals-pending
+  - academic-management.faculty-load
+  - timetable-attendance.department-attendance
+  - examinations.results-summary
+  - reporting.department-reports

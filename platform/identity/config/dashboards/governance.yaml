@@ -1,0 +1,9 @@
+# Dashboard layout for the Governance (Grievance / RTI / IQAC) role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: governance
+title: "Governance (Grievance / RTI / IQAC)"
+widgets:
+  - grievance.open-by-committee
+  - rti.nearing-deadline
+  - iqac-accreditation.action-items
+  - regulatory-reports.due

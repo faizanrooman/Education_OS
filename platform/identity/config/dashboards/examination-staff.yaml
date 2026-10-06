@@ -1,0 +1,9 @@
+# Dashboard layout for the Examination Staff role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: examination-staff
+title: "Examination Staff"
+widgets:
+  - examinations.schedule
+  - examinations.hall-tickets-issued
+  - examinations.results-pending
+  - enrolment-registration.registered-candidates

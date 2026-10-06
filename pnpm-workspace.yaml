@@ -1,0 +1,6 @@
+# Every frontend package in the repo. Backend packages are Python and are not listed here.
+packages:
+  - apps/*
+  - packages/*
+  - modules/*/*/frontend
+  - platform/*/frontend

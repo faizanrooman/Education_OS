@@ -1,0 +1,13 @@
+# Dashboard layout for the Student role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: student
+title: "Student"
+widgets:
+  - timetable-attendance.today
+  - timetable-attendance.attendance-summary
+  - examinations.upcoming-assessments
+  - lms.course-materials
+  - fees-accounts.fee-dues
+  - hostel.notices
+  - transport.notices
+  - library.loans

@@ -1,0 +1,9 @@
+# Dashboard layout for the HR Staff role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: hr-staff
+title: "HR Staff"
+widgets:
+  - hr-payroll.leave-requests
+  - hr-payroll.payroll-run-status
+  - e-office.files-pending
+  - hr-payroll.joinings-and-exits

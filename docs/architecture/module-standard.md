@@ -25,6 +25,7 @@ checklist that makes it portable to another repo.
 │   ├── src/pages/         route-level screens
 │   ├── src/components/    module-local components (shared ones go to packages/ui-kit)
 │   ├── src/api/           generated client from contracts/openapi.yaml
+│   ├── src/widgets/       dashboard widgets (DashboardWidget[] from packages/ui-kit)
 │   └── tests/
 ├── mobile/src/            optional mobile screens
 ├── db/
@@ -85,11 +86,11 @@ Set `portable: true` in `module.yaml` only when all of these pass:
 | Module path | Technology | Entry point |
 |---|---|---|
 | `backend/` | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, pytest | `backend/src/api/router.py` exports `router: APIRouter` |
-| `frontend/` | React, TypeScript, Vite, Vitest | `frontend/src/index.ts` exports `routes` |
+| `frontend/` | React, TypeScript, Vite, Vitest | `frontend/src/index.ts` exports `routes` and `widgets` |
 | `mobile/` | React Native (proposed) | `mobile/src/index.ts` exports `screens` |
 | `db/migrations` | Alembic, one version chain per module, own schema only | `db/alembic.ini` |
 | `contracts/` | OpenAPI 3.1 → Pydantic + TS types via `packages/contracts` | — |
 | `tests/e2e` | pytest (API) + Playwright (UI) against platform stubs | — |
 
 `apps/api` includes every enabled module's `router` under `/api/v1/<module>`.
-`apps/web` mounts every enabled module's `routes`.
+`apps/web` mounts every enabled module's `routes` and registers its `widgets` with the dashboard shell.

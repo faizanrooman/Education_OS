@@ -1,0 +1,10 @@
+# Dashboard layout for the Finance Staff role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: finance-staff
+title: "Finance Staff"
+widgets:
+  - fees-accounts.collections-today
+  - fees-accounts.outstanding-dues
+  - payment-sbiepay.reconciliation
+  - budget-grants.budget-vs-spend
+  - procurement.purchase-orders-pending

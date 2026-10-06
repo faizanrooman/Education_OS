@@ -1,0 +1,10 @@
+# Dashboard layout for the Faculty / Instructor role. Widget ids are <module>.<widget>.
+# Order is display order. The shell hides widgets the viewer lacks permission for.
+role: faculty
+title: "Faculty / Instructor"
+widgets:
+  - timetable-attendance.today-classes
+  - timetable-attendance.attendance-to-mark
+  - lms.assignments-to-grade
+  - examinations.exam-duties
+  - academic-management.course-roster
