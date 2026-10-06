@@ -50,10 +50,10 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
 - **First dashboard:** Facility / Inventory Staff (wave A)
 - **Academy I own in waves B to D:** Music academy (musician, music teacher, ensemble director)
 - **Week 1 (issue #65, due 10 Oct 2026):**
-- facility-booking contract as the generic resource-booking pattern
-- inventory-equipment contract as the generic inventory pattern
-- Contracts for maintenance and asset-management
-- **Who I depend on:** facility-booking is used by 27 dashboards: keep its names generic (resource, booking) and take labels from the academy profile vocabulary. Akshata owns sports-facilities next to your folder.
+  - facility-booking contract as the generic resource-booking pattern
+  - inventory-equipment contract as the generic inventory pattern
+  - Contracts for maintenance and asset-management
+  - **Who I depend on:** facility-booking is used by 27 dashboards: I keep its names generic (resource, booking) and take labels from the academy profile vocabulary. Akshata owns sports-facilities next to your folder.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

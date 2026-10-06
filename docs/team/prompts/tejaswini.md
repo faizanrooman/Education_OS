@@ -53,11 +53,11 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
 - **First dashboard:** Student (wave A)
 - **Academy I own in waves B to D:** Medical college (medical student, clinical supervisor, hospital coordinator)
 - **Week 1 (issue #67, due 10 Oct 2026):**
-- PRD and contracts for hostel, transport, library
-- field-training contract as the generic pattern
-- projects contract as the generic pattern
-- Agree the Student dashboard widgets with Shivani and Gokula Lakshmi
-- **Who I depend on:** The Student dashboard pulls widgets from Shivani's academics modules and Gokula Lakshmi's fees-accounts; you add those widgets in their modules and they review.
+  - PRD and contracts for hostel, transport, library
+  - field-training contract as the generic pattern
+  - projects contract as the generic pattern
+  - Agree the Student dashboard widgets with Shivani and Gokula Lakshmi
+  - **Who I depend on:** The Student dashboard pulls widgets from Shivani's academics modules and Gokula Lakshmi's fees-accounts; I add those widgets in their modules and they review.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

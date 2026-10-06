@@ -52,12 +52,12 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
 - **First dashboard:** Super Admin (wave A)
 - **Academy I own in waves B to D:** Engineering college (engineering student, project guide, lab in-charge)
 - **Week 1 (issue #69, due 10 Oct 2026):**
-- Deploy the API with Postgres behind the proxy so the live site leaves preview mode
-- Nightly Postgres backup
-- CI: boundary lint, manifest check, migration check for organisation_id
-- packages/testing platform stubs
-- Playwright end-to-end skeleton: register, approve, sign in, dashboard
-- **Who I depend on:** Faizan for the API deployment and anything in tools/ or workflows. Everyone registers their module in apps/backend and apps/frontend; review those small PRs quickly.
+  - Deploy the API with Postgres behind the proxy so the live site leaves preview mode
+  - Nightly Postgres backup
+  - CI: boundary lint, manifest check, migration check for organisation_id
+  - packages/testing platform stubs
+  - Playwright end-to-end skeleton: register, approve, sign in, dashboard
+  - **Who I depend on:** Faizan for the API deployment and anything in tools/ or workflows. Everyone registers their module in apps/backend and apps/frontend; I review those small PRs quickly.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

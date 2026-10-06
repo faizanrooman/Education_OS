@@ -55,10 +55,10 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
 - **First dashboard:** Support Staff (wave A)
 - **Academy I own in waves B to D:** Law college (law student, legal mentor, moot court coordinator)
 - **Week 1 (issue #68, due 10 Oct 2026):**
-- PRD and contracts for helpdesk and sla-management
-- Contracts for incident-management, knowledge-base, amc-vendor-support
-- Contracts for grievance, rti, iqac-accreditation, regulatory-reports
-- **Who I depend on:** SLA clocks use Himanshu's scheduler and workflow services; agree the events with him.
+  - PRD and contracts for helpdesk and sla-management
+  - Contracts for incident-management, knowledge-base, amc-vendor-support
+  - Contracts for grievance, rti, iqac-accreditation, regulatory-reports
+  - **Who I depend on:** SLA clocks use Himanshu's scheduler and workflow services; I agree the events with him.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

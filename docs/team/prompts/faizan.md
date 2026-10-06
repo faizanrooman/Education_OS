@@ -26,7 +26,8 @@ You are my coding assistant on Education OS, a multi-tenant platform for college
 - `packages/ui-kit/`
 - `platform/identity/config/` (academy profiles and dashboard layouts)
 - `docs/architecture/` (ADRs, module standard, approved stack)
-- `docs/team/ and tools/config/` (team rules, layout and lint config)
+- `docs/team/` (team rules, prompts, ownership)
+- `tools/config/` (repo layout, ruff and TypeScript config)
 
 ## 4. Where I may touch someone else's module
 Only for the dashboard in my current issue, and only:
@@ -57,13 +58,13 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
 - **First dashboard:** Organisation Admin (wave A)
 - **Academy I own in waves B to D:** Research university (research scholar, research supervisor, research office)
 - **Week 1 (issue #60, due 10 Oct 2026):**
-- Fill GitHub handles into .github/CODEOWNERS (done; keep it current)
-- Review every module's week 1 contract PR
-- Alembic migration chains with RLS for identity, tenancy, billing
-- Permission enforcement from the role catalogue in every platform router
-- ADR-0006: OIDC provider (Keycloak recommended)
-- Pair with Srujan on the API deployment
-- **Who I depend on:** You review every contract PR; contract reviews are the one thing all nine teammates wait on, so do them first each morning. Srujan (apps, infra) for the API deployment; Gokula Lakshmi for the payment adapter that billing depends on.
+  - Fill GitHub handles into .github/CODEOWNERS (done; keep it current)
+  - Review every module's week 1 contract PR
+  - Alembic migration chains with RLS for identity, tenancy, billing
+  - Permission enforcement from the role catalogue in every platform router
+  - ADR-0006: OIDC provider (Keycloak recommended)
+  - Pair with Srujan on the API deployment
+  - **Who I depend on:** I review every contract PR; contract reviews are the one thing all nine teammates wait on, so I do them first each morning. Srujan (apps, infra) for the API deployment; Gokula Lakshmi for the payment adapter that billing depends on.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**

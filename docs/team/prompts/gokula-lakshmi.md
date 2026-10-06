@@ -52,10 +52,10 @@ Contracts first (`contracts/openapi.yaml`, `events.yaml`, `permissions.yaml`) ·
 - **First dashboard:** Finance Staff (wave A)
 - **Academy I own in waves B to D:** Management institute (management student, corporate mentor, placement officer)
 - **Week 1 (issue #66, due 10 Oct 2026):**
-- payment-sbiepay adapter contract (billing upgrades and fee payments)
-- PRD and contracts for fees-accounts
-- Contracts for hr-payroll, budget-grants, procurement, e-office
-- **Who I depend on:** Faizan's billing service needs your payment adapter for paid upgrades. Praveen (Applicant) and Tejaswini (Student) need fee widgets from fees-accounts.
+  - payment-sbiepay adapter contract (billing upgrades and fee payments)
+  - PRD and contracts for fees-accounts
+  - Contracts for hr-payroll, budget-grants, procurement, e-office
+  - **Who I depend on:** Faizan's billing service needs your payment adapter for paid upgrades. Praveen (Applicant) and Tejaswini (Student) need fee widgets from fees-accounts.
 
 ## 9. Start now
 Show me my current open issue, summarise what "done" means for it, list every file you expect to create or change (all must be inside my allowed paths, or say why not), and propose a step-by-step plan. **Do not write code until I confirm the plan.**
