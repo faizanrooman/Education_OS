@@ -99,3 +99,18 @@ uses it and the plan doc, nothing else.
 
 No secrets in git, ever (`.env*` files are ignored; `*.example` files are templates). No real
 student data in tests or seeds. Server access is by SSH key, never shared passwords.
+
+## 11. Nothing outside the folders
+
+The top of the repository holds only the folders and the four files listed in
+[tools/config/repo-layout.yaml](../../tools/config/repo-layout.yaml): `.gitignore`, `package.json`,
+`pnpm-workspace.yaml`, `pnpm-lock.yaml`, which git and pnpm require there. Every other file goes in
+its folder: documentation in `docs/`, GitHub files in `.github/`, tool configuration in `tools/config/`,
+scripts in `tools/scripts/`, deployment in `infra/`, code inside its module. A new top-level folder
+needs a PR to the layout file, approved by the lead.
+
+This applies to people and to every AI assistant equally. CI fails any PR that breaks it
+(`tools/scripts/check-root.py`, also run by `precheck.sh`). Claude Code, GitHub Copilot and Cursor read
+the same rules automatically from `.claude/CLAUDE.md`, `.github/copilot-instructions.md` and
+`.cursor/rules/repository-rules.mdc`, and a Claude Code hook refuses to write files at the top level.
+Using any other assistant? Give it `docs/team/RULES.md` first.

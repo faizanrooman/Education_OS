@@ -40,3 +40,6 @@ infra/docker/.env
 *.db
 *.db-journal
 infra/docker/.env.api
+
+# personal Claude Code settings stay local; .claude/settings.json and CLAUDE.md are shared
+.claude/settings.local.json
