@@ -43,5 +43,9 @@ tools/scaffold-module.sh feature academics new-module "One line description"
 React + TypeScript (web, React Native proposed for mobile), FastAPI (Python), PostgreSQL.
 Full table and follow-up decisions: [ADR-0002](docs/architecture/adr/0002-tech-stack.md).
 
+## Live
+https://educationos.futureacad.ae — every merge to `main` deploys there within about two minutes
+(see [infra/autodeploy](infra/autodeploy/)). `/VERSION` on the site shows the commit that is live.
+
 ## Status
 Scaffold plus the dashboard foundation (widget contract, role layouts, web shell). No business modules implemented yet.

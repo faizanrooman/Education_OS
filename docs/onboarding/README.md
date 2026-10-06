@@ -9,3 +9,5 @@
    Frontend today: `pnpm install` at the repo root, then `pnpm --filter @eos/web dev` and open
    `http://localhost:5173/?role=student`. No pnpm installed? `npx pnpm@9 install` works.
    `pnpm test` and `pnpm typecheck` run every package.
+7. The web app is live at https://educationos.futureacad.ae and redeploys on every merge to `main`.
+   Check `https://educationos.futureacad.ae/VERSION` to see which commit is serving.
