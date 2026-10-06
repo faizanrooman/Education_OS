@@ -1,0 +1,9 @@
+# Domain events published by sports-nutrition-health.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: sports-nutrition-health
+version: 1
+events: []
+#  - name: sports-nutrition-health.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: workflow API
+  version: 0.1.0
+  description: "Configurable workflow and approval engine (state machines, SLAs, delegation)."
+servers:
+  - url: /api/v1/workflow
+paths: {}
+components:
+  schemas: {}

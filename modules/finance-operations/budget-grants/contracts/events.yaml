@@ -1,0 +1,9 @@
+# Domain events published by budget-grants.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: budget-grants
+version: 1
+events: []
+#  - name: budget-grants.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

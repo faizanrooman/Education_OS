@@ -1,0 +1,11 @@
+# Permission catalogue for sports-nutrition-health. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: sports-nutrition-health
+permissions: []
+#  - key: sports-nutrition-health:record:read
+#    description: ...
+#  - key: sports-nutrition-health:record:write
+#    description: ...
+roles: []
+#  - name: sports-nutrition-health-admin
+#    grants: [sports-nutrition-health:record:read, sports-nutrition-health:record:write]

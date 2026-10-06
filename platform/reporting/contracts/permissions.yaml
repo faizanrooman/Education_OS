@@ -1,0 +1,11 @@
+# Permission catalogue for reporting. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: reporting
+permissions: []
+#  - key: reporting:record:read
+#    description: ...
+#  - key: reporting:record:write
+#    description: ...
+roles: []
+#  - name: reporting-admin
+#    grants: [reporting:record:read, reporting:record:write]

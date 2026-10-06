@@ -1,0 +1,20 @@
+# Mirror of docs/team/ownership.md. One line per module. Fill in handles.
+# Syntax: <path> @github-handle @backup-handle
+
+/docs/architecture/            @faizanrooman
+/packages/                     @faizanrooman
+/platform/identity/            @faizanrooman
+/platform/api-gateway/         @faizanrooman
+/platform/event-bus/           @faizanrooman
+
+# /modules/student-lifecycle/  @owner @backup
+# /modules/academics/          @owner @backup
+# /modules/sports/             @owner @backup
+# /modules/facilities/         @owner @backup
+# /modules/finance-operations/ @owner @backup
+# /modules/campus-life/        @owner @backup
+# /modules/governance/         @owner @backup
+# /modules/support/            @owner @backup
+# /integrations/               @owner @backup
+# /apps/                       @owner @backup
+# /infra/                      @owner @backup

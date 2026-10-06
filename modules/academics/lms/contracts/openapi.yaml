@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: lms API
+  version: 0.1.0
+  description: "Learning management: content, assignments, quizzes, discussions, grading."
+servers:
+  - url: /api/v1/lms
+paths: {}
+components:
+  schemas: {}

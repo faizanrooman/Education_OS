@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: iqac-accreditation API
+  version: 0.1.0
+  description: "IQAC data collection, NAAC/NBA metrics, evidence repository."
+servers:
+  - url: /api/v1/iqac-accreditation
+paths: {}
+components:
+  schemas: {}

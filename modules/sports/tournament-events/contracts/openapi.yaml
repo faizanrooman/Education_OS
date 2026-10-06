@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: tournament-events API
+  version: 0.1.0
+  description: "Tournaments, fixtures, results, officials and event logistics."
+servers:
+  - url: /api/v1/tournament-events
+paths: {}
+components:
+  schemas: {}

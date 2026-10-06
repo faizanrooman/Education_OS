@@ -1,0 +1,9 @@
+# Domain events published by enrolment-registration.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: enrolment-registration
+version: 1
+events: []
+#  - name: enrolment-registration.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

@@ -1,0 +1,11 @@
+# Permission catalogue for knowledge-base. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: knowledge-base
+permissions: []
+#  - key: knowledge-base:record:read
+#    description: ...
+#  - key: knowledge-base:record:write
+#    description: ...
+roles: []
+#  - name: knowledge-base-admin
+#    grants: [knowledge-base:record:read, knowledge-base:record:write]

@@ -1,0 +1,9 @@
+# Domain events published by identity.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: identity
+version: 1
+events: []
+#  - name: identity.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

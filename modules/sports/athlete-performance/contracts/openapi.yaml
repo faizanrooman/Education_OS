@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: athlete-performance API
+  version: 0.1.0
+  description: "Athlete profiles, performance metrics, fitness testing, benchmarks."
+servers:
+  - url: /api/v1/athlete-performance
+paths: {}
+components:
+  schemas: {}

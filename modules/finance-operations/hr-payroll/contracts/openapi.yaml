@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: hr-payroll API
+  version: 0.1.0
+  description: "Employee master, leave, payroll, appraisals, service records."
+servers:
+  - url: /api/v1/hr-payroll
+paths: {}
+components:
+  schemas: {}

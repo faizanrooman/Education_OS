@@ -1,0 +1,11 @@
+# Permission catalogue for identity. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: identity
+permissions: []
+#  - key: identity:record:read
+#    description: ...
+#  - key: identity:record:write
+#    description: ...
+roles: []
+#  - name: identity-admin
+#    grants: [identity:record:read, identity:record:write]

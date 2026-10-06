@@ -1,0 +1,11 @@
+# Permission catalogue for hostel. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: hostel
+permissions: []
+#  - key: hostel:record:read
+#    description: ...
+#  - key: hostel:record:write
+#    description: ...
+roles: []
+#  - name: hostel-admin
+#    grants: [hostel:record:read, hostel:record:write]

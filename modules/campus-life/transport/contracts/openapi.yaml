@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: transport API
+  version: 0.1.0
+  description: "Routes, vehicles, passes, driver management, tracking."
+servers:
+  - url: /api/v1/transport
+paths: {}
+components:
+  schemas: {}

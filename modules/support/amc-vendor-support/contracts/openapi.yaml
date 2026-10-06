@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: amc-vendor-support API
+  version: 0.1.0
+  description: "AMC contracts, vendor support engagements, renewals."
+servers:
+  - url: /api/v1/amc-vendor-support
+paths: {}
+components:
+  schemas: {}

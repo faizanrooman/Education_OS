@@ -1,0 +1,11 @@
+# Permission catalogue for notification. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: notification
+permissions: []
+#  - key: notification:record:read
+#    description: ...
+#  - key: notification:record:write
+#    description: ...
+roles: []
+#  - name: notification-admin
+#    grants: [notification:record:read, notification:record:write]

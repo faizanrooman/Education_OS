@@ -1,0 +1,9 @@
+{
+  "name": "@eos/tournament-events",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Education OS module: tournament-events (frontend)",
+  "main": "src/index.ts",
+  "peerDependencies": { "react": "*", "react-dom": "*" },
+  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+}

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: knowledge-base API
+  version: 0.1.0
+  description: "Articles, FAQs and how-to guides for self-service."
+servers:
+  - url: /api/v1/knowledge-base
+paths: {}
+components:
+  schemas: {}

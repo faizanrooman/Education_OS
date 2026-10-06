@@ -1,0 +1,9 @@
+# Domain events published by student-information.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: student-information
+version: 1
+events: []
+#  - name: student-information.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

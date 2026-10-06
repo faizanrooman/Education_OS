@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: reporting API
+  version: 0.1.0
+  description: "Dashboards, MIS reports, analytics and warehouse ETL."
+servers:
+  - url: /api/v1/reporting
+paths: {}
+components:
+  schemas: {}

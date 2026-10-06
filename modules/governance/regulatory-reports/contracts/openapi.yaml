@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: regulatory-reports API
+  version: 0.1.0
+  description: "UGC, AISHE, NIRF and other statutory reporting."
+servers:
+  - url: /api/v1/regulatory-reports
+paths: {}
+components:
+  schemas: {}

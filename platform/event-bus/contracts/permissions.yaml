@@ -1,0 +1,11 @@
+# Permission catalogue for event-bus. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: event-bus
+permissions: []
+#  - key: event-bus:record:read
+#    description: ...
+#  - key: event-bus:record:write
+#    description: ...
+roles: []
+#  - name: event-bus-admin
+#    grants: [event-bus:record:read, event-bus:record:write]

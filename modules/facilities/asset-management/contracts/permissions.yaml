@@ -1,0 +1,11 @@
+# Permission catalogue for asset-management. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: asset-management
+permissions: []
+#  - key: asset-management:record:read
+#    description: ...
+#  - key: asset-management:record:write
+#    description: ...
+roles: []
+#  - name: asset-management-admin
+#    grants: [asset-management:record:read, asset-management:record:write]

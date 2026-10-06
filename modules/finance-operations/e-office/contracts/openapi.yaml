@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: e-office API
+  version: 0.1.0
+  description: "File movement, notings, approvals, digital correspondence."
+servers:
+  - url: /api/v1/e-office
+paths: {}
+components:
+  schemas: {}

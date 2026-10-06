@@ -1,0 +1,11 @@
+# Permission catalogue for scheduler. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: scheduler
+permissions: []
+#  - key: scheduler:record:read
+#    description: ...
+#  - key: scheduler:record:write
+#    description: ...
+roles: []
+#  - name: scheduler-admin
+#    grants: [scheduler:record:read, scheduler:record:write]

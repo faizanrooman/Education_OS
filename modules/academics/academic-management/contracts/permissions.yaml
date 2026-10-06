@@ -1,0 +1,11 @@
+# Permission catalogue for academic-management. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: academic-management
+permissions: []
+#  - key: academic-management:record:read
+#    description: ...
+#  - key: academic-management:record:write
+#    description: ...
+roles: []
+#  - name: academic-management-admin
+#    grants: [academic-management:record:read, academic-management:record:write]

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: rti API
+  version: 0.1.0
+  description: "RTI request intake, assignment, tracking and responses."
+servers:
+  - url: /api/v1/rti
+paths: {}
+components:
+  schemas: {}

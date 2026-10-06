@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: student-information API
+  version: 0.1.0
+  description: "Student master record (SIS): profiles, documents, ID cards, status history."
+servers:
+  - url: /api/v1/student-information
+paths: {}
+components:
+  schemas: {}

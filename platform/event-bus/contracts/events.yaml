@@ -1,0 +1,9 @@
+# Domain events published by event-bus.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: event-bus
+version: 1
+events: []
+#  - name: event-bus.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

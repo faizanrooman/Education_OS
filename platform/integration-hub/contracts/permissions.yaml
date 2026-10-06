@@ -1,0 +1,11 @@
+# Permission catalogue for integration-hub. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: integration-hub
+permissions: []
+#  - key: integration-hub:record:read
+#    description: ...
+#  - key: integration-hub:record:write
+#    description: ...
+roles: []
+#  - name: integration-hub-admin
+#    grants: [integration-hub:record:read, integration-hub:record:write]

@@ -1,0 +1,11 @@
+# Permission catalogue for sla-management. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: sla-management
+permissions: []
+#  - key: sla-management:record:read
+#    description: ...
+#  - key: sla-management:record:write
+#    description: ...
+roles: []
+#  - name: sla-management-admin
+#    grants: [sla-management:record:read, sla-management:record:write]

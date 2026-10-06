@@ -1,0 +1,11 @@
+# Permission catalogue for amc-vendor-support. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: amc-vendor-support
+permissions: []
+#  - key: amc-vendor-support:record:read
+#    description: ...
+#  - key: amc-vendor-support:record:write
+#    description: ...
+roles: []
+#  - name: amc-vendor-support-admin
+#    grants: [amc-vendor-support:record:read, amc-vendor-support:record:write]

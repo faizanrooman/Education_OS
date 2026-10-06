@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: placement-career API
+  version: 0.1.0
+  description: "Placement drives, companies, applications, offers, career services."
+servers:
+  - url: /api/v1/placement-career
+paths: {}
+components:
+  schemas: {}

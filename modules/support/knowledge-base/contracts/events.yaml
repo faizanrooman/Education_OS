@@ -1,0 +1,9 @@
+# Domain events published by knowledge-base.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: knowledge-base
+version: 1
+events: []
+#  - name: knowledge-base.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

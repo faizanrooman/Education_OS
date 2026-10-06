@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: hostel API
+  version: 0.1.0
+  description: "Room allocation, mess, visitors, discipline and fee linkage."
+servers:
+  - url: /api/v1/hostel
+paths: {}
+components:
+  schemas: {}

@@ -1,0 +1,11 @@
+# Permission catalogue for placement-career. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: placement-career
+permissions: []
+#  - key: placement-career:record:read
+#    description: ...
+#  - key: placement-career:record:write
+#    description: ...
+roles: []
+#  - name: placement-career-admin
+#    grants: [placement-career:record:read, placement-career:record:write]

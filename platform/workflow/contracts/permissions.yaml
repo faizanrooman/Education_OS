@@ -1,0 +1,11 @@
+# Permission catalogue for workflow. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: workflow
+permissions: []
+#  - key: workflow:record:read
+#    description: ...
+#  - key: workflow:record:write
+#    description: ...
+roles: []
+#  - name: workflow-admin
+#    grants: [workflow:record:read, workflow:record:write]

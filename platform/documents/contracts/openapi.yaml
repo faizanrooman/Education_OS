@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: documents API
+  version: 0.1.0
+  description: "Document and media management: storage abstraction, versioning, access control."
+servers:
+  - url: /api/v1/documents
+paths: {}
+components:
+  schemas: {}

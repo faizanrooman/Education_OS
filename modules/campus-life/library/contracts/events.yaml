@@ -1,0 +1,9 @@
+# Domain events published by library.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: library
+version: 1
+events: []
+#  - name: library.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

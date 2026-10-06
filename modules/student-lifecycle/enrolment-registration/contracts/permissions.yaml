@@ -1,0 +1,11 @@
+# Permission catalogue for enrolment-registration. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: enrolment-registration
+permissions: []
+#  - key: enrolment-registration:record:read
+#    description: ...
+#  - key: enrolment-registration:record:write
+#    description: ...
+roles: []
+#  - name: enrolment-registration-admin
+#    grants: [enrolment-registration:record:read, enrolment-registration:record:write]

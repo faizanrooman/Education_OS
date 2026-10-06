@@ -1,0 +1,9 @@
+# Domain events published by notification.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: notification
+version: 1
+events: []
+#  - name: notification.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

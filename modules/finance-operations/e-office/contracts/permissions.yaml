@@ -1,0 +1,11 @@
+# Permission catalogue for e-office. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: e-office
+permissions: []
+#  - key: e-office:record:read
+#    description: ...
+#  - key: e-office:record:write
+#    description: ...
+roles: []
+#  - name: e-office-admin
+#    grants: [e-office:record:read, e-office:record:write]

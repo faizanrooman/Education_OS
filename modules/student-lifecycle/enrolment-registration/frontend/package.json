@@ -1,0 +1,9 @@
+{
+  "name": "@eos/enrolment-registration",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Education OS module: enrolment-registration (frontend)",
+  "main": "src/index.ts",
+  "peerDependencies": { "react": "*", "react-dom": "*" },
+  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+}

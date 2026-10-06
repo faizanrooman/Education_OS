@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: notification API
+  version: 0.1.0
+  description: "Email, SMS, WhatsApp, push and in-app notifications with templates."
+servers:
+  - url: /api/v1/notification
+paths: {}
+components:
+  schemas: {}

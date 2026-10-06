@@ -1,0 +1,9 @@
+# Domain events published by academic-management.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: academic-management
+version: 1
+events: []
+#  - name: academic-management.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

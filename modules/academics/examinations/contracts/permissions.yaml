@@ -1,0 +1,11 @@
+# Permission catalogue for examinations. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: examinations
+permissions: []
+#  - key: examinations:record:read
+#    description: ...
+#  - key: examinations:record:write
+#    description: ...
+roles: []
+#  - name: examinations-admin
+#    grants: [examinations:record:read, examinations:record:write]

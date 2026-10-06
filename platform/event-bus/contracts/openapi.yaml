@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: event-bus API
+  version: 0.1.0
+  description: "Domain event contracts and broker abstraction. The only async channel between modules."
+servers:
+  - url: /api/v1/event-bus
+paths: {}
+components:
+  schemas: {}

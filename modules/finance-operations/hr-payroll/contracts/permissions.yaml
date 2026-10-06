@@ -1,0 +1,11 @@
+# Permission catalogue for hr-payroll. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: hr-payroll
+permissions: []
+#  - key: hr-payroll:record:read
+#    description: ...
+#  - key: hr-payroll:record:write
+#    description: ...
+roles: []
+#  - name: hr-payroll-admin
+#    grants: [hr-payroll:record:read, hr-payroll:record:write]

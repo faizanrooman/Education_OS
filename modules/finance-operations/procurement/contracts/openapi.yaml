@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: procurement API
+  version: 0.1.0
+  description: "Indents, tenders, purchase orders, vendor management."
+servers:
+  - url: /api/v1/procurement
+paths: {}
+components:
+  schemas: {}

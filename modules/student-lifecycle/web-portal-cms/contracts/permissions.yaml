@@ -1,0 +1,11 @@
+# Permission catalogue for web-portal-cms. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: web-portal-cms
+permissions: []
+#  - key: web-portal-cms:record:read
+#    description: ...
+#  - key: web-portal-cms:record:write
+#    description: ...
+roles: []
+#  - name: web-portal-cms-admin
+#    grants: [web-portal-cms:record:read, web-portal-cms:record:write]

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: helpdesk API
+  version: 0.1.0
+  description: "Ticketing for all user roles with categories and routing."
+servers:
+  - url: /api/v1/helpdesk
+paths: {}
+components:
+  schemas: {}

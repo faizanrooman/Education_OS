@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: web-portal-cms API
+  version: 0.1.0
+  description: "Public website, CMS pages, announcements, news and notices."
+servers:
+  - url: /api/v1/web-portal-cms
+paths: {}
+components:
+  schemas: {}

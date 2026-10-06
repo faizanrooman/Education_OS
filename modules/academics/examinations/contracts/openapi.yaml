@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: examinations API
+  version: 0.1.0
+  description: "Exam scheduling, hall tickets, evaluation, results, transcripts."
+servers:
+  - url: /api/v1/examinations
+paths: {}
+components:
+  schemas: {}

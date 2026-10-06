@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: sla-management API
+  version: 0.1.0
+  description: "SLA definitions, timers, escalation and breach tracking."
+servers:
+  - url: /api/v1/sla-management
+paths: {}
+components:
+  schemas: {}

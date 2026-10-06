@@ -1,0 +1,9 @@
+{
+  "name": "@eos/knowledge-base",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Education OS module: knowledge-base (frontend)",
+  "main": "src/index.ts",
+  "peerDependencies": { "react": "*", "react-dom": "*" },
+  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+}

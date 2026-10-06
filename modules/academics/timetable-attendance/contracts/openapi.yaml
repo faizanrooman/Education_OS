@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: timetable-attendance API
+  version: 0.1.0
+  description: "Timetable generation, class scheduling, attendance capture and reports."
+servers:
+  - url: /api/v1/timetable-attendance
+paths: {}
+components:
+  schemas: {}

@@ -1,0 +1,9 @@
+{
+  "name": "@eos/alumni",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Education OS module: alumni (frontend)",
+  "main": "src/index.ts",
+  "peerDependencies": { "react": "*", "react-dom": "*" },
+  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+}

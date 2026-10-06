@@ -1,0 +1,11 @@
+# Permission catalogue for budget-grants. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: budget-grants
+permissions: []
+#  - key: budget-grants:record:read
+#    description: ...
+#  - key: budget-grants:record:write
+#    description: ...
+roles: []
+#  - name: budget-grants-admin
+#    grants: [budget-grants:record:read, budget-grants:record:write]

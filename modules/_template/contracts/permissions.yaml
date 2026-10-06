@@ -1,0 +1,11 @@
+# Permission catalogue for __MODULE_NAME__. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: __MODULE_NAME__
+permissions: []
+#  - key: __MODULE_NAME__:record:read
+#    description: ...
+#  - key: __MODULE_NAME__:record:write
+#    description: ...
+roles: []
+#  - name: __MODULE_NAME__-admin
+#    grants: [__MODULE_NAME__:record:read, __MODULE_NAME__:record:write]

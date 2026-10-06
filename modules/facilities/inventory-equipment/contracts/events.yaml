@@ -1,0 +1,9 @@
+# Domain events published by inventory-equipment.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: inventory-equipment
+version: 1
+events: []
+#  - name: inventory-equipment.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

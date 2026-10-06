@@ -1,0 +1,11 @@
+# Permission catalogue for search. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: search
+permissions: []
+#  - key: search:record:read
+#    description: ...
+#  - key: search:record:write
+#    description: ...
+roles: []
+#  - name: search-admin
+#    grants: [search:record:read, search:record:write]

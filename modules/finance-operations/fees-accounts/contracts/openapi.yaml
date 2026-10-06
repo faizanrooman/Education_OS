@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: fees-accounts API
+  version: 0.1.0
+  description: "Fee structures, invoices, online payments, receipts, ledgers."
+servers:
+  - url: /api/v1/fees-accounts
+paths: {}
+components:
+  schemas: {}

@@ -1,0 +1,9 @@
+# Domain events published by incident-management.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: incident-management
+version: 1
+events: []
+#  - name: incident-management.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

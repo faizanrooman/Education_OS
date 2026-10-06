@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: asset-management API
+  version: 0.1.0
+  description: "Fixed asset register, tagging, depreciation, disposal."
+servers:
+  - url: /api/v1/asset-management
+paths: {}
+components:
+  schemas: {}

@@ -1,0 +1,11 @@
+# Permission catalogue for tournament-events. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: tournament-events
+permissions: []
+#  - key: tournament-events:record:read
+#    description: ...
+#  - key: tournament-events:record:write
+#    description: ...
+roles: []
+#  - name: tournament-events-admin
+#    grants: [tournament-events:record:read, tournament-events:record:write]

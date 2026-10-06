@@ -1,0 +1,11 @@
+# Permission catalogue for sports-facilities. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: sports-facilities
+permissions: []
+#  - key: sports-facilities:record:read
+#    description: ...
+#  - key: sports-facilities:record:write
+#    description: ...
+roles: []
+#  - name: sports-facilities-admin
+#    grants: [sports-facilities:record:read, sports-facilities:record:write]

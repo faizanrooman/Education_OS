@@ -1,0 +1,9 @@
+# Domain events published by alumni.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: alumni
+version: 1
+events: []
+#  - name: alumni.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

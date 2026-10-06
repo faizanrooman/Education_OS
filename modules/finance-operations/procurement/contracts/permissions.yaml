@@ -1,0 +1,11 @@
+# Permission catalogue for procurement. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: procurement
+permissions: []
+#  - key: procurement:record:read
+#    description: ...
+#  - key: procurement:record:write
+#    description: ...
+roles: []
+#  - name: procurement-admin
+#    grants: [procurement:record:read, procurement:record:write]

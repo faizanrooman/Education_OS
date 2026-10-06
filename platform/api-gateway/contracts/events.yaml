@@ -1,0 +1,9 @@
+# Domain events published by api-gateway.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: api-gateway
+version: 1
+events: []
+#  - name: api-gateway.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

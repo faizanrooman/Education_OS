@@ -1,0 +1,9 @@
+# Domain events published by athlete-performance.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: athlete-performance
+version: 1
+events: []
+#  - name: athlete-performance.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: academic-management API
+  version: 0.1.0
+  description: "Programmes, curriculum, courses, credits, faculty-course assignment."
+servers:
+  - url: /api/v1/academic-management
+paths: {}
+components:
+  schemas: {}

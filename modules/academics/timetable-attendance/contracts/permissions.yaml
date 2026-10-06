@@ -1,0 +1,11 @@
+# Permission catalogue for timetable-attendance. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: timetable-attendance
+permissions: []
+#  - key: timetable-attendance:record:read
+#    description: ...
+#  - key: timetable-attendance:record:write
+#    description: ...
+roles: []
+#  - name: timetable-attendance-admin
+#    grants: [timetable-attendance:record:read, timetable-attendance:record:write]

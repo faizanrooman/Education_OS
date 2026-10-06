@@ -1,0 +1,9 @@
+# Domain events published by workflow.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: workflow
+version: 1
+events: []
+#  - name: workflow.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

@@ -1,0 +1,11 @@
+# Permission catalogue for rti. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: rti
+permissions: []
+#  - key: rti:record:read
+#    description: ...
+#  - key: rti:record:write
+#    description: ...
+roles: []
+#  - name: rti-admin
+#    grants: [rti:record:read, rti:record:write]

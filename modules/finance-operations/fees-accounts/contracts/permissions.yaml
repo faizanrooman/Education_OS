@@ -1,0 +1,11 @@
+# Permission catalogue for fees-accounts. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: fees-accounts
+permissions: []
+#  - key: fees-accounts:record:read
+#    description: ...
+#  - key: fees-accounts:record:write
+#    description: ...
+roles: []
+#  - name: fees-accounts-admin
+#    grants: [fees-accounts:record:read, fees-accounts:record:write]

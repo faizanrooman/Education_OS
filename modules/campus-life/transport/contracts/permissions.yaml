@@ -1,0 +1,11 @@
+# Permission catalogue for transport. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: transport
+permissions: []
+#  - key: transport:record:read
+#    description: ...
+#  - key: transport:record:write
+#    description: ...
+roles: []
+#  - name: transport-admin
+#    grants: [transport:record:read, transport:record:write]

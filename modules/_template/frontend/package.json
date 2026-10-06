@@ -1,0 +1,9 @@
+{
+  "name": "@eos/__MODULE_NAME__",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Education OS module: __MODULE_NAME__ (frontend)",
+  "main": "src/index.ts",
+  "peerDependencies": { "react": "*", "react-dom": "*" },
+  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+}

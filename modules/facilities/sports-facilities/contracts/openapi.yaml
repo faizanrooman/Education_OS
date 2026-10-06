@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: sports-facilities API
+  version: 0.1.0
+  description: "Registry of grounds, courts, pools, gyms and their usage."
+servers:
+  - url: /api/v1/sports-facilities
+paths: {}
+components:
+  schemas: {}

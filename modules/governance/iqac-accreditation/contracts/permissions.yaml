@@ -1,0 +1,11 @@
+# Permission catalogue for iqac-accreditation. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: iqac-accreditation
+permissions: []
+#  - key: iqac-accreditation:record:read
+#    description: ...
+#  - key: iqac-accreditation:record:write
+#    description: ...
+roles: []
+#  - name: iqac-accreditation-admin
+#    grants: [iqac-accreditation:record:read, iqac-accreditation:record:write]

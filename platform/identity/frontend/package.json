@@ -1,0 +1,9 @@
+{
+  "name": "@eos/identity",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Education OS module: identity (frontend)",
+  "main": "src/index.ts",
+  "peerDependencies": { "react": "*", "react-dom": "*" },
+  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+}

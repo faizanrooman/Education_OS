@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: search API
+  version: 0.1.0
+  description: "Global search indexing and query (Elasticsearch-class engine)."
+servers:
+  - url: /api/v1/search
+paths: {}
+components:
+  schemas: {}

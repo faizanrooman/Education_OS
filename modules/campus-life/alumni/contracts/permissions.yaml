@@ -1,0 +1,11 @@
+# Permission catalogue for alumni. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: alumni
+permissions: []
+#  - key: alumni:record:read
+#    description: ...
+#  - key: alumni:record:write
+#    description: ...
+roles: []
+#  - name: alumni-admin
+#    grants: [alumni:record:read, alumni:record:write]

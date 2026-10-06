@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: api-gateway API
+  version: 0.1.0
+  description: "Edge routing, auth enforcement, rate limiting, request logging and monitoring."
+servers:
+  - url: /api/v1/api-gateway
+paths: {}
+components:
+  schemas: {}

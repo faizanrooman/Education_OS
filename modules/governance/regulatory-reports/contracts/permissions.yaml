@@ -1,0 +1,11 @@
+# Permission catalogue for regulatory-reports. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: regulatory-reports
+permissions: []
+#  - key: regulatory-reports:record:read
+#    description: ...
+#  - key: regulatory-reports:record:write
+#    description: ...
+roles: []
+#  - name: regulatory-reports-admin
+#    grants: [regulatory-reports:record:read, regulatory-reports:record:write]

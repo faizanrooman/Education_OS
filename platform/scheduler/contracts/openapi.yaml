@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: scheduler API
+  version: 0.1.0
+  description: "Jobs, cron, reminders and alert dispatch."
+servers:
+  - url: /api/v1/scheduler
+paths: {}
+components:
+  schemas: {}

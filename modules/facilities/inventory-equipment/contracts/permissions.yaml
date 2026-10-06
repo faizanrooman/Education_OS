@@ -1,0 +1,11 @@
+# Permission catalogue for inventory-equipment. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: inventory-equipment
+permissions: []
+#  - key: inventory-equipment:record:read
+#    description: ...
+#  - key: inventory-equipment:record:write
+#    description: ...
+roles: []
+#  - name: inventory-equipment-admin
+#    grants: [inventory-equipment:record:read, inventory-equipment:record:write]

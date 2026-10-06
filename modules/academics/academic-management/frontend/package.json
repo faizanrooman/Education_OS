@@ -1,0 +1,9 @@
+{
+  "name": "@eos/academic-management",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Education OS module: academic-management (frontend)",
+  "main": "src/index.ts",
+  "peerDependencies": { "react": "*", "react-dom": "*" },
+  "dependencies": { "@eos/ui-kit": "workspace:*", "@eos/contracts": "workspace:*" }
+}

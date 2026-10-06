@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: integration-hub API
+  version: 0.1.0
+  description: "Adapter registry, data exchange (XML / JSON / CSV), webhooks, retries."
+servers:
+  - url: /api/v1/integration-hub
+paths: {}
+components:
+  schemas: {}

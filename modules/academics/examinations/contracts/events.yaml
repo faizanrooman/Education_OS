@@ -1,0 +1,9 @@
+# Domain events published by examinations.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: examinations
+version: 1
+events: []
+#  - name: examinations.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

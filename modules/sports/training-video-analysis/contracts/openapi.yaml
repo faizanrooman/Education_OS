@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: training-video-analysis API
+  version: 0.1.0
+  description: "Training plans, sessions, video upload, tagging and annotation."
+servers:
+  - url: /api/v1/training-video-analysis
+paths: {}
+components:
+  schemas: {}

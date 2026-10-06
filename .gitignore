@@ -1,0 +1,31 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Secrets and local config — only *.example files are committed
+.env
+.env.*
+!.env.example
+**/config/*.local.*
+
+# Build output and dependencies (extend once ADR-0002 is accepted)
+node_modules/
+dist/
+build/
+target/
+__pycache__/
+*.pyc
+.venv/
+coverage/
+.cache/
+*.log
+
+# Python (uv) / JS (pnpm)
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+*.egg-info/
+.pnpm-store/

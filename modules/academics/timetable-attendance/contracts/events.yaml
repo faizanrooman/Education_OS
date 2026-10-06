@@ -1,0 +1,9 @@
+# Domain events published by timetable-attendance.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: timetable-attendance
+version: 1
+events: []
+#  - name: timetable-attendance.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

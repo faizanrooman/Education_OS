@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: alumni API
+  version: 0.1.0
+  description: "Alumni directory, events, donations, engagement campaigns."
+servers:
+  - url: /api/v1/alumni
+paths: {}
+components:
+  schemas: {}

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: inventory-equipment API
+  version: 0.1.0
+  description: "Stock, issue/return, consumables and sports equipment lifecycle."
+servers:
+  - url: /api/v1/inventory-equipment
+paths: {}
+components:
+  schemas: {}

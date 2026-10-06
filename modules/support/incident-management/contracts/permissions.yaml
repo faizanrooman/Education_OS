@@ -1,0 +1,11 @@
+# Permission catalogue for incident-management. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: incident-management
+permissions: []
+#  - key: incident-management:record:read
+#    description: ...
+#  - key: incident-management:record:write
+#    description: ...
+roles: []
+#  - name: incident-management-admin
+#    grants: [incident-management:record:read, incident-management:record:write]

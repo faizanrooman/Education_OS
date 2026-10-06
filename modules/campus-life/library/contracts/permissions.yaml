@@ -1,0 +1,11 @@
+# Permission catalogue for library. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: library
+permissions: []
+#  - key: library:record:read
+#    description: ...
+#  - key: library:record:write
+#    description: ...
+roles: []
+#  - name: library-admin
+#    grants: [library:record:read, library:record:write]

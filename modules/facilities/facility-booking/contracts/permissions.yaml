@@ -1,0 +1,11 @@
+# Permission catalogue for facility-booking. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: facility-booking
+permissions: []
+#  - key: facility-booking:record:read
+#    description: ...
+#  - key: facility-booking:record:write
+#    description: ...
+roles: []
+#  - name: facility-booking-admin
+#    grants: [facility-booking:record:read, facility-booking:record:write]

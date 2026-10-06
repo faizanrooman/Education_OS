@@ -1,0 +1,11 @@
+# Permission catalogue for admissions. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: admissions
+permissions: []
+#  - key: admissions:record:read
+#    description: ...
+#  - key: admissions:record:write
+#    description: ...
+roles: []
+#  - name: admissions-admin
+#    grants: [admissions:record:read, admissions:record:write]

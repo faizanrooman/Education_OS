@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: grievance API
+  version: 0.1.0
+  description: "SGRC, anti-ragging and POSH-ICC complaint intake and resolution."
+servers:
+  - url: /api/v1/grievance
+paths: {}
+components:
+  schemas: {}

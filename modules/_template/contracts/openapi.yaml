@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: __MODULE_NAME__ API
+  version: 0.1.0
+  description: "<ONE LINE DESCRIPTION>"
+servers:
+  - url: /api/v1/__MODULE_NAME__
+paths: {}
+components:
+  schemas: {}

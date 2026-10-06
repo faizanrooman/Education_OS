@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: admissions API
+  version: 0.1.0
+  description: "Online application, document verification, merit lists, counselling and offers."
+servers:
+  - url: /api/v1/admissions
+paths: {}
+components:
+  schemas: {}

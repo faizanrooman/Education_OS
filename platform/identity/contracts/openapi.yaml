@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: identity API
+  version: 0.1.0
+  description: "SSO (SAML / OAuth2 / OIDC), RBAC with fine-grained permissions, MFA, session management."
+servers:
+  - url: /api/v1/identity
+paths: {}
+components:
+  schemas: {}

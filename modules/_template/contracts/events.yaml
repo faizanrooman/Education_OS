@@ -1,0 +1,9 @@
+# Domain events published by __MODULE_NAME__.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: __MODULE_NAME__
+version: 1
+events: []
+#  - name: __MODULE_NAME__.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: enrolment-registration API
+  version: 0.1.0
+  description: "Programme enrolment, semester registration, section and elective allocation."
+servers:
+  - url: /api/v1/enrolment-registration
+paths: {}
+components:
+  schemas: {}

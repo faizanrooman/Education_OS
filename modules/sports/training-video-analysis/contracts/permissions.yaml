@@ -1,0 +1,11 @@
+# Permission catalogue for training-video-analysis. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: training-video-analysis
+permissions: []
+#  - key: training-video-analysis:record:read
+#    description: ...
+#  - key: training-video-analysis:record:write
+#    description: ...
+roles: []
+#  - name: training-video-analysis-admin
+#    grants: [training-video-analysis:record:read, training-video-analysis:record:write]

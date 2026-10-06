@@ -1,0 +1,11 @@
+# Permission catalogue for athlete-performance. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: athlete-performance
+permissions: []
+#  - key: athlete-performance:record:read
+#    description: ...
+#  - key: athlete-performance:record:write
+#    description: ...
+roles: []
+#  - name: athlete-performance-admin
+#    grants: [athlete-performance:record:read, athlete-performance:record:write]

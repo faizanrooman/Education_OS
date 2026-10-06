@@ -1,0 +1,11 @@
+# Permission catalogue for grievance. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: grievance
+permissions: []
+#  - key: grievance:record:read
+#    description: ...
+#  - key: grievance:record:write
+#    description: ...
+roles: []
+#  - name: grievance-admin
+#    grants: [grievance:record:read, grievance:record:write]

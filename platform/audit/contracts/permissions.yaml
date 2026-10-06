@@ -1,0 +1,11 @@
+# Permission catalogue for audit. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: audit
+permissions: []
+#  - key: audit:record:read
+#    description: ...
+#  - key: audit:record:write
+#    description: ...
+roles: []
+#  - name: audit-admin
+#    grants: [audit:record:read, audit:record:write]

@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: facility-booking API
+  version: 0.1.0
+  description: "Booking calendar for classrooms, halls and venues with approvals."
+servers:
+  - url: /api/v1/facility-booking
+paths: {}
+components:
+  schemas: {}

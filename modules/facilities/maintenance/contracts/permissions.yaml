@@ -1,0 +1,11 @@
+# Permission catalogue for maintenance. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: maintenance
+permissions: []
+#  - key: maintenance:record:read
+#    description: ...
+#  - key: maintenance:record:write
+#    description: ...
+roles: []
+#  - name: maintenance-admin
+#    grants: [maintenance:record:read, maintenance:record:write]

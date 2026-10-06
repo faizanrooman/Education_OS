@@ -1,0 +1,9 @@
+# Domain events published by audit.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: audit
+version: 1
+events: []
+#  - name: audit.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

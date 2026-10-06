@@ -1,0 +1,11 @@
+# Permission catalogue for student-information. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: student-information
+permissions: []
+#  - key: student-information:record:read
+#    description: ...
+#  - key: student-information:record:write
+#    description: ...
+roles: []
+#  - name: student-information-admin
+#    grants: [student-information:record:read, student-information:record:write]

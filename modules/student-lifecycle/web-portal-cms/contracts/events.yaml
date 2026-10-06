@@ -1,0 +1,9 @@
+# Domain events published by web-portal-cms.
+# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+module: web-portal-cms
+version: 1
+events: []
+#  - name: web-portal-cms.example.created
+#    description: ...
+#    payload_schema: ./schemas/example-created.json

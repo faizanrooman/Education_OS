@@ -1,0 +1,11 @@
+# Permission catalogue for lms. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: lms
+permissions: []
+#  - key: lms:record:read
+#    description: ...
+#  - key: lms:record:write
+#    description: ...
+roles: []
+#  - name: lms-admin
+#    grants: [lms:record:read, lms:record:write]

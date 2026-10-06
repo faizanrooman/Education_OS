@@ -1,0 +1,11 @@
+# Permission catalogue for documents. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: documents
+permissions: []
+#  - key: documents:record:read
+#    description: ...
+#  - key: documents:record:write
+#    description: ...
+roles: []
+#  - name: documents-admin
+#    grants: [documents:record:read, documents:record:write]

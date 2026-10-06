@@ -1,0 +1,11 @@
+# Permission catalogue for helpdesk. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: helpdesk
+permissions: []
+#  - key: helpdesk:record:read
+#    description: ...
+#  - key: helpdesk:record:write
+#    description: ...
+roles: []
+#  - name: helpdesk-admin
+#    grants: [helpdesk:record:read, helpdesk:record:write]
