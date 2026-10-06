@@ -4,6 +4,13 @@
 set -euo pipefail
 RAW="https://raw.githubusercontent.com/faizanrooman/Education_OS/main"
 
+# Guard: this belongs inside the nginx container, not on the Proxmox host.
+if ! command -v nginx >/dev/null || [ ! -d /etc/nginx/sites-available ]; then
+  echo "error: nginx not found. Run this inside the nginx reverse-proxy container, e.g." >&2
+  echo "  pct exec <ctid> -- bash -c \"bash <(curl -fsSL $RAW/infra/autodeploy/install.sh)\"" >&2
+  exit 1
+fi
+
 command -v git >/dev/null || { apt-get update -q && apt-get install -y -q git; }
 
 curl -fsSL "$RAW/infra/autodeploy/eos-web-autodeploy.sh" -o /usr/local/bin/eos-web-autodeploy
