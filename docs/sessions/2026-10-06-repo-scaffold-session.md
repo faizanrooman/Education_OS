@@ -175,3 +175,8 @@ A module imports only from its own folder and from `packages/`. It talks to othe
   web flow updated. `apps/admin` folded into `apps/web/src/admin`. Dashboard plan replanned so all
   15 academies are built together: wave A common (13), then learner (B), instructor (C), field
   staff (D) across every academy; each person keeps one academy.
+- **Team is 10, named:** Faizan (lead), Himanshu (platform services & integrations, merged), Praveen
+  (student lifecycle), Shivani (academics), Akshata (sports), Ashritha (facilities), Gokula Lakshmi
+  (finance & operations), Tejaswini (campus life), Madhumita (governance & support), Srujan (apps,
+  infra & QA). Integrations merged into platform services; Governance dashboard and the film academy
+  moved to the pool.

@@ -1,6 +1,6 @@
 # Module ownership
 
-Eleven people. Every module has exactly one owner and at least one backup. Owners approve
+Ten people. Every module has exactly one owner and at least one backup. Owners approve
 PRs to their module and maintain its contracts and docs. Fill in handles, then mirror in `/CODEOWNERS`.
 
 ## Suggested split (edit freely)
@@ -11,17 +11,16 @@ per-widget checklist: the "Dashboard Assignment Plan" doc.
 
 | # | Area | Owner | Backup | Modules | Widgets |
 |---|---|---|---|---|---|
-| 1 | Architecture & platform lead | | | `platform/identity`, `api-gateway`, `tenancy`, `billing`, `packages/*` | 10 |
-| 2 | Platform services | | | `platform/event-bus`, `notification`, `documents`, `workflow`, `audit`, `search`, `scheduler`, `reporting`, `integration-hub`, `modules/practice/productions` | 9 |
-| 3 | Student lifecycle | | | `modules/student-lifecycle/*`, `modules/practice/portfolio`, `modules/practice/selection-process` | 11 |
-| 4 | Academics | | | `modules/academics/*` | 15 |
-| 5 | Sports | | | `modules/sports/*`, `modules/facilities/sports-facilities`, `modules/practice/skill-progress` | 17 |
-| 6 | Facilities | | | `modules/facilities/*` except sports-facilities | 8 |
-| 7 | Finance & operations | | | `modules/finance-operations/*`, `integrations/payment-sbiepay` | 13 |
-| 8 | Campus life | | | `modules/campus-life/*`, `modules/practice/field-training`, `modules/practice/projects` | 15 |
-| 9 | Governance & support | | | `modules/governance/*`, `modules/support/*` | 11 |
-| 10 | Integrations | | | `integrations/*` except payment | 1 |
-| 11 | Apps, infra & QA | | | `apps/*` (web incl. admin screens, api, mobile), `infra/*`, `packages/testing`, CI | 0 |
+| 1 | Architecture & platform lead | Faizan | | `platform/identity`, `api-gateway`, `tenancy`, `billing`, `packages/*` | 10 |
+| 2 | Platform services & integrations | Himanshu | | `platform/event-bus`, `notification`, `documents`, `workflow`, `audit`, `search`, `scheduler`, `reporting`, `integration-hub`, `modules/practice/productions`, `integrations/*` except payment | 10 |
+| 3 | Student lifecycle | Praveen | | `modules/student-lifecycle/*`, `modules/practice/portfolio`, `modules/practice/selection-process` | 11 |
+| 4 | Academics | Shivani | | `modules/academics/*` | 15 |
+| 5 | Sports | Akshata | | `modules/sports/*`, `modules/facilities/sports-facilities`, `modules/practice/skill-progress` | 17 |
+| 6 | Facilities | Ashritha | | `modules/facilities/*` except sports-facilities | 8 |
+| 7 | Finance & operations | Gokula Lakshmi | | `modules/finance-operations/*`, `integrations/payment-sbiepay` | 13 |
+| 8 | Campus life | Tejaswini | | `modules/campus-life/*`, `modules/practice/field-training`, `modules/practice/projects` | 15 |
+| 9 | Governance & support | Madhumita | | `modules/governance/*`, `modules/support/*` | 11 |
+| 10 | Apps, infra & QA | Srujan | | `apps/*` (web incl. admin screens, api, mobile), `infra/*`, `packages/testing`, CI | 0 |
 
 Institution profiles (`platform/identity/config/profiles/`) and dashboard layouts belong to the Architecture & platform lead.
 A specialized suite for a new field gets its own owner row when the field has a customer.
@@ -32,22 +31,22 @@ One application for every academy. A dashboard owner builds everything their das
 across every module it touches, and takes the next only when theirs is Done. Module owners (table
 above) review every PR into their modules. All academies are built together: wave A = the 13
 common dashboards, then every academy's learner (B), instructor (C) and field staff (D) dashboards.
-Each person keeps one academy through B to D. Live tracker: the "Dashboard Assignment Plan" doc.
+Each person keeps one academy through B to D. The names-to-areas mapping follows the order the
+names were given and can be swapped before kickoff; GitHub handles still need filling in. Live tracker: the "Dashboard Assignment Plan" doc.
 
-| Person (area) | Wave A (common) | Academy for waves B to D |
+| Name (area) | Wave A (common) | Academy for waves B to D |
 |---|---|---|
-| Architecture & platform lead | Organisation Admin | Research university |
-| Platform services | Department Admin / HoD | Theatre academy |
-| Student lifecycle | Applicant | Arts academy |
-| Academics | Faculty / Instructor | Teacher education |
-| Sports | Examination Staff | Sports college |
-| Facilities | Facility / Inventory Staff | Music academy |
-| Finance & operations | Finance Staff | Management institute |
-| Campus life | Student | Medical college |
-| Governance & support | Support Staff | Law college |
-| Integrations | Governance | Film / media institute |
-| Apps, infra & QA | Super Admin | Engineering college |
-| pool (first to finish) | Management, HR Staff | Dance, Design / fashion, Agriculture, Hospitality |
+| Faizan (Architecture & platform lead) | Organisation Admin | Research university |
+| Himanshu (Platform services & integrations) | Department Admin / HoD | Theatre academy |
+| Praveen (Student lifecycle) | Applicant | Arts academy |
+| Shivani (Academics) | Faculty / Instructor | Teacher education |
+| Akshata (Sports) | Examination Staff | Sports college |
+| Ashritha (Facilities) | Facility / Inventory Staff | Music academy |
+| Gokula Lakshmi (Finance & operations) | Finance Staff | Management institute |
+| Tejaswini (Campus life) | Student | Medical college |
+| Madhumita (Governance & support) | Support Staff | Law college |
+| Srujan (Apps, infra & QA) | Super Admin | Engineering college |
+| pool (first to finish) | Governance, Management, HR Staff | Film / media, Dance, Design / fashion, Agriculture, Hospitality |
 
 ## Full module list
 
