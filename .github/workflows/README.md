@@ -1,5 +1,7 @@
 # CI workflows
 
+Live: `web.yml` runs typecheck, tests and the web build on every push and PR, and on `main` publishes the build to the `web-dist` branch for the server to pull (see `infra/autodeploy/`).
+
 Planned jobs (stack: FastAPI + React + PostgreSQL, see ADR-0002):
 
 | Job | Purpose |

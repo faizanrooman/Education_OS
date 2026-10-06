@@ -1,0 +1,7 @@
+[Unit]
+Description=Education OS web: pull latest build and reload nginx
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/eos-web-autodeploy
