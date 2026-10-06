@@ -57,9 +57,17 @@ compose stack. The site is then at `http://<container-ip>/?role=student`.
 
 ### Public hostname
 
-Not configured yet. The LAN's nginx reverse-proxy container serves the public vhosts. To
-expose the app, add a vhost there that proxies to the container's port 80 and point DNS at
-the proxy.
+`educationos.futureacad.ae`, an A record to the same public IP as the other futureacad.ae
+sites. `nginx.public-vhost.conf` is the vhost for the reverse-proxy container; it proxies to
+the static vhost on port 8080. After DNS resolves, inside the container:
+
+```
+curl -fsSL https://raw.githubusercontent.com/faizanrooman/Education_OS/main/infra/docker/nginx.public-vhost.conf \
+  -o /etc/nginx/sites-available/educationos.futureacad.ae
+ln -sfn /etc/nginx/sites-available/educationos.futureacad.ae /etc/nginx/sites-enabled/
+nginx -t && nginx -s reload
+certbot --nginx -d educationos.futureacad.ae
+```
 
 ### Local check
 
