@@ -63,8 +63,8 @@ https://educationos.futureacad.ae — every merge to `main` deploys there within
 ## Run the backend
 ```
 tools/scripts/py-setup.sh && source .venv/bin/activate
-EOS_SUPER_ADMIN_EMAIL=root@local EOS_SUPER_ADMIN_PASSWORD=change-me uvicorn eos_api.main:app --reload --port 8000
-pnpm --filter @eos/web dev      # proxies /api to :8000; sign-up and sign-in become real
+EOS_SUPER_ADMIN_EMAIL=root@local EOS_SUPER_ADMIN_PASSWORD=change-me uvicorn eos_backend.main:app --reload --port 8000
+pnpm --filter @eos/frontend dev      # proxies /api to :8000; sign-up and sign-in become real
 ```
 
 ## Status

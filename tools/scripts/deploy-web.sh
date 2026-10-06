@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy apps/web to DEPLOY_HOST (a Debian box with Docker and git, e.g. the education-os LXC).
+# Deploy apps/frontend to DEPLOY_HOST (a Debian box with Docker and git, e.g. the education-os LXC).
 #
 #   DEPLOY_HOST=root@<container-ip> tools/scripts/deploy-web.sh                    # remote build (default)
 #   DEPLOY_MODE=local DEPLOY_HOST=root@<container-ip> tools/scripts/deploy-web.sh  # build here, ship image

@@ -9,5 +9,5 @@ pip install -q --upgrade pip
 pip install -q ruff
 pip install -q -e packages/core -e packages/testing \
   -e platform/identity/backend -e platform/billing/backend -e platform/tenancy/backend \
-  -e "apps/api[test]"
+  -e "apps/backend[test]"
 echo "ok: $(python --version), packages installed into .venv"

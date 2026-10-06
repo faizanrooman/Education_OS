@@ -1,3 +1,3 @@
-/** Public frontend surface of admissions. apps/web mounts routes and registers widgets. */
+/** Public frontend surface of admissions. apps/frontend mounts routes and registers widgets. */
 export const routes = [] as const;
 export { widgets } from "./widgets";

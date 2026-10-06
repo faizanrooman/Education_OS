@@ -1,5 +1,5 @@
 {
-  "name": "@eos/web",
+  "name": "@eos/frontend",
   "version": "0.1.0",
   "private": true,
   "description": "Education OS web client. Composes enabled module frontends and the role dashboard shell.",

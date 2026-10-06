@@ -1,5 +1,5 @@
 # Dashboard layout for the Super Admin, the platform operator outside every organisation (ADR-0005).
-# Rendered by the admin screens in apps/web (one application, ADR-0005).
+# Rendered by the admin screens in apps/frontend (one application, ADR-0005).
 role: super-admin
 title: "Super Admin"
 widgets:

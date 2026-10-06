@@ -1,4 +1,6 @@
-# apps/api
+# apps/backend
+
+The backend: Python FastAPI host, package `eos-backend` (import `eos_backend`).
 
 FastAPI host. Mounts every platform service and enabled feature module under `/api/v1/<module>` behind
 the **entitlement gate** (ADR-0005): a request to a feature module is refused with 403
@@ -20,7 +22,7 @@ Feature modules are added to `PLATFORM_ROUTERS`/`config/modules.enabled.yaml` as
 ```
 tools/scripts/py-setup.sh            # creates .venv and installs every backend package (editable)
 source .venv/bin/activate
-EOS_SUPER_ADMIN_EMAIL=root@local EOS_SUPER_ADMIN_PASSWORD=change-me uvicorn eos_api.main:app --reload --port 8000
+EOS_SUPER_ADMIN_EMAIL=root@local EOS_SUPER_ADMIN_PASSWORD=change-me uvicorn eos_backend.main:app --reload --port 8000
 ```
 
 SQLite by default (`EOS_DATABASE_URL=sqlite:///./eos.db`). For Postgres with row-level security:
@@ -30,9 +32,9 @@ verification token in the register response so the flow can be driven without em
 ## Tests
 
 ```
-pytest apps/api packages/core platform/identity/backend
+pytest apps/backend packages/core platform/identity/backend
 ```
 
-`apps/api/tests/test_foundation.py` is the phase 1 gate: register, verify, sign in, trial entitlement
+`apps/backend/tests/test_foundation.py` is the phase 1 gate: register, verify, sign in, trial entitlement
 enforced by the gate, upgrade unlocks, org admin toggles, super admin overrides, impersonation,
 suspension, and the cross-tenant leak check.

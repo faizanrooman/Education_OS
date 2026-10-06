@@ -101,5 +101,5 @@ Set `portable: true` in `module.yaml` only when all of these pass:
 | `contracts/` | OpenAPI 3.1 → Pydantic + TS types via `packages/contracts` | — |
 | `tests/e2e` | pytest (API) + Playwright (UI) against platform stubs | — |
 
-`apps/api` includes every enabled module's `router` under `/api/v1/<module>`.
-`apps/web` mounts every enabled module's `routes` and registers its `widgets` with the dashboard shell.
+`apps/backend` includes every enabled module's `router` under `/api/v1/<module>`.
+`apps/frontend` mounts every enabled module's `routes` and registers its `widgets` with the dashboard shell.
