@@ -19,6 +19,7 @@ Architecture diagram: [docs/architecture/diagrams/high-level-architecture.png](d
 | [`infra/`](infra/) | Docker, Kubernetes, Terraform, monitoring, backup/DR | No |
 | [`docs/`](docs/) | Architecture, ADRs, team ownership, onboarding | No |
 | [`tools/`](tools/) | Scaffolding and repo scripts | No |
+| [`tests/`](tests/) | Cross-module, contract, full-system e2e and performance suites. Single-module tests stay inside the module | No |
 
 ## The one rule
 

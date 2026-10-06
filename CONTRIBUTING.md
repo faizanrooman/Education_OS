@@ -17,9 +17,16 @@ A PR touches **one module** unless it is a contract change plus its consumers.
 6. `tests/e2e`.
 7. Update `CHANGELOG.md` and `module.yaml` status.
 
+## Where tests go
+- Tests for one module live inside that module: `backend/tests`, `frontend/tests`, `tests/e2e`.
+- Tests that span modules or the composed apps live in the root [`tests/`](tests/) folder
+  (`integration`, `contract`, `e2e`, `performance`, `fixtures`). See [tests/README.md](tests/README.md).
+- Never put tests under `src/`, `apps/` or `packages/<pkg>/src/`.
+
 ## Definition of done
 - [ ] Contracts updated and reviewed
 - [ ] Tests pass with the module alone (platform stubs)
+- [ ] Cross-module behaviour covered in root `tests/` if the change touches a contract
 - [ ] No imports outside the module and `packages/`
 - [ ] `config/env.example` complete
 - [ ] README and CHANGELOG updated

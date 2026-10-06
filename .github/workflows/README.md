@@ -8,4 +8,6 @@ Planned jobs (stack: FastAPI + React + PostgreSQL, see ADR-0002):
 | `manifest-check` | Fail if `module.yaml` dependencies don't match actual imports |
 | `contracts-lint` | Validate every `contracts/*.yaml` |
 | `test-changed-modules` | Run tests only for modules touched by the PR |
+| `test-contract` | Run root `tests/contract` on every PR |
+| `test-system` | Run root `tests/integration` and `tests/e2e` on merge to `main`; `tests/performance` on demand |
 | `build-apps` | Build `apps/*` with their enabled module lists |

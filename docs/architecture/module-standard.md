@@ -43,6 +43,7 @@ checklist that makes it portable to another repo.
    events are reached through `packages/sdk`, never through their internals.
 5. **Config is declared.** Every env key appears in `config/env.example` and is prefixed `<MODULE>_`.
 6. **Tests run alone.** The module's test suite passes with only `packages/` and platform stubs available.
+   Tests that need a second real module belong in the repo-level [`tests/`](../../tests/) folder, not in the module.
 7. **Semver per module.** Breaking a contract bumps the major version and is recorded in CHANGELOG.
 8. **Manifest is truth.** `module.yaml` lists every dependency. CI will fail a module that imports
    something it did not declare.
