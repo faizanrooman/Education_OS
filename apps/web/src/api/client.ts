@@ -45,8 +45,11 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
 /** True when the API answers; false means the shell runs in preview mode. */
 export async function apiReachable(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(2500) });
-    return res.ok;
+    // The static host answers every unknown path with index.html and 200, so require the health JSON.
+    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(2500), headers: { Accept: "application/json" } });
+    if (!res.ok) return false;
+    const data = (await res.json().catch(() => null)) as { status?: string } | null;
+    return data?.status === "ok";
   } catch {
     return false;
   }
