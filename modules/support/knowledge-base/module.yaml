@@ -3,6 +3,7 @@
 name: knowledge-base
 kind: feature              # feature | platform | integration
 domain: support
+tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Articles, FAQs and how-to guides for self-service."

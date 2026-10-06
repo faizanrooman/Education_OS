@@ -19,6 +19,9 @@ PRs to their module and maintain its contracts and docs. Fill in handles, then m
 | Integrations | | | `integrations/*` except payment |
 | Apps, infra & QA | | | `apps/*`, `infra/*`, `packages/testing`, CI |
 
+Institution profiles (`platform/identity/config/profiles/`) belong to the Architecture & platform lead.
+A specialized suite for a new field gets its own owner row when the field has a customer.
+
 ## Full module list
 
 | Module | Owner | Backup | Status |

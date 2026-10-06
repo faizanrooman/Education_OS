@@ -3,6 +3,7 @@
 name: hr-payroll
 kind: feature              # feature | platform | integration
 domain: finance-operations
+tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Employee master, leave, payroll, appraisals, service records."

@@ -10,8 +10,8 @@ Rules:
 
 | Service | Responsibility |
 |---|---|
-| [identity](identity/) | SSO (SAML / OAuth2 / OIDC), RBAC with fine-grained permissions, MFA, session management. |
-| [api-gateway](api-gateway/) | Edge routing, auth enforcement, rate limiting, request logging and monitoring. |
+| [identity](identity/) | SSO (SAML / OAuth2 / OIDC), RBAC with fine-grained permissions, MFA, session management. Holds institution profiles (`config/profiles/`) and role dashboard layouts (`config/dashboards/`). |
+| [api-gateway](api-gateway/) | Edge routing, auth enforcement, rate limiting, request logging and monitoring. Refuses routes of modules the institution profile does not enable. |
 | [event-bus](event-bus/) | Domain event contracts and broker abstraction. The only async channel between modules. |
 | [notification](notification/) | Email, SMS, WhatsApp, push and in-app notifications with templates. |
 | [documents](documents/) | Document and media management: storage abstraction, versioning, access control. |

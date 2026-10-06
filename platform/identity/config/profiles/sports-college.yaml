@@ -1,0 +1,85 @@
+# Institution profile: everything one installation of Education OS enables.
+# Decision and format: docs/architecture/adr/0004-institution-profiles.md
+# Apps read modules.enabled from here; the gateway blocks routes of modules not listed.
+profile: sports-college
+title: "Sports University / Sports College"
+description: "Reference profile. Common suites plus the sports specialization."
+
+suites:
+  common: [student-lifecycle, academics, facilities, finance-operations, campus-life, governance, support]
+  specialized: [sports]
+
+# <domain>/<module> under modules/. Everything not listed is disabled, in the UI and at the API.
+modules:
+  - student-lifecycle/web-portal-cms
+  - student-lifecycle/admissions
+  - student-lifecycle/student-information
+  - student-lifecycle/enrolment-registration
+  - academics/academic-management
+  - academics/lms
+  - academics/examinations
+  - academics/timetable-attendance
+  - sports/athlete-performance
+  - sports/training-video-analysis
+  - sports/sports-nutrition-health
+  - sports/tournament-events
+  - facilities/sports-facilities
+  - facilities/facility-booking
+  - facilities/inventory-equipment
+  - facilities/asset-management
+  - facilities/maintenance
+  - finance-operations/fees-accounts
+  - finance-operations/budget-grants
+  - finance-operations/procurement
+  - finance-operations/hr-payroll
+  - finance-operations/e-office
+  - campus-life/hostel
+  - campus-life/transport
+  - campus-life/library
+  - campus-life/placement-career
+  - campus-life/alumni
+  - governance/grievance
+  - governance/rti
+  - governance/iqac-accreditation
+  - governance/regulatory-reports
+  - support/helpdesk
+  - support/sla-management
+  - support/knowledge-base
+  - support/incident-management
+  - support/amc-vendor-support
+
+integrations:
+  - payment-sbiepay
+  - digilocker
+  - nad
+  - government-portals
+  - messaging-providers
+  - video-conferencing
+  - wearables
+  - external-university-portals
+
+# Roles for this institution. id = dashboard layout file in ../dashboards/<id>.yaml.
+roles:
+  - { id: applicant,          title: "Applicant" }
+  - { id: student,            title: "Student" }
+  - { id: athlete,            title: "Athlete" }
+  - { id: faculty,            title: "Faculty / Instructor" }
+  - { id: coach,              title: "Coach" }
+  - { id: medical-staff,      title: "Medical Staff (Doctor / Physio)" }
+  - { id: nutritionist,       title: "Nutritionist" }
+  - { id: examination-staff,  title: "Examination Staff" }
+  - { id: department-admin,   title: "Department Admin / HoD" }
+  - { id: finance-staff,      title: "Finance Staff" }
+  - { id: hr-staff,           title: "HR Staff" }
+  - { id: facility-staff,     title: "Facility / Inventory Staff" }
+  - { id: governance,         title: "Governance (Grievance / RTI / IQAC)" }
+  - { id: support-staff,      title: "Support Staff (Helpdesk)" }
+  - { id: management,         title: "Management (VC, Registrar)" }
+
+# Field vocabulary for generic modules. Key = <module>.<term>, value = the word this institution uses.
+vocabulary:
+  facility-booking.resource: "Facility"
+  facility-booking.resources: "Facilities"
+  inventory-equipment.item: "Equipment"
+  tournament-events.event: "Tournament"
+  athlete-performance.subject: "Athlete"

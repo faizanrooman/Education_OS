@@ -3,6 +3,7 @@
 name: regulatory-reports
 kind: feature              # feature | platform | integration
 domain: governance
+tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "UGC, AISHE, NIRF and other statutory reporting."

@@ -1,7 +1,8 @@
 # apps/
 
 Deployable composition roots. Apps contain **no business logic**. They:
-1. read `modules.enabled` from their config,
+1. read the enabled-module list from the institution profile (`platform/identity/config/profiles/`),
+   with `config/modules.enabled.yaml` as the local override during development,
 2. mount each enabled module's backend routes / frontend routes / mobile screens,
 3. wire platform services via `packages/sdk`.
 

@@ -3,6 +3,8 @@
 name: wearables
 kind: integration              # feature | platform | integration
 domain: integrations
+tier: specialized   # core (platform) | common (every institution) | specialized (one field)
+field: sports       # only for specialized: sports | music | arts | ...
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Fitness and wearable device APIs for athlete data."

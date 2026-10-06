@@ -3,6 +3,7 @@
 name: helpdesk
 kind: feature              # feature | platform | integration
 domain: support
+tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Ticketing for all user roles with categories and routing."

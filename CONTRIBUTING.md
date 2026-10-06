@@ -36,5 +36,10 @@ A PR touches **one module** unless it is a contract change plus its consumers.
 ## Commits
 Conventional commits scoped by module: `feat(admissions): add merit list generation`.
 
+## Adding an institution type
+Start with a profile in `platform/identity/config/profiles/`, listing suites, modules, roles,
+dashboards and vocabulary. Prefer configuring a generic common module over writing a specialized
+one; write a specialized module only for behaviour no pattern can express (ADR-0004).
+
 ## Decisions
 Anything that affects more than one module gets an ADR in `docs/architecture/adr/`.

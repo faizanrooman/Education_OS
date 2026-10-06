@@ -3,6 +3,8 @@
 name: tournament-events
 kind: feature              # feature | platform | integration
 domain: sports
+tier: specialized   # core (platform) | common (every institution) | specialized (one field)
+field: sports       # only for specialized: sports | music | arts | ...
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Tournaments, fixtures, results, officials and event logistics."

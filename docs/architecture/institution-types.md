@@ -1,0 +1,79 @@
+# Institution types and specialized suites
+
+How one Education OS serves different kinds of institutions. Decision: [ADR-0004](adr/0004-institution-profiles.md).
+Source: the "Institution Types & Specialized Suite Opportunities" note (2026-10-06).
+
+## The model
+
+```
+platform/ (core)  →  common suites  →  specialized suites  →  institution profile
+```
+
+Every institution runs the core and the common suites. It enables the specialized suites for
+its field. The profile is the single document that says what is on.
+
+| Tier | What | Where |
+|---|---|---|
+| Core | Identity, gateway, events, workflow, documents, notification, search, audit, reporting, scheduler, integration hub | `platform/` |
+| Common | Admissions and students, academics, examinations, finance and HR, campus life, governance, support, facilities | `modules/*` with `tier: common` |
+| Specialized | Field-specific behaviour | `modules/*` with `tier: specialized`, `field: <field>` |
+| Profile | Enabled suites, modules, roles, dashboards, vocabulary for one institution | `platform/identity/config/profiles/` |
+
+## Institution types and what they add
+
+| Institution type | Specialized needs |
+|---|---|
+| Sports university / college | Athlete performance, teams and squads, coaching and training, fitness, competitions, sports facilities, injury and wellness, athlete scholarships |
+| Arts academy / fine arts | Studios, artist portfolio, artwork and projects, exhibitions and galleries, critique and jury, materials inventory, showcases |
+| Design / fashion institute | Design studios, portfolio, collections, pattern and sample tracking, critiques, shows, industry projects, internships, studio and equipment booking |
+| Music academy / conservatory | Instruments, practice room booking, lessons, auditions, recitals and concerts, repertoire, ensembles and orchestra |
+| Dance / performing arts | Classes, choreography, practice studios, auditions, performances and productions, cast and crew, costume and props, skill progress |
+| Theatre / drama | Productions, casting and auditions, rehearsals, scripts and rights, cast and crew, stage and venue, costume and props, tickets |
+| Film / media / animation | Film projects, production management, cast and crew, editing and post, media assets, equipment booking, screenings and festivals, showreel |
+| Medical / health sciences | Clinical training and rotations, skills training, hospital integration, labs, internships and residency, research, accreditation |
+| Law | Moot court, legal internships, case and research projects, legal clinics, debates and competitions, court visits, placements |
+| Engineering / technology | Laboratories, capstone projects, industrial training, innovation and incubation, hackathons, technical clubs, research, placements, lab equipment booking |
+| Management / business | Corporate relations, internships, case competitions, live projects, placements, alumni mentoring, executive education, industry events, entrepreneurship |
+| Agriculture / veterinary / field sciences | Field training, farm and facility management, practical rotations, labs, research trials, extension activities, field internships |
+| Hospitality / hotel management | Training kitchen and lab, hotel operations training, internships, practical assessments, banquet and event training, industry partnerships, placements, equipment inventory |
+| Teacher education / B.Ed. | Teaching practice, school internship, lesson planning, classroom observation, teaching portfolio, practicum assessment, mentors, placement |
+| Research / doctoral university | PhD lifecycle, supervisor allocation, proposals, ethics approvals, research projects, grants, publications, conferences, thesis and viva |
+
+## The eight patterns behind them
+
+Most specialized needs are the same thing with a different name. Build each pattern once as a
+common module. The profile supplies the vocabulary.
+
+| Pattern | Common module | Appears as |
+|---|---|---|
+| Resource booking | `facilities/facility-booking` (generalise) | Practice rooms, studios, labs, pitches, training kitchens, equipment, venues |
+| Specialized inventory | `facilities/inventory-equipment` (generalise) | Instruments, costumes and props, lab gear, art materials, sports equipment |
+| Portfolio | new, common | Artist portfolio, design portfolio, showreel, teaching portfolio, research publications |
+| Selection process | new, common | Auditions, casting, squad selection, moot court teams, supervisor allocation |
+| Productions and events | `sports/tournament-events` (generalise) | Tournaments, performances, exhibitions, screenings, hackathons, case competitions, conferences |
+| Projects | new, common | Capstone, film, live business, research, artwork projects, research trials |
+| Field training | `campus-life/placement-career` (extend) | Clinical rotations, teaching practice, farm rotations, internships, residency, court visits |
+| Skill progress | `sports/athlete-performance` (generalise the assessment core) | Athlete metrics, dance progression, practicum assessment, skills training |
+
+What stays specialized: anything with domain rules a pattern cannot carry, such as injury
+and physio records, hospital integration, scripts and rights, thesis and viva, wearables.
+
+## Example profiles
+
+| Profile | Common suites | Specialized |
+|---|---|---|
+| sports-college | all | sports, wearables integration |
+| arts-academy | all | studios (resource booking), portfolio, projects, exhibitions (events), critiques (selection), materials (inventory) |
+| music-academy | all | lessons, practice rooms (booking), auditions (selection), recitals and ensembles (events), instruments (inventory) |
+| film-media-institute | all | film projects (projects), equipment (booking), media assets, editing, screenings (events), showreel (portfolio) |
+| medical-college | all | clinical rotations (field training), hospital integration, labs (booking), research, residency |
+| law-college | all | moot court (selection and events), legal research (projects), clinics, internships (field training) |
+| engineering-college | all | labs (booking), capstone (projects), industrial training (field training), innovation, placements |
+| management-institute | all | case competitions (events), corporate relations, live projects (projects), internships, alumni |
+
+Only `sports-college` exists today. Each other profile is created when there is a customer for it.
+
+## Positioning
+
+"One Education OS platform, configured for the way each institution teaches, trains, manages
+and supports its students."

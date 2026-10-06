@@ -7,7 +7,7 @@ checklist that makes it portable to another repo.
 
 ```
 <module>/
-├── module.yaml            manifest: name, kind, owners, dependencies, exposed contracts
+├── module.yaml            manifest: name, kind, tier, field, owners, dependencies, exposed contracts
 ├── README.md              scope, public surface, layout
 ├── CHANGELOG.md           semver per module
 ├── docs/                  prd, user-stories, data-model, screens, integration-points
@@ -48,6 +48,10 @@ checklist that makes it portable to another repo.
 7. **Semver per module.** Breaking a contract bumps the major version and is recorded in CHANGELOG.
 8. **Manifest is truth.** `module.yaml` lists every dependency. CI will fail a module that imports
    something it did not declare.
+9. **Tier is declared.** `tier: core | common | specialized`, with `field:` for specialized. A common
+   module must not assume one field; its labels come from the profile vocabulary. See ADR-0004.
+10. **Enabled means listed in the profile.** A module is on only if the institution profile lists it.
+   Nothing in a module may depend on another module being enabled; it reacts to events if they come.
 
 ## Portability checklist
 
@@ -61,6 +65,7 @@ Set `portable: true` in `module.yaml` only when all of these pass:
 - [ ] `contracts/` fully describes every endpoint, event and permission
 - [ ] README states what the module needs from the host repo (which packages, which platform services)
 - [ ] No reference to university-specific names in code; those live in config and reference data
+- [ ] No field-specific words in a `common` module; terms come from the profile vocabulary
 
 ## Moving a module to another repo
 

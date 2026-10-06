@@ -3,6 +3,7 @@
 name: audit
 kind: platform              # feature | platform | integration
 domain: platform
+tier: core          # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Immutable, append-only audit log for every state-changing action."
@@ -10,7 +11,7 @@ owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
 
 # Platform services this module calls through packages/sdk. Nothing else.
 depends_on:
-  platform: [identity, audit]
+  platform: [identity]
   integrations: []
 
 # Public surface. Other modules may ONLY use these.

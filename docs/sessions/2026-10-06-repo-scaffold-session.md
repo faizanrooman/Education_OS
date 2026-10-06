@@ -126,3 +126,21 @@ A module imports only from its own folder and from `packages/`. It talks to othe
 - Open decisions for the team: mobile (React Native?), event broker, workflow engine, identity provider.
 - First real work per module owner: write `docs/prd.md`, then `contracts/*.yaml`, before any code.
 - CI workflows (`.github/workflows/`) are planned, not yet written.
+
+---
+
+## 5. Later the same day: tests folder, dashboards, deployment, institution profiles
+
+- **Root `tests/`** for cross-module, contract, e2e and performance suites. Single-module tests stay in the module.
+- **Dashboards:** 15 roles from the diagram → one dashboard shell in `apps/web`, widget contract in
+  `packages/ui-kit`, one layout YAML per role in `platform/identity/config/dashboards/`. Assignment
+  of the 15 dashboards to 11 people is in the "Dashboard Assignment Plan" doc (round 1: one each;
+  round 2: pool of 4, claimed on finishing).
+- **Deployment:** live at https://educationos.futureacad.ae. Static build served by the LAN's nginx
+  reverse-proxy container. Auto deploy: `.github/workflows/web.yml` builds and tests on every push,
+  publishes `apps/web/dist` to the `web-dist` branch on `main`; a systemd timer in the container
+  (`infra/autodeploy/`) pulls it every minute. Host details are deliberately not in the repo.
+- **ADR-0004 Institution profiles:** Education OS is one configurable platform for many institution
+  types, not a sports ERP. Modules carry `tier` (core / common / specialized) and `field`. An
+  institution is a profile (`platform/identity/config/profiles/`). Fifteen institution types reduce
+  to eight generic patterns built once as common modules. Reference: `docs/architecture/institution-types.md`.

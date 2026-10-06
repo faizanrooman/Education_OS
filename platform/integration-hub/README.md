@@ -30,4 +30,4 @@ See `module.yaml`. This module must not import code from any other module under 
 | `tests/e2e` | End-to-end tests runnable in isolation |
 
 ## Porting this module to another repo
-Follow [docs/architecture/module-standard.md](../../../docs/architecture/module-standard.md#portability-checklist).
+Follow [docs/architecture/module-standard.md](../../docs/architecture/module-standard.md#portability-checklist).

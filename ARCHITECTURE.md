@@ -1,6 +1,16 @@
 # Architecture
 
-Education OS is a layered system. Each layer in the diagram maps to one folder in this repo.
+Education OS is **one configurable higher-education platform**: a core, common suites every
+institution runs, specialized suites per field, and an institution profile that says which are on.
+Sports is the first field; arts, music, design, film, medical, law, engineering, management,
+research and others use the same foundation ([ADR-0004](docs/architecture/adr/0004-institution-profiles.md),
+[institution-types.md](docs/architecture/institution-types.md)).
+
+```
+platform/ (core)  →  common suites  →  specialized suites  →  institution profile
+```
+
+The diagram below is the first customer's view, a sports university. Each layer maps to one folder.
 
 ![High level architecture](docs/architecture/diagrams/high-level-architecture.png)
 
@@ -20,19 +30,58 @@ Education OS is a layered system. Each layer in the diagram maps to one folder i
 
 ## Domain grouping of feature modules
 
-| Domain folder | Diagram suite | Modules |
-|---|---|---|
-| `student-lifecycle` | Suite A | web-portal-cms, admissions, student-information, enrolment-registration |
-| `academics` | Suite B | academic-management, lms, examinations, timetable-attendance |
-| `sports` | Suite C | athlete-performance, training-video-analysis, sports-nutrition-health, tournament-events |
-| `facilities` | Suite D | sports-facilities, facility-booking, inventory-equipment, asset-management, maintenance |
-| `finance-operations` | Suite E | fees-accounts, budget-grants, procurement, hr-payroll, e-office |
-| `campus-life` | Suite F | hostel, transport, library, placement-career, alumni |
-| `governance` | Suite G | grievance, rti, iqac-accreditation, regulatory-reports |
-| `support` | Global | helpdesk, sla-management, knowledge-base, incident-management, amc-vendor-support |
+| Domain folder | Diagram suite | Tier | Modules |
+|---|---|---|---|
+| `student-lifecycle` | Suite A | common | web-portal-cms, admissions, student-information, enrolment-registration |
+| `academics` | Suite B | common | academic-management, lms, examinations, timetable-attendance |
+| `sports` | Suite C | specialized (sports) | athlete-performance, training-video-analysis, sports-nutrition-health, tournament-events |
+| `facilities` | Suite D | common, except sports-facilities | sports-facilities, facility-booking, inventory-equipment, asset-management, maintenance |
+| `finance-operations` | Suite E | common | fees-accounts, budget-grants, procurement, hr-payroll, e-office |
+| `campus-life` | Suite F | common | hostel, transport, library, placement-career, alumni |
+| `governance` | Suite G | common | grievance, rti, iqac-accreditation, regulatory-reports |
+| `support` | Global | common | helpdesk, sla-management, knowledge-base, incident-management, amc-vendor-support |
 
 Domain folders are grouping only. They hold no shared code. Two modules in the same
 domain are as isolated from each other as two modules in different domains.
+
+## Tiers and institution profiles
+
+Every manifest declares `tier: core | common | specialized` (and `field:` when specialized).
+
+| Tier | Meaning | Lives in |
+|---|---|---|
+| core | Platform services every deployment needs | `platform/` |
+| common | Modules any institution runs: admissions, academics, exams, finance, campus life, governance, support, generic facilities | `modules/*` |
+| specialized | Behaviour specific to one field, such as sports | `modules/*` with `field:` |
+
+An **institution profile** in `platform/identity/config/profiles/<profile>.yaml` lists the
+suites, modules, integrations, roles, dashboard layouts and field vocabulary for one kind of
+institution. Installing Education OS for an institution means choosing a profile:
+
+- `apps/*` take their enabled-module list from the profile.
+- `platform/api-gateway` refuses routes of modules the profile does not list. A disabled suite is
+  blocked server-side, not only hidden in the UI.
+- Roles and dashboards are data in the profile, never hard-coded.
+
+`sports-college` is the only profile today. A new institution type starts as a profile.
+
+## Generic patterns behind specialized suites
+
+Fifteen institution types reduce to eight recurring patterns. Each is built once as a common
+module and takes its vocabulary from the profile; a specialized module is written only for
+behaviour a pattern cannot express. The mapping from institution type to pattern is in
+[institution-types.md](docs/architecture/institution-types.md).
+
+| Pattern | Examples across fields |
+|---|---|
+| Resource booking | Practice rooms, studios, labs, pitches, training kitchens, equipment |
+| Specialized inventory | Instruments, costumes, lab gear, art materials, sports equipment |
+| Portfolio | Artist, design, showreel, teaching portfolio, publications |
+| Selection process | Auditions, casting, squad selection, moot court teams |
+| Productions and events | Tournaments, performances, exhibitions, screenings, hackathons |
+| Projects | Capstone, film, live business, research, artwork |
+| Field training | Clinical rotations, teaching practice, farm rotations, internships |
+| Skill progress | Athlete metrics, dance progression, practicum assessment |
 
 ## Dependency direction
 
@@ -106,7 +155,7 @@ The same modules can be deployed three ways without code changes:
 
 | Shape | How | When |
 |---|---|---|
-| Modular monolith | `apps/api` mounts all modules in one process | Default. Lowest ops cost for one university |
+| Modular monolith | `apps/api` mounts the profile's modules in one process | Default. One deployment per institution |
 | Grouped services | Several `apps/api` instances, each with a different `modules.enabled.yaml` | Scale hot suites (exams, fees) separately |
 | Standalone module | Copy one module folder into another repo with `packages/` as a dependency | Reuse in a different product |
 
@@ -114,4 +163,5 @@ The same modules can be deployed three ways without code changes:
 React + TypeScript frontend, FastAPI backend, PostgreSQL database. See [ADR-0002](docs/architecture/adr/0002-tech-stack.md).
 
 ## Open decisions
-See [docs/architecture/adr/](docs/architecture/adr/). Pending: event broker, workflow engine, identity provider.
+See [docs/architecture/adr/](docs/architecture/adr/). Pending: event broker, workflow engine, identity provider,
+and the gateway's per-route module-enabled check from ADR-0004.

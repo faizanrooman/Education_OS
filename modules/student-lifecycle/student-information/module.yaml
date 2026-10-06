@@ -3,6 +3,7 @@
 name: student-information
 kind: feature              # feature | platform | integration
 domain: student-lifecycle
+tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Student master record (SIS): profiles, documents, ID cards, status history."

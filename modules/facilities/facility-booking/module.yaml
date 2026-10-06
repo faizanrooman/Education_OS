@@ -3,6 +3,7 @@
 name: facility-booking
 kind: feature              # feature | platform | integration
 domain: facilities
+tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Booking calendar for classrooms, halls and venues with approvals."
