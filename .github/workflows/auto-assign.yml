@@ -1,0 +1,31 @@
+# Continuous assignment: when a person's issue closes, their next issue is assigned automatically.
+# On demand (kickoff): everyone with a handle in docs/team/members.yaml gets their first issue.
+name: auto-assign
+
+on:
+  issues:
+    types: [closed]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  next:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q pyyaml
+      - name: Hand out the next issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "issues" ]; then
+            python tools/scripts/next-issue.py --event closed --issue ${{ github.event.issue.number }}
+          else
+            python tools/scripts/next-issue.py --event kickoff
+          fi
