@@ -1,4 +1,4 @@
-# Education OS API host. Build context is the repo root:
+# Education OS API host. Build context is the repo root; api.Dockerfile.dockerignore beside this file applies (BuildKit):
 #   docker build -f infra/docker/api.Dockerfile -t eos-api .
 FROM python:3.12-slim
 WORKDIR /repo

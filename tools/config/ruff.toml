@@ -1,5 +1,8 @@
-# Python lint and format rules for every backend package. CI runs `ruff check` and `ruff format --check`.
+# Python lint and format rules for every backend package. Always pass this file explicitly:
+#   ruff check --config tools/config/ruff.toml .   and   ruff format --config tools/config/ruff.toml .
+# Paths below are relative to the repo root (the working directory), per ruff's --config rules.
 line-length = 120
+cache-dir = ".venv/.ruff_cache"
 target-version = "py312"
 extend-exclude = [".venv", "node_modules", "dist"]
 

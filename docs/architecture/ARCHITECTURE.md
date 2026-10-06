@@ -3,20 +3,20 @@
 Education OS is **one configurable higher-education platform**: a core, common suites every
 institution runs, specialized suites per field, and an institution profile that says which are on.
 Sports is the first field; arts, music, design, film, medical, law, engineering, management,
-research and others use the same foundation ([ADR-0004](docs/architecture/adr/0004-institution-profiles.md),
-[institution-types.md](docs/architecture/institution-types.md)).
+research and others use the same foundation ([ADR-0004](adr/0004-institution-profiles.md),
+[institution-types.md](institution-types.md)).
 
 ```
 platform/ (core)  →  common suites  →  specialized suites  →  academy profile  →  plan  →  organisation
 ```
 
-It is a **multi-tenant SaaS** ([ADR-0005](docs/architecture/adr/0005-multi-tenant-saas.md)): one
+It is a **multi-tenant SaaS** ([ADR-0005](adr/0005-multi-tenant-saas.md)): one
 deployment serves many organisations. An organisation registers itself, picks its academy type,
 starts on a trial plan and upgrades for more. A super admin operates the whole platform.
 
 The diagram below is the first customer's view, a sports university. Each layer maps to one folder.
 
-![High level architecture](docs/architecture/diagrams/high-level-architecture.png)
+![High level architecture](diagrams/high-level-architecture.png)
 
 ## Layers to folders
 
@@ -103,7 +103,7 @@ Upgrade flow: org admin → `billing.subscription.upgrade` → payment adapter �
 Fifteen institution types reduce to eight recurring patterns. Each is built once as a common
 module and takes its vocabulary from the profile; a specialized module is written only for
 behaviour a pattern cannot express. The mapping from institution type to pattern is in
-[institution-types.md](docs/architecture/institution-types.md).
+[institution-types.md](institution-types.md).
 
 | Pattern | Module | Examples across fields |
 |---|---|---|
@@ -119,7 +119,7 @@ behaviour a pattern cannot express. The mapping from institution type to pattern
 Every academy profile has its own learner, instructor and field staff roles (artist and studio
 instructor, musician and music teacher, medical student and clinical supervisor, and so on), each
 with a dashboard layout built from these modules. The full list is in
-[institution-types.md](docs/architecture/institution-types.md#roles-per-academy).
+[institution-types.md](institution-types.md#roles-per-academy).
 
 ## Dependency direction
 
@@ -211,8 +211,8 @@ The same modules can be deployed three ways without code changes:
 | Standalone module | Copy one module folder into another repo with `packages/` as a dependency | Reuse in a different product |
 
 ## Stack
-React + TypeScript frontend, FastAPI backend, PostgreSQL database. See [ADR-0002](docs/architecture/adr/0002-tech-stack.md).
+React + TypeScript frontend, FastAPI backend, PostgreSQL database. See [ADR-0002](adr/0002-tech-stack.md).
 
 ## Open decisions
-See [docs/architecture/adr/](docs/architecture/adr/). Pending: event broker, workflow engine, identity provider,
+See [docs/architecture/adr/](adr/). Pending: event broker, workflow engine, identity provider,
 the gateway's per-request entitlement check and the row-level-security conventions from ADR-0005.

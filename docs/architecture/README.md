@@ -1,6 +1,6 @@
 # docs/architecture
 
-- [../../ARCHITECTURE.md](../../ARCHITECTURE.md) — layers, folders, dependency rules
+- [../../ARCHITECTURE.md](ARCHITECTURE.md) — layers, folders, dependency rules
 - [module-standard.md](module-standard.md) — anatomy of a module and portability checklist
 - [institution-types.md](institution-types.md) — institution types, the eight generic patterns, example profiles
 - ADR-0005 — multi-tenant SaaS: registration, plans, entitlements, super admin

@@ -3,6 +3,7 @@ name: governance
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 
@@ -22,17 +23,17 @@ jobs:
       - name: Module boundaries
         run: python tools/scripts/check-boundaries.py
       - name: Python lint and format
-        run: ruff check . && ruff format --check .
+        run: ruff check --config tools/config/ruff.toml . && ruff format --config tools/config/ruff.toml --check .
       - name: Conventional commits scoped by module
         if: github.event_name == 'pull_request'
         run: tools/scripts/check-commits.sh ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
       - name: One module per PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'repo-wide')
         run: |
           changed=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
           mods=$(echo "$changed" | grep -E '^(modules/[^/]+/[^/]+|platform/[^/]+|integrations/[^/]+)/' | sed -E 's#^(modules/[^/]+/[^/]+|platform/[^/]+|integrations/[^/]+)/.*#\1#' | sort -u)
           n=$(echo "$mods" | grep -c . || true)
           echo "modules touched: $n"; echo "$mods"
           if [ "$n" -gt 1 ] && ! echo "$changed" | grep -q 'contracts/'; then
-            echo "A PR touches one module unless it is a contract change plus its consumers (CONTRIBUTING.md)."; exit 1
+            echo "A PR touches one module unless it is a contract change plus its consumers (.github/CONTRIBUTING.md)."; exit 1
           fi

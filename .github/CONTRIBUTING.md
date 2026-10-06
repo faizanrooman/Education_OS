@@ -1,6 +1,6 @@
 # Contributing
 
-The enforced rules are in [docs/team/RULES.md](docs/team/RULES.md). This file is the how-to.
+The enforced rules are in [docs/team/RULES.md](../docs/team/RULES.md). This file is the how-to.
 
 ## Branches
 - `main` — always deployable. Protected. PR + 1 owner approval required.
@@ -21,8 +21,8 @@ A PR touches **one module** unless it is a contract change plus its consumers.
 
 ## Where tests go
 - Tests for one module live inside that module: `backend/tests`, `frontend/tests`, `tests/e2e`.
-- Tests that span modules or the composed apps live in the root [`tests/`](tests/) folder
-  (`integration`, `contract`, `e2e`, `performance`, `fixtures`). See [tests/README.md](tests/README.md).
+- Tests that span modules or the composed apps live in the root [`tests/`](../tests/) folder
+  (`integration`, `contract`, `e2e`, `performance`, `fixtures`). See [tests/README.md](../tests/README.md).
 - Never put tests under `src/`, `apps/` or `packages/<pkg>/src/`.
 
 ## Definition of done
