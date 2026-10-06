@@ -48,6 +48,8 @@ names were given and can be swapped before kickoff; GitHub handles still need fi
 | Srujan (Apps, infra & QA) | Super Admin | Engineering college |
 | pool (first to finish) | Governance, Management, HR Staff | Film / media, Dance, Design / fashion, Agriculture, Hospitality |
 
+Per-person week 1 tasks: [kickoff-tasks.md](kickoff-tasks.md).
+
 ## Full module list
 
 | Module | Owner | Backup | Status |
