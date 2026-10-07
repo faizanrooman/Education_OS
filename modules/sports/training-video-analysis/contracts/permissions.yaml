@@ -1,11 +1,59 @@
 # Permission catalogue for training-video-analysis. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: training-video-analysis
-permissions: []
-#  - key: training-video-analysis:record:read
-#    description: ...
-#  - key: training-video-analysis:record:write
-#    description: ...
-roles: []
-#  - name: training-video-analysis-admin
-#    grants: [training-video-analysis:record:read, training-video-analysis:record:write]
+permissions:
+  - key: training-video-analysis:plan:read
+    description: View training plans and seasonal schedules
+  - key: training-video-analysis:plan:write
+    description: Create and manage training plans
+  - key: training-video-analysis:session:read
+    description: View training sessions, schedules, and attendance
+  - key: training-video-analysis:session:write
+    description: Schedule and manage training sessions
+  - key: training-video-analysis:drill:read
+    description: View drill repository and catalogs
+  - key: training-video-analysis:drill:write
+    description: Create and manage drills in repository
+  - key: training-video-analysis:video:read
+    description: View and playback training videos and analysis
+  - key: training-video-analysis:video:upload
+    description: Upload and register new training videos
+  - key: training-video-analysis:video:tag
+    description: Tag drills and segments on video timeline
+  - key: training-video-analysis:annotation:write
+    description: Add and manage coaching annotations and markup on video
+roles:
+  - name: training-video-analysis-admin
+    description: Full administration of training plans, sessions, video repository, and annotations
+    grants:
+      - training-video-analysis:plan:read
+      - training-video-analysis:plan:write
+      - training-video-analysis:session:read
+      - training-video-analysis:session:write
+      - training-video-analysis:drill:read
+      - training-video-analysis:drill:write
+      - training-video-analysis:video:read
+      - training-video-analysis:video:upload
+      - training-video-analysis:video:tag
+      - training-video-analysis:annotation:write
+  - name: training-video-analysis-coach
+    description: Coaches creating sessions, tagging drills, and annotating video for athletes
+    grants:
+      - training-video-analysis:plan:read
+      - training-video-analysis:plan:write
+      - training-video-analysis:session:read
+      - training-video-analysis:session:write
+      - training-video-analysis:drill:read
+      - training-video-analysis:drill:write
+      - training-video-analysis:video:read
+      - training-video-analysis:video:upload
+      - training-video-analysis:video:tag
+      - training-video-analysis:annotation:write
+  - name: training-video-analysis-athlete
+    description: Athletes viewing their assigned training plans, sessions, and reviewed videos
+    grants:
+      - training-video-analysis:plan:read
+      - training-video-analysis:session:read
+      - training-video-analysis:drill:read
+      - training-video-analysis:video:read
+
