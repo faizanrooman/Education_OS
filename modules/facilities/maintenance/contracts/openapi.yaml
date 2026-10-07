@@ -2,9 +2,380 @@ openapi: 3.1.0
 info:
   title: maintenance API
   version: 0.1.0
-  description: "Work orders, preventive maintenance schedules, vendor tickets."
+  description: "Fault tickets and work orders, assignment to technicians or vendors, SLA, work log, preventive schedules. See docs/prd.md."
 servers:
   - url: /api/v1/maintenance
-paths: {}
+paths:
+  /categories:
+    get:
+      summary: List ticket categories. Permission maintenance:ticket:create.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Category" } } } } } }
+    post:
+      summary: Create a category. Permission maintenance:ticket:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CategoryInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }, "409": { description: Name already in use } }
+  /categories/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      summary: Update or deactivate a category. Permission maintenance:ticket:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/CategoryInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+
+  /tickets:
+    get:
+      summary: >
+        List tickets. scope=mine (default) returns tickets the caller raised; scope=assigned returns tickets assigned to the caller;
+        scope=managed returns every ticket (needs maintenance:ticket:read-all). Backs the tickets widget. Permission maintenance:ticket:read.
+      parameters:
+        - { name: scope, in: query, schema: { type: string, enum: [mine, assigned, managed], default: mine } }
+        - { name: status, in: query, style: form, explode: false, schema: { type: array, items: { $ref: "#/components/schemas/TicketStatus" } } }
+        - { name: open, in: query, description: "Only open, assigned, in_progress and on_hold", schema: { type: boolean } }
+        - { name: priority, in: query, style: form, explode: false, schema: { type: array, items: { $ref: "#/components/schemas/Priority" } } }
+        - { name: kind, in: query, schema: { $ref: "#/components/schemas/TicketKind" } }
+        - { name: category_id, in: query, schema: { type: string, format: uuid } }
+        - { name: target_kind, in: query, schema: { $ref: "#/components/schemas/TargetKind" } }
+        - { name: target_id, in: query, schema: { type: string } }
+        - { name: assignee_id, in: query, schema: { type: string, format: uuid } }
+        - { name: sla_breached, in: query, schema: { type: boolean } }
+        - { name: q, in: query, description: "Search in number, title and target label", schema: { type: string } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/TicketPage" } } } } }
+    post:
+      summary: Report a fault or request work. Category defaults apply. Returns open tickets on the same target and category as possible duplicates. Permission maintenance:ticket:create.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TicketInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/TicketCreated" } } } }, "422": { description: Unknown category or invalid target } }
+  /tickets/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One ticket with its work log. Visible to the reporter, the assignee and read-all holders. Permission maintenance:ticket:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/TicketDetail" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    patch:
+      summary: Triage. Change category, priority, title, description, target or blocks_use. Priority changes recompute SLA due times. Permission maintenance:ticket:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/TicketUpdate" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Ticket is closed or cancelled } }
+  /tickets/{id}/assign:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Assign or reassign to one technician or one vendor. Permission maintenance:ticket:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Assignment" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Ticket is resolved, closed or cancelled } }
+  /tickets/{id}/start:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Start work (stops the response timer) or resume from on_hold. Assignee with maintenance:ticket:work, or maintenance:ticket:manage.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Not assigned or on hold } }
+  /tickets/{id}/hold:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Put on hold with a reason. SLA timers pause. Assignee with maintenance:ticket:work, or maintenance:ticket:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: "#/components/schemas/HoldReason" }, note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Not in progress } }
+  /tickets/{id}/resolve:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Mark the work done with a resolution note. Preventive tickets record the checklist. The reporter is asked to confirm. Assignee with maintenance:ticket:work, or maintenance:ticket:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Resolution" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Not in progress } }
+  /tickets/{id}/close:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Confirm a resolved ticket. The reporter, or maintenance:ticket:manage. Also done by the auto-close job.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { feedback: { type: string }, rating: { type: integer, minimum: 1, maximum: 5 } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Not resolved } }
+  /tickets/{id}/reopen:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Reopen a resolved or recently closed ticket within the reopen window. It goes back to its assignee. The reporter, or maintenance:ticket:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Outside the reopen window } }
+  /tickets/{id}/cancel:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Cancel a ticket not yet resolved (duplicate, not needed). The reporter before work starts, or maintenance:ticket:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string }, duplicate_of: { type: string, format: uuid } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Already resolved, closed or cancelled } }
+  /tickets/{id}/work-entries:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Work log of a ticket. Permission maintenance:ticket:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/WorkEntry" } } } } } }
+    post:
+      summary: Add a note, time spent, parts used or a cost. Append-only. Reporters may add notes only; costs need maintenance:ticket:work.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/WorkEntryInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/WorkEntry" } } } } }
+
+  /schedules:
+    get:
+      summary: List preventive schedules. Permission maintenance:schedule:manage.
+      parameters:
+        - { name: active, in: query, schema: { type: boolean } }
+        - { name: target_kind, in: query, schema: { $ref: "#/components/schemas/TargetKind" } }
+        - { name: target_id, in: query, schema: { type: string } }
+        - { name: due_before, in: query, schema: { type: string, format: date } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Schedule" } } } } } }
+    post:
+      summary: Create a preventive schedule. Permission maintenance:schedule:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ScheduleInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Schedule" } } } } }
+  /schedules/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One schedule with its recent tickets. Permission maintenance:schedule:manage.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Schedule" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    patch:
+      summary: Change a schedule, pause it (active=false) or move its next due date. Permission maintenance:schedule:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ScheduleInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Schedule" } } } } }
+    delete:
+      summary: Delete a schedule. Tickets it raised stay. Permission maintenance:schedule:manage.
+      responses: { "204": { description: Deleted } }
+  /schedules/{id}/raise-now:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Raise the next preventive ticket now instead of waiting for the lead time. Permission maintenance:schedule:manage.
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: The schedule already has an open ticket } }
+
+  /summary:
+    get:
+      summary: Counts for the tickets widget, over tickets the caller manages or is assigned. Permission maintenance:ticket:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Summary" } } } } }
+
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    PageSize: { name: page_size, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+
+  responses:
+    NotFound: { description: Not found in the caller's organisation }
+
+  schemas:
+    TicketKind:
+      type: string
+      enum: [corrective, preventive, inspection]
+    TicketStatus:
+      type: string
+      enum: [open, assigned, in_progress, on_hold, resolved, closed, cancelled]
+    Priority:
+      type: string
+      enum: [low, medium, high, urgent]
+    TargetKind:
+      type: string
+      enum: [asset, resource, unit, location]
+      description: "asset: asset-management asset. resource: facility-booking resource. unit: inventory-equipment unit. location: free text only."
+    HoldReason:
+      type: string
+      enum: [waiting_parts, waiting_vendor, waiting_access, other]
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount: { type: string, pattern: "^[0-9]+(\\.[0-9]{1,2})?$", description: "Decimal as a string, never a float" }
+        currency: { type: string, pattern: "^[A-Z]{3}$" }
+    Reference:
+      type: object
+      required: [module, entity, id]
+      properties:
+        module: { type: string }
+        entity: { type: string }
+        id: { type: string }
+    Target:
+      type: object
+      required: [kind, label]
+      properties:
+        kind: { $ref: "#/components/schemas/TargetKind" }
+        id: { type: string, description: "Id in the owning module. Empty for kind=location." }
+        label: { type: string, description: "Human-readable name and place, cached at the time of raising, e.g. 'AST-0142 · Block B, room 12'" }
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 120, description: "The organisation's own name, e.g. Electrical" }
+        description: { type: string }
+        default_priority: { $ref: "#/components/schemas/Priority" }
+        default_assignee_ids: { type: array, items: { type: string, format: uuid } }
+        sla_override:
+          type: object
+          description: "Hours per priority; missing values come from config."
+          properties:
+            response_hours: { type: object, additionalProperties: { type: integer, minimum: 1 } }
+            resolution_hours: { type: object, additionalProperties: { type: integer, minimum: 1 } }
+        active: { type: boolean, default: true }
+    Category:
+      allOf:
+        - $ref: "#/components/schemas/CategoryInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+
+    TicketInput:
+      type: object
+      required: [title, category_id, target]
+      properties:
+        title: { type: string, maxLength: 200 }
+        description: { type: string }
+        category_id: { type: string, format: uuid }
+        kind: { type: string, enum: [corrective, inspection], default: corrective, description: "Preventive tickets come only from schedules" }
+        target: { $ref: "#/components/schemas/Target" }
+        priority: { $ref: "#/components/schemas/Priority" }
+        blocks_use: { type: boolean, default: false, description: "The target cannot be used until this is resolved" }
+        photo_document_ids: { type: array, items: { type: string } }
+        source: { $ref: "#/components/schemas/Reference" }
+    TicketUpdate:
+      type: object
+      properties:
+        title: { type: string, maxLength: 200 }
+        description: { type: string }
+        category_id: { type: string, format: uuid }
+        priority: { $ref: "#/components/schemas/Priority" }
+        target: { $ref: "#/components/schemas/Target" }
+        blocks_use: { type: boolean }
+    Assignment:
+      type: object
+      description: "Exactly one of assignee_id or vendor."
+      properties:
+        assignee_id: { type: string, format: uuid, description: "Technician (identity user)" }
+        vendor:
+          type: object
+          required: [name]
+          properties:
+            name: { type: string }
+            contact: { type: string }
+            job_number: { type: string, description: "The vendor's own reference" }
+            amc_reference: { $ref: "#/components/schemas/Reference" }
+        note: { type: string }
+    Resolution:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string, minLength: 1 }
+        root_cause: { type: string }
+        checklist: { type: array, items: { $ref: "#/components/schemas/ChecklistResult" } }
+        target_usable: { type: boolean, default: true, description: "False if the target is beyond repair; owners may react" }
+    ChecklistResult:
+      type: object
+      required: [step, done]
+      properties:
+        step: { type: string }
+        done: { type: boolean }
+        note: { type: string }
+
+    Ticket:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        number: { type: string, description: "Human-friendly number, e.g. MT-2026-00042" }
+        kind: { $ref: "#/components/schemas/TicketKind" }
+        title: { type: string }
+        description: { type: string }
+        category_id: { type: string, format: uuid }
+        category_name: { type: string }
+        target: { $ref: "#/components/schemas/Target" }
+        priority: { $ref: "#/components/schemas/Priority" }
+        status: { $ref: "#/components/schemas/TicketStatus" }
+        blocks_use: { type: boolean }
+        reported_by: { type: string, format: uuid }
+        assignee_id: { type: string, format: uuid, nullable: true }
+        vendor: { type: object, nullable: true, properties: { name: { type: string }, contact: { type: string }, job_number: { type: string }, amc_reference: { $ref: "#/components/schemas/Reference" } } }
+        hold_reason: { $ref: "#/components/schemas/HoldReason" }
+        schedule_id: { type: string, format: uuid, nullable: true }
+        source: { $ref: "#/components/schemas/Reference" }
+        response_due_at: { type: string, format: date-time }
+        resolution_due_at: { type: string, format: date-time }
+        sla_breached: { type: array, items: { type: string, enum: [response, resolution] } }
+        started_at: { type: string, format: date-time, nullable: true }
+        resolved_at: { type: string, format: date-time, nullable: true }
+        closed_at: { type: string, format: date-time, nullable: true }
+        total_minutes: { type: integer }
+        total_cost: { $ref: "#/components/schemas/Money" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        can: { type: array, items: { type: string, enum: [edit, assign, start, hold, resolve, close, reopen, cancel, log_work] }, description: "Actions the caller may take now; drives widget buttons" }
+    TicketDetail:
+      allOf:
+        - $ref: "#/components/schemas/Ticket"
+        - type: object
+          properties:
+            photo_document_ids: { type: array, items: { type: string } }
+            checklist: { type: array, items: { $ref: "#/components/schemas/ChecklistResult" } }
+            resolution: { $ref: "#/components/schemas/Resolution" }
+            work_entries: { type: array, items: { $ref: "#/components/schemas/WorkEntry" } }
+    TicketCreated:
+      type: object
+      properties:
+        ticket: { $ref: "#/components/schemas/Ticket" }
+        possible_duplicates: { type: array, items: { type: string, format: uuid }, description: "Open tickets on the same target and category" }
+    TicketPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Ticket" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+
+    WorkEntryInput:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [note, time, part, cost] }
+        note: { type: string }
+        minutes: { type: integer, minimum: 1, description: "For time" }
+        item_id: { type: string, format: uuid, description: "For part: inventory-equipment item id, if stocked" }
+        item_name: { type: string, description: "For part: name, cached or free text" }
+        quantity: { type: number, minimum: 0 }
+        cost: { $ref: "#/components/schemas/Money" }
+        document_id: { type: string, description: "Vendor invoice or report" }
+    WorkEntry:
+      allOf:
+        - $ref: "#/components/schemas/WorkEntryInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            ticket_id: { type: string, format: uuid }
+            recorded_by: { type: string, format: uuid }
+            recorded_at: { type: string, format: date-time }
+
+    ScheduleInput:
+      type: object
+      required: [title, category_id, target, every, unit, next_due_on]
+      properties:
+        title: { type: string, maxLength: 200 }
+        description: { type: string }
+        category_id: { type: string, format: uuid }
+        target: { $ref: "#/components/schemas/Target" }
+        kind: { type: string, enum: [preventive, inspection], default: preventive }
+        every: { type: integer, minimum: 1 }
+        unit: { type: string, enum: [days, weeks, months] }
+        next_due_on: { type: string, format: date }
+        lead_days: { type: integer, minimum: 0, description: "Raise the ticket this many days before the due date; defaults to MAINTENANCE_DEFAULT_LEAD_DAYS" }
+        priority: { $ref: "#/components/schemas/Priority" }
+        default_assignee_id: { type: string, format: uuid }
+        checklist: { type: array, items: { type: string } }
+        active: { type: boolean, default: true }
+    Schedule:
+      allOf:
+        - $ref: "#/components/schemas/ScheduleInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            open_ticket_id: { type: string, format: uuid, nullable: true }
+            last_completed_on: { type: string, format: date, nullable: true }
+            created_at: { type: string, format: date-time }
+
+    Summary:
+      type: object
+      properties:
+        open: { type: integer }
+        unassigned: { type: integer }
+        in_progress: { type: integer }
+        on_hold: { type: integer }
+        urgent_open: { type: integer }
+        sla_breached_open: { type: integer }
+        resolved_awaiting_confirmation: { type: integer }
+        preventive_due_7_days: { type: integer }

@@ -1,11 +1,26 @@
 # Permission catalogue for maintenance. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: maintenance
-permissions: []
-#  - key: maintenance:record:read
-#    description: ...
-#  - key: maintenance:record:write
-#    description: ...
-roles: []
-#  - name: maintenance-admin
-#    grants: [maintenance:record:read, maintenance:record:write]
+permissions:
+  - key: maintenance:ticket:create
+    description: Report a fault, see categories, add notes to own tickets, confirm or reopen own resolved tickets.
+  - key: maintenance:ticket:read
+    description: See tickets one raised or is assigned, and the widget summary.
+  - key: maintenance:ticket:read-all
+    description: See every ticket in the organisation.
+  - key: maintenance:ticket:work
+    description: Work on assigned tickets. Start, hold, resume, resolve, log time, parts and cost.
+  - key: maintenance:ticket:manage
+    description: Triage, assign, change priority, close, cancel and reopen any ticket; manage categories.
+  - key: maintenance:schedule:manage
+    description: Create, change, pause and delete preventive schedules, and raise their tickets early.
+roles:
+  - name: maintenance-reporter
+    description: Anyone in the organisation who reports faults.
+    grants: [maintenance:ticket:create, maintenance:ticket:read]
+  - name: maintenance-technician
+    description: In-house technicians who carry out the work.
+    grants: [maintenance:ticket:create, maintenance:ticket:read, maintenance:ticket:work]
+  - name: maintenance-manager
+    description: Facility / Inventory Staff, equipment manager, lab in-charge. Triage, assignment and planning.
+    grants: [maintenance:ticket:create, maintenance:ticket:read, maintenance:ticket:read-all, maintenance:ticket:work, maintenance:ticket:manage, maintenance:schedule:manage]
