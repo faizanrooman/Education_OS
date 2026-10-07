@@ -1,11 +1,35 @@
 # Permission catalogue for asset-management. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: asset-management
-permissions: []
-#  - key: asset-management:record:read
-#    description: ...
-#  - key: asset-management:record:write
-#    description: ...
-roles: []
-#  - name: asset-management-admin
-#    grants: [asset-management:record:read, asset-management:record:write]
+permissions:
+  - key: asset-management:asset:read
+    description: See assets in one's care, their history and book value, and what is due for verification.
+  - key: asset-management:asset:read-all
+    description: See every asset in the organisation and the summary.
+  - key: asset-management:asset:manage
+    description: Register and edit assets and categories, transfer them, change their status, complete approved disposals.
+  - key: asset-management:verification:perform
+    description: See verification cycles and record results for assets.
+  - key: asset-management:verification:manage
+    description: Plan, start and close verification cycles.
+  - key: asset-management:depreciation:read
+    description: See depreciation schedules and runs.
+  - key: asset-management:depreciation:manage
+    description: Calculate, delete and post depreciation runs.
+  - key: asset-management:disposal:request
+    description: Request disposal of an asset in one's care and see own requests.
+  - key: asset-management:disposal:approve
+    description: Approve, reject or cancel disposal requests and see all of them.
+roles:
+  - name: asset-management-custodian
+    description: Staff responsible for assets in their department or lab.
+    grants: [asset-management:asset:read, asset-management:disposal:request]
+  - name: asset-management-verifier
+    description: Staff who carry out physical verification.
+    grants: [asset-management:asset:read, asset-management:asset:read-all, asset-management:verification:perform]
+  - name: asset-management-manager
+    description: Facility / Inventory Staff. Runs the register and verification.
+    grants: [asset-management:asset:read, asset-management:asset:read-all, asset-management:asset:manage, asset-management:verification:perform, asset-management:verification:manage, asset-management:depreciation:read, asset-management:disposal:request]
+  - name: asset-management-finance
+    description: Finance Staff. Depreciation and disposal decisions.
+    grants: [asset-management:asset:read, asset-management:asset:read-all, asset-management:depreciation:read, asset-management:depreciation:manage, asset-management:disposal:approve]
