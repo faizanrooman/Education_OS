@@ -75,8 +75,8 @@ paths:
   /tickets/{id}/assign:
     post:
       summary: >-
-        Assign to an agent, unassign (assignee_id null) or move to another queue. The assignee must be a member of the target
-        queue. Publishes helpdesk.ticket.assigned. Permission helpdesk:ticket:work to assign an unassigned ticket in the caller's
+        Assign to an agent, unassign or move to another queue; see AssignInput for how the fields combine. Never changes the
+        status. The assignee must be a member of the target queue. Publishes helpdesk.ticket.assigned. Permission helpdesk:ticket:work to assign an unassigned ticket in the caller's
         queue to themselves; helpdesk:ticket:manage for anything else.
       parameters: [{ $ref: "#/components/parameters/Id" }]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AssignInput" } } } }
@@ -85,7 +85,8 @@ paths:
     post:
       summary: >-
         Reply to the requester (public) or add an internal note. The first public reply by an agent publishes
-        helpdesk.ticket.responded. A public reply on a new ticket also moves it to in_progress. Permission helpdesk:ticket:work.
+        helpdesk.ticket.responded. A public reply on a new ticket also moves it to in_progress and publishes
+        helpdesk.ticket.status-changed. Permission helpdesk:ticket:work.
       parameters: [{ $ref: "#/components/parameters/Id" }]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AgentCommentInput" } } } }
       responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Comment" } } } }, "409": { description: "Ticket is closed or cancelled" } }
@@ -255,9 +256,13 @@ components:
         reason: { type: string, description: "Required when category or priority changes; kept in the audit record" }
     AssignInput:
       type: object
+      description: >-
+        Both omitted: assign to the caller in the current queue. assignee_id only: assign within the current queue.
+        assignee_id null: unassign, staying in the current queue. queue_id only: move to that queue, unassigned.
+        Both given: move to that queue and assign to that agent.
       properties:
-        queue_id: { type: string, format: uuid, description: "Omit to stay in the current queue" }
-        assignee_id: { type: [string, "null"], format: uuid, description: "Null unassigns. Omit together with queue_id to assign to the caller." }
+        queue_id: { type: string, format: uuid, description: "Target queue. Omit to stay in the current queue." }
+        assignee_id: { type: [string, "null"], format: uuid, description: "Agent to assign, or null to unassign." }
     StatusInput:
       type: object
       required: [status]
@@ -347,6 +352,7 @@ components:
         duplicate_of: { type: [string, "null"], format: uuid }
         reopen_count: { type: integer, minimum: 0 }
         satisfaction_rating: { type: [integer, "null"], minimum: 1, maximum: 5 }
+        feedback: { type: [string, "null"], description: "Requester's comment given when confirming the fix" }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
         first_responded_at: { type: [string, "null"], format: date-time }

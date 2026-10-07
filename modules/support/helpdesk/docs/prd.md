@@ -33,21 +33,25 @@ is `contracts/openapi.yaml`, `events.yaml` and `permissions.yaml`.
    default queue and priority, status `new` and channel `portal`. An agent can raise a ticket on behalf of
    someone who phoned or walked in (channel `phone`, `walk_in` or `email`). Publishes `helpdesk.ticket.created`.
 3. **Assign.** An agent picks a ticket from their queue ("assign to me") or a lead assigns it to an agent
-   or moves it to another queue. Publishes `helpdesk.ticket.assigned`.
+   or moves it to another queue. Moving a ticket to another queue without naming an assignee leaves it
+   unassigned there. Publishes `helpdesk.ticket.assigned`. Assigning never changes the status.
 4. **Work.** The assignee replies publicly (seen by the requester) or adds internal notes (agents only).
    The **first public reply by an agent** publishes `helpdesk.ticket.responded` once; that stops the
-   response clock in sla-management. Moving the ticket to `in_progress` or `on_hold` (waiting on the
-   requester, a third party or an internal team) publishes `helpdesk.ticket.status-changed`; sla-management
-   pauses and resumes the resolution clock from it. A requester's reply to a ticket waiting on them moves it
-   back to `in_progress` automatically.
-5. **Reclassify.** An agent or lead corrects the category or priority. Publishes
-   `helpdesk.ticket.reclassified` with the previous values, so SLA targets can be recalculated.
-6. **Resolve.** The assignee resolves the ticket with a resolution note. Publishes `helpdesk.ticket.resolved`
-   and notifies the requester.
-7. **Confirm, reopen or auto-close.** The requester confirms the fix (optionally rating it 1 to 5), which
-   closes the ticket, or reopens it within `HELPDESK_REOPEN_WINDOW_DAYS` with a reason
+   response clock in sla-management. Every status move between `new`, `in_progress` and `on_hold` publishes
+   `helpdesk.ticket.status-changed`, whichever way it happens: the agent starts work or puts the ticket on
+   hold (waiting on the requester, a third party or an internal team), a public agent reply on a `new` ticket
+   moves it to `in_progress`, or a requester's reply to a ticket waiting on them moves it back to
+   `in_progress`. sla-management pauses and resumes the resolution clock from this event.
+5. **Reclassify.** The assignee can change the priority of a ticket assigned to them; a lead changes the
+   category or the priority of any ticket. Changing the category does not move the ticket to another queue.
+   Publishes `helpdesk.ticket.reclassified` with the previous values, so SLA targets can be recalculated.
+6. **Resolve.** The assignee resolves the ticket with a resolution note, from `new`, `in_progress` or
+   `on_hold` (a question answered at once can be resolved straight from `new`). Publishes
+   `helpdesk.ticket.resolved` and notifies the requester.
+7. **Confirm, reopen or auto-close.** The requester confirms the fix (optionally rating it 1 to 5 with a
+   comment), which closes the ticket, or reopens it within `HELPDESK_REOPEN_WINDOW_DAYS` with a reason
    (`helpdesk.ticket.reopened`). A daily scheduler job closes tickets resolved more than
-   `HELPDESK_AUTO_CLOSE_DAYS` ago. Closing publishes `helpdesk.ticket.closed`.
+   `HELPDESK_AUTO_CLOSE_DAYS` ago (see open question 6). Closing publishes `helpdesk.ticket.closed`.
 8. **Cancel.** The requester can withdraw their own ticket before it is resolved. A lead can cancel a
    ticket as a duplicate of another (`duplicate_of`). Publishes `helpdesk.ticket.cancelled`.
 9. **Link.** An agent records a link from a ticket to a record in another module (for example a
@@ -57,14 +61,17 @@ is `contracts/openapi.yaml`, `events.yaml` and `permissions.yaml`.
 ### Ticket states
 
 ```
-new ──assign/start──► in_progress ◄──► on_hold
- │                        │
- │                        ▼
- │                     resolved ──confirm / auto-close──► closed
- │                        │
- │                        └──reopen (within window)──► in_progress
+new ──start / first public reply──► in_progress ◄──hold / resume──► on_hold
+ │                                      │                               │
+ ├──resolve─────────────────────────────┼──resolve──────────────────────┘
+ │                                      ▼
+ │                                   resolved ──confirm / auto-close──► closed
+ │                                      │
+ │                                      └──reopen (within window)──► in_progress
  └──────── cancel (from new, in_progress, on_hold) ──► cancelled
 ```
+
+Assignment is independent of status: a ticket can be assigned or unassigned in any open status.
 
 ## Rules
 
@@ -92,7 +99,7 @@ new ──assign/start──► in_progress ◄──► on_hold
 |---|---|
 | Queue | id, name, description, member_ids (person ids of agents), active |
 | Category | id, parent_id (null = top level), name, default_queue_id, default_priority, active |
-| Ticket | id, number (`HD-000123`), requester_id, raised_by_id, channel, category_id, queue_id, assignee_id, priority, status, hold_reason, title, description, attachment_document_ids, duplicate_of, created_at, first_responded_at, resolved_at, closed_at, reopen_count, satisfaction_rating |
+| Ticket | id, number (`HD-000123`), requester_id, raised_by_id, channel, category_id, queue_id, assignee_id, priority, status, hold_reason, title, description, attachment_document_ids, resolution_note, duplicate_of, created_at, updated_at, first_responded_at, resolved_at, closed_at, reopen_count, satisfaction_rating, feedback |
 | Comment | id, ticket_id, author_id, visibility (public, internal), body, attachment_document_ids, created_at |
 | TicketLink | id, ticket_id, module, entity, ref_id, note, created_by, created_at |
 | TicketNumberSequence | organisation_id, last_number |
@@ -111,7 +118,7 @@ The widget itself is built in week 2 or later in `frontend/src/widgets/`; this P
 |---|---|---|
 | Publishes | sla-management (clocks), notification, reporting, anyone | `helpdesk.ticket.created`, `assigned`, `responded`, `status-changed`, `reclassified`, `resolved`, `reopened`, `closed`, `cancelled` (`events.yaml`) |
 | Consumes | none in v1 | See open question 2 about cached SLA state |
-| Platform | identity, audit, notification, documents, scheduler | through `packages/sdk`: permission checks; audit on every state change; notify requester and assignee; attachments; the daily auto-close job |
+| Platform | identity, audit, notification, documents, scheduler | through `packages/sdk`: permission checks; audit on every state change; notify requester and assignee; attachments; the daily auto-close job (how the scheduler triggers it is open question 6) |
 | References | identity / student-information | `requester_id`, `assignee_id`, `member_ids` are person ids; names come from identity |
 | Links | maintenance, knowledge-base, incident-management | stored as `{module, entity, ref_id}` only |
 
@@ -154,3 +161,8 @@ The widget itself is built in week 2 or later in `frontend/src/widgets/`; this P
    contracts, and maps them to profile roles in the table above. Is that mapping done by identity, or should
    the roles be named after profile roles (`support-staff`) as e-office and hr-payroll do?
 5. Should a satisfaction rating be asked on every closed ticket, or sampled? This draft: optional on confirm.
+6. **Auto-close trigger (Himanshu, scheduler contract).** The scheduler contract is still empty, so this draft
+   neither consumes a `scheduler.*` event nor exposes a callback endpoint for the daily auto-close job. Once the
+   scheduler contract says how a module registers and receives a recurring job (an event to subscribe to, or a
+   callback the scheduler calls through the gateway), helpdesk adds that to `module.yaml` `consumes_events` or to
+   `openapi.yaml` as a non-breaking change. Until then the job is internal to helpdesk.

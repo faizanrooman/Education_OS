@@ -21,7 +21,7 @@ exposes:
   permissions: contracts/permissions.yaml
 
 # Events this module subscribes to (by name, from other modules' events.yaml).
-consumes_events: []        # none in v1; see docs/prd.md open question 2
+consumes_events: []        # none in v1; see docs/prd.md open questions 2 and 6
 
 # Config this module needs. Document every key in config/env.example.
 config: config/env.example

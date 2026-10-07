@@ -16,7 +16,10 @@ events:
     description: Published once per ticket, on the first public reply by an agent. Stops the SLA response clock.
     payload: { organisation_id: uuid, ticket_id: uuid, number: string, responded_by: uuid, responded_at: datetime }
   - name: helpdesk.ticket.status-changed
-    description: A ticket moved between new, in_progress and on_hold. sla-management pauses the resolution clock while on_hold and resumes it after.
+    description: >-
+      A ticket moved between new, in_progress and on_hold: the agent started work or put it on hold, a first public agent
+      reply moved a new ticket to in_progress, or a requester's reply moved a ticket waiting on them back to in_progress.
+      sla-management pauses the resolution clock while on_hold and resumes it after.
     payload: { organisation_id: uuid, ticket_id: uuid, number: string, from_status: string, to_status: string, hold_reason: string, changed_at: datetime }
   - name: helpdesk.ticket.reclassified
     description: The category or priority of an open ticket changed. SLA targets may need recalculating.
@@ -28,8 +31,8 @@ events:
     description: The requester reopened a resolved ticket within the reopen window. The SLA resolution clock resumes.
     payload: { organisation_id: uuid, ticket_id: uuid, number: string, requester_id: uuid, assignee_id: uuid, reopen_count: integer, reopened_at: datetime }
   - name: helpdesk.ticket.closed
-    description: A resolved ticket was confirmed by the requester (by = requester) or closed by the daily auto-close job (by = system). Final.
-    payload: { organisation_id: uuid, ticket_id: uuid, number: string, closed_by: string, satisfaction_rating: integer, closed_at: datetime }
+    description: A resolved ticket was confirmed by the requester (closed_by = requester's id) or closed by the daily auto-close job (closed_by null). Final.
+    payload: { organisation_id: uuid, ticket_id: uuid, number: string, closed_by: uuid, satisfaction_rating: integer, closed_at: datetime }
   - name: helpdesk.ticket.cancelled
     description: A ticket was withdrawn by its requester or cancelled by a lead, possibly as a duplicate. Final; any SLA clock is discarded.
     payload: { organisation_id: uuid, ticket_id: uuid, number: string, cancelled_by: uuid, duplicate_of: uuid, cancelled_at: datetime }
