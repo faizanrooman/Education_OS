@@ -1,0 +1,266 @@
+openapi: 3.1.0
+info:
+  title: payment-sbiepay API
+  version: 0.1.0
+  description: >-
+    SBIePay payment gateway adapter: start a payment, receive the gateway's response, verify,
+    refund and reconcile. Used by platform/billing (plan upgrades, purpose=subscription) and by
+    fees-accounts (fee payments, purpose=fee). Callers never talk to SBIePay directly.
+    Outcome reaches callers as events (events.yaml) and, when the caller gives notify_url, as a signed
+    PaymentNotification posted there. The payer's browser is sent back to the caller's return_url.
+servers:
+  - url: /api/v1/payment-sbiepay
+paths:
+  /payments:
+    post:
+      summary: >-
+        Start a payment. Returns a payment session; the caller sends the payer's browser to payment_url.
+        Called by billing (POST /subscription/upgrade) and fees-accounts on behalf of the signed-in payer.
+        Permission payment-sbiepay:payment:initiate.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PaymentRequest" } } } }
+      responses:
+        "201": { description: Payment session, content: { application/json: { schema: { $ref: "#/components/schemas/PaymentSession" } } } }
+        "409": { description: An open payment already exists for this source_module and source_reference. Its session is returned. }
+        "422": { description: "Invalid amount, currency or purpose." }
+        "503": { description: No active merchant account for this purpose. }
+    get:
+      summary: Payments of the caller's organisation, newest first. Permission payment-sbiepay:payment:read.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/PaymentStatus" } }
+        - { name: purpose, in: query, schema: { $ref: "#/components/schemas/Purpose" } }
+        - { name: source_module, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PaymentPage" } } } } }
+  /payments/{reference}:
+    get:
+      summary: >-
+        One payment. Callers may poll this after the browser returns, until the event arrives.
+        Permission payment-sbiepay:payment:read, or the payer who started it.
+      parameters: [{ $ref: "#/components/parameters/Reference" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
+        "404": { description: Not found in the caller's organisation }
+  /payments/{reference}/redirect:
+    get:
+      summary: >-
+        The payment_url. Returns an HTML page that posts the encrypted transaction request to SBIePay.
+        Public; the short-lived reference is the only input. Expired or finished payments return 410.
+      security: []
+      parameters: [{ $ref: "#/components/parameters/Reference" }]
+      responses:
+        "200": { description: Auto-submitting form to the gateway, content: { text/html: { schema: { type: string } } } }
+        "410": { description: Session expired or payment already finished }
+  /payments/{reference}/verify:
+    post:
+      summary: >-
+        Ask SBIePay for the current status (double verification) and update the payment. Used for payments
+        left pending when the browser never returned. Permission payment-sbiepay:payment:reconcile.
+      parameters: [{ $ref: "#/components/parameters/Reference" }]
+      responses: { "200": { description: Updated payment, content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } } }
+  /payments/{reference}/refunds:
+    post:
+      summary: >-
+        Refund all or part of a successful payment. Total refunds cannot exceed the amount paid.
+        Permission payment-sbiepay:payment:refund.
+      parameters: [{ $ref: "#/components/parameters/Reference" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/RefundRequest" } } } }
+      responses:
+        "202": { description: Refund requested, content: { application/json: { schema: { $ref: "#/components/schemas/Refund" } } } }
+        "409": { description: Payment is not in status succeeded or partially_refunded }
+        "422": { description: Amount exceeds the refundable balance }
+  /callbacks/sbiepay:
+    post:
+      summary: >-
+        Gateway return URL. SBIePay posts the encrypted response here through the payer's browser.
+        The adapter decrypts it, confirms it by double verification before trusting it, records the result,
+        publishes payment-sbiepay.payment.succeeded or .failed, and redirects the browser to the caller's return_url.
+        Public; the response is never trusted without double verification.
+      security: []
+      requestBody: { required: true, content: { application/x-www-form-urlencoded: { schema: { type: object, additionalProperties: { type: string } } } } }
+      responses:
+        "303": { description: "Redirect to the caller's return_url with query parameters reference and status" }
+        "400": { description: Response could not be decrypted or matched to a payment }
+  /reconciliation/summary:
+    get:
+      summary: >-
+        Counts and amounts for one day, for the Finance Staff widget payment-sbiepay.reconciliation.
+        Permission payment-sbiepay:payment:read.
+      parameters: [{ name: date, in: query, schema: { type: string, format: date }, description: "Defaults to today in the organisation's time zone" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReconciliationSummary" } } } } }
+  /reconciliation/runs:
+    post:
+      summary: >-
+        Reconcile one settlement date: compare SBIePay's settlement report with recorded payments.
+        Mismatches publish payment-sbiepay.reconciliation.mismatch-found. Permission payment-sbiepay:payment:reconcile.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [settlement_date], properties: { settlement_date: { type: string, format: date }, report_document_id: { type: string, description: "Settlement file uploaded to platform/documents, when not fetched from the gateway" } } } } } }
+      responses: { "202": { description: Run queued, content: { application/json: { schema: { $ref: "#/components/schemas/ReconciliationRun" } } } } }
+    get:
+      summary: Past reconciliation runs, newest first. Permission payment-sbiepay:payment:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ReconciliationRun" } } } } } }
+  /reconciliation/runs/{id}:
+    get:
+      summary: One run with its mismatches. Permission payment-sbiepay:payment:read.
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReconciliationRun" } } } } }
+  /merchant-account:
+    get:
+      summary: >-
+        The organisation's own SBIePay merchant account, used for fee payments (purpose=fee). Secrets are never returned.
+        Permission payment-sbiepay:merchant-account:manage.
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MerchantAccount" } } } }
+        "404": { description: Not configured }
+    put:
+      summary: >-
+        Set or replace the organisation's merchant account. The encryption key is write-only.
+        Subscription payments (purpose=subscription) always use the platform account from config, not this one.
+        Permission payment-sbiepay:merchant-account:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MerchantAccountInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MerchantAccount" } } } } }
+components:
+  parameters:
+    Reference: { name: reference, in: path, required: true, schema: { type: string }, description: "Adapter payment reference, also sent to SBIePay as the merchant order number" }
+  schemas:
+    Purpose:
+      type: string
+      enum: [subscription, fee]
+      description: "subscription = platform plan upgrade (platform merchant account); fee = institution fee (organisation merchant account)"
+    PaymentStatus:
+      type: string
+      enum: [created, pending, succeeded, failed, expired, refunded, partially_refunded]
+    PaymentRequest:
+      type: object
+      required: [purpose, source_module, source_reference, amount, currency, return_url]
+      properties:
+        purpose: { $ref: "#/components/schemas/Purpose" }
+        source_module: { type: string, description: "Calling module, e.g. billing or fees-accounts" }
+        source_reference: { type: string, description: "Caller's own id, e.g. billing invoice id or fees-accounts invoice id. Echoed in every event." }
+        amount: { type: string, pattern: "^[0-9]+(\\.[0-9]{1,2})?$", description: "Decimal string in rupees, e.g. 1500.00" }
+        currency: { type: string, enum: [INR] }
+        description: { type: string, maxLength: 100 }
+        payer: { $ref: "#/components/schemas/Payer" }
+        return_url: { type: string, format: uri, description: "Where the browser goes after the gateway; must be on an allowed host" }
+        notify_url:
+          type: string
+          format: uri
+          description: >-
+            Optional server-to-server callback, e.g. billing's POST /webhooks/payment. The adapter posts a
+            PaymentNotification there on every final status, retried with backoff, in addition to publishing the event.
+    PaymentNotification:
+      type: object
+      description: >-
+        Body the adapter posts to notify_url. Signed with an HMAC-SHA256 of the raw body in header
+        X-Payment-Signature, key PAYMENT_SBIEPAY_NOTIFY_SECRET. Receivers must treat it as idempotent by event_id.
+      required: [event_id, event, organisation_id, reference, source_module, source_reference, status]
+      properties:
+        event_id: { type: string, format: uuid }
+        event: { type: string, enum: [payment-sbiepay.payment.succeeded, payment-sbiepay.payment.failed, payment-sbiepay.payment.expired, payment-sbiepay.payment.refunded] }
+        organisation_id: { type: string, format: uuid }
+        reference: { type: string }
+        purpose: { $ref: "#/components/schemas/Purpose" }
+        source_module: { type: string }
+        source_reference: { type: string }
+        status: { $ref: "#/components/schemas/PaymentStatus" }
+        amount: { type: string }
+        currency: { type: string }
+        gateway_transaction_id: { type: string, nullable: true }
+        occurred_at: { type: string, format: date-time }
+    Payer:
+      type: object
+      properties:
+        person_id: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+    PaymentSession:
+      type: object
+      required: [reference, payment_url, expires_at]
+      properties:
+        reference: { type: string }
+        payment_url: { type: string, format: uri }
+        expires_at: { type: string, format: date-time }
+    Payment:
+      type: object
+      properties:
+        reference: { type: string }
+        organisation_id: { type: string, format: uuid }
+        purpose: { $ref: "#/components/schemas/Purpose" }
+        source_module: { type: string }
+        source_reference: { type: string }
+        amount: { type: string }
+        refunded_amount: { type: string }
+        currency: { type: string }
+        status: { $ref: "#/components/schemas/PaymentStatus" }
+        gateway_transaction_id: { type: string, nullable: true, description: "SBIePay's transaction id, once known" }
+        payment_mode: { type: string, nullable: true, description: "As reported by the gateway, e.g. card, net banking, UPI" }
+        failure_reason: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time, nullable: true }
+    PaymentPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Payment" } }
+        next_cursor: { type: string, nullable: true }
+    RefundRequest:
+      type: object
+      required: [amount, reason]
+      properties:
+        amount: { type: string, pattern: "^[0-9]+(\\.[0-9]{1,2})?$" }
+        reason: { type: string }
+    Refund:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        reference: { type: string }
+        amount: { type: string }
+        status: { type: string, enum: [requested, succeeded, failed] }
+        gateway_refund_id: { type: string, nullable: true }
+        requested_at: { type: string, format: date-time }
+    ReconciliationSummary:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        succeeded: { type: object, properties: { count: { type: integer }, amount: { type: string } } }
+        pending: { type: object, properties: { count: { type: integer }, amount: { type: string } } }
+        failed: { type: object, properties: { count: { type: integer } } }
+        settled: { type: object, properties: { count: { type: integer }, amount: { type: string } } }
+        mismatches: { type: integer }
+        last_run_at: { type: string, format: date-time, nullable: true }
+    ReconciliationRun:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        settlement_date: { type: string, format: date }
+        status: { type: string, enum: [queued, running, completed, failed] }
+        matched: { type: integer }
+        mismatches:
+          type: array
+          items:
+            type: object
+            properties:
+              reference: { type: string, nullable: true }
+              gateway_transaction_id: { type: string, nullable: true }
+              kind: { type: string, enum: [missing_in_gateway, missing_in_records, amount_differs, status_differs] }
+              recorded_amount: { type: string, nullable: true }
+              settled_amount: { type: string, nullable: true }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time, nullable: true }
+    MerchantAccount:
+      type: object
+      properties:
+        merchant_id: { type: string }
+        mode: { type: string, enum: [sandbox, live] }
+        active: { type: boolean }
+        key_set: { type: boolean, description: "True when an encryption key is stored; the key itself is never returned" }
+        updated_at: { type: string, format: date-time }
+    MerchantAccountInput:
+      type: object
+      required: [merchant_id, mode]
+      properties:
+        merchant_id: { type: string }
+        encryption_key: { type: string, writeOnly: true, description: "Omit to keep the stored key" }
+        mode: { type: string, enum: [sandbox, live] }
+        active: { type: boolean, default: true }
