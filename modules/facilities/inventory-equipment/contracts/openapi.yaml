@@ -120,7 +120,7 @@ paths:
       responses:
         "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Movement" } } } }
         "409": { $ref: "#/components/responses/NotEnoughStock" }
-        "422": { description: Missing reason, wrong tracking for the item, or same source and target location }
+        "422": { description: "Missing reason, wrong tracking for the item, or same source and target location" }
   /low-stock:
     get:
       summary: Items at or below their reorder level. Backs the low-stock widget. Permission inventory-equipment:stock:read.
@@ -295,7 +295,7 @@ components:
         loanable: { type: boolean, default: true }
         consumable: { type: boolean, default: false, description: "Issued and used up, never returned. A consumable is not loanable." }
         reorder_level: { type: number, minimum: 0, description: "Low stock when available quantity is at or below this" }
-        reorder_quantity: { type: number, minimum: 0, description: "Suggested quantity to order; passed on in the stock.low event" }
+        reorder_quantity: { type: number, minimum: 0, description: "Suggested quantity to order; passed on in the stock.ran-low event" }
         description: { type: string }
         attributes: { type: object, additionalProperties: { type: string }, description: "Searchable features, e.g. { size: M, power: '230V' }" }
         image_document_id: { type: string, description: "Document id from the documents platform service" }

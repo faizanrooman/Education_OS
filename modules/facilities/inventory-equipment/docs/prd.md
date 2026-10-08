@@ -94,7 +94,7 @@ Statuses: `requested`, `approved`, `rejected`, `cancelled`, `on_loan`, `partiall
 2. **Every change to quantity is a movement.** Stock levels are the sum of the ledger; there is no
    direct edit. An adjustment or write-off needs a reason.
 3. **Low stock.** When the available quantity across all locations falls to or below the item's
-   `reorder_level`, `inventory-equipment.stock.low` is published once; `stock.replenished` follows
+   `reorder_level`, `inventory-equipment.stock.ran-low` is published once; `stock.replenished` follows
    when it rises above again. Individually tracked items count their `available` units.
 4. **Loan rules per item** (falling back to category, then config): `requires_approval`,
    `max_loan_days`, `max_quantity_per_loan`, `borrower_role_ids` (empty means anyone with

@@ -25,7 +25,7 @@ events:
   - name: inventory-equipment.stock.adjusted
     description: Stock was corrected, transferred or written off. kind tells which.
     payload: { organisation_id: uuid, movement_id: uuid, item_id: uuid, kind: string, quantity: number, from_location_id: uuid, to_location_id: uuid, reason: string }
-  - name: inventory-equipment.stock.low
+  - name: inventory-equipment.stock.ran-low
     description: Available quantity fell to or below the reorder level. Published once until replenished. Procurement may raise an indent.
     payload: { organisation_id: uuid, item_id: uuid, item_name: string, available: number, reorder_level: number, reorder_quantity: number, unit_of_measure: string }
   - name: inventory-equipment.stock.replenished
