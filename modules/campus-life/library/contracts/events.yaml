@@ -1,9 +1,43 @@
 # Domain events published by library.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
+# Amounts are decimal strings, as in the API.
 module: library
 version: 1
-events: []
-#  - name: library.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: library.loan.issued
+    description: A copy was issued to a member.
+    payload: { organisation_id: uuid, loan_id: uuid, person_id: uuid, title_id: uuid, copy_id: uuid, due_on: date }
+  - name: library.loan.returned
+    description: A loaned copy was returned.
+    payload: { organisation_id: uuid, loan_id: uuid, person_id: uuid, copy_id: uuid, returned_at: datetime, days_late: integer }
+  - name: library.loan.renewed
+    description: A loan was renewed to a new due date.
+    payload: { organisation_id: uuid, loan_id: uuid, person_id: uuid, due_on: date, renewals: integer }
+  - name: library.loan.overdue
+    description: Published once per loan by the daily job the day after the due date. Notification reminds the member.
+    payload: { organisation_id: uuid, loan_id: uuid, person_id: uuid, title_id: uuid, due_on: date }
+  - name: library.loan.lost
+    description: A loaned copy was marked lost.
+    payload: { organisation_id: uuid, loan_id: uuid, person_id: uuid, copy_id: uuid }
+  - name: library.reservation.placed
+    description: A member reserved a title.
+    payload: { organisation_id: uuid, reservation_id: uuid, person_id: uuid, title_id: uuid, position: integer }
+  - name: library.reservation.ready
+    description: A copy is held for the member. Notification tells them to collect it by hold_expires_on.
+    payload: { organisation_id: uuid, reservation_id: uuid, person_id: uuid, title_id: uuid, copy_id: uuid, hold_expires_on: date }
+  - name: library.reservation.expired
+    description: Published by the daily job when a held copy was not collected in time; the copy goes to the next in the queue.
+    payload: { organisation_id: uuid, reservation_id: uuid, person_id: uuid, title_id: uuid }
+  - name: library.fine.raised
+    description: A fine was raised for an overdue, lost or damaged copy. fees-accounts may invoice it if the organisation settles fines there.
+    payload: { organisation_id: uuid, fine_id: uuid, person_id: uuid, loan_id: uuid, reason: string, amount: string }
+  - name: library.fine.paid
+    description: A fine was recorded as paid.
+    payload: { organisation_id: uuid, fine_id: uuid, person_id: uuid, amount: string, receipt_ref: string }
+  - name: library.fine.waived
+    description: A fine was waived with a reason.
+    payload: { organisation_id: uuid, fine_id: uuid, person_id: uuid, amount: string, waived_by: uuid }
+  - name: library.member.blocked
+    description: A member was blocked from borrowing.
+    payload: { organisation_id: uuid, person_id: uuid, reason: string }
