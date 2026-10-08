@@ -30,8 +30,5 @@ events:
     description: The response clock stopped on the first response, or the resolution clock stopped on resolve.
     payload: { organisation_id: uuid, clock_id: uuid, ticket_id: uuid, kind: string, outcome: string, stopped_at: datetime, business_minutes_used: integer }
   - name: sla-management.clock.cancelled
-    description: The ticket was cancelled; the clock no longer counts anywhere.
+    description: The helpdesk ticket was cancelled; the clock stops counting and has no outcome.
     payload: { organisation_id: uuid, clock_id: uuid, ticket_id: uuid, kind: string, cancelled_at: datetime }
-  - name: sla-management.clock.waived
-    description: A lead waived a recorded breach; it no longer counts against compliance.
-    payload: { organisation_id: uuid, clock_id: uuid, ticket_id: uuid, kind: string, waived_by: uuid }

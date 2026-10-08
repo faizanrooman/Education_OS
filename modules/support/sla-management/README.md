@@ -11,9 +11,8 @@ Owner: Madhumita (@madhumitha-rooman). Requirements: [docs/prd.md](docs/prd.md).
 
 **In scope:** business-hours calendars; SLA policies per helpdesk priority and category with response and
 resolution targets, warning thresholds, pausing hold reasons and escalation levels; response and resolution
-clocks per helpdesk ticket, driven by helpdesk's ticket events; warnings, breaches, waivers and escalation
-notices through notification; compliance reports; the breach counts behind the Support Staff widget
-`sla-management.breaches`.
+clocks per helpdesk ticket, driven by helpdesk's ticket events; warnings, breaches and escalation notices
+through notification; the breach counts behind the Support Staff widget `sla-management.breaches`.
 
 **Not in scope:** tickets and their status (helpdesk), SLAs of maintenance, incident-management and
 amc-vendor-support, deadlines on approval steps (workflow), escalation by reassignment or approval.

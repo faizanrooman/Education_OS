@@ -4,31 +4,15 @@ module: sla-management
 permissions:
   - key: sla-management:clock:read
     description: View SLA clocks, breaches, the breaches widget counts, and the calendars and policies behind them.
-  - key: sla-management:clock:waive
-    description: Waive a recorded breach with a reason.
   - key: sla-management:policy:manage
     description: Create and update business-hours calendars and SLA policies with escalation levels.
-  - key: sla-management:report:read
-    description: View SLA compliance reports.
 roles:
-  - name: sla-management-agent
-    description: Support staff who need to see SLA status. Default for the support-staff profile role.
+  - name: sla-management-viewer
+    description: Sees SLA status of helpdesk tickets. Default for the support-staff and management profile roles.
     grants:
       - sla-management:clock:read
-  - name: sla-management-lead
-    description: Support supervisor. Sees every clock, waives breaches, reads compliance.
-    grants:
-      - sla-management:clock:read
-      - sla-management:clock:waive
-      - sla-management:report:read
   - name: sla-management-admin
     description: Sets up calendars and policies. Default for org-admin.
     grants:
       - sla-management:clock:read
       - sla-management:policy:manage
-      - sla-management:report:read
-  - name: sla-management-viewer
-    description: Management oversight, read only. Default for management.
-    grants:
-      - sla-management:clock:read
-      - sla-management:report:read

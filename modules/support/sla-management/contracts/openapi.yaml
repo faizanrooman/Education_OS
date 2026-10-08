@@ -12,7 +12,7 @@ paths:
       parameters: [{ name: active, in: query, schema: { type: boolean } }]
       responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Calendar" } } } } } }
     post:
-      summary: Create a calendar. Marking it the default unmarks the previous default. Permission sla-management:policy:manage.
+      summary: Create a calendar. Permission sla-management:policy:manage.
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CalendarInput" } } } }
       responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Calendar" } } } }, "422": { description: "Overlapping working intervals, end before start, or unknown time zone" } }
   /calendars/{id}:
@@ -22,7 +22,7 @@ paths:
       responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Calendar" } } } }, "404": { description: "Not found" } }
     patch:
       summary: >-
-        Update hours, holidays, time zone or default flag, or deactivate. Changes apply to due times computed afterwards;
+        Update hours, holidays or time zone, or deactivate. Changes apply to due times computed afterwards;
         a calendar used by an active policy cannot be deactivated. Permission sla-management:policy:manage.
       parameters: [{ $ref: "#/components/parameters/Id" }]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CalendarInput" } } } }
@@ -57,7 +57,6 @@ paths:
         - { name: kind, in: query, schema: { $ref: "#/components/schemas/ClockKind" } }
         - { name: breached, in: query, schema: { type: boolean } }
         - { name: at_risk, in: query, description: "Running, not breached, warning time passed", schema: { type: boolean } }
-        - { name: waived, in: query, schema: { type: boolean } }
         - { name: priority, in: query, schema: { $ref: "#/components/schemas/Priority" } }
         - { name: category_id, in: query, schema: { type: string, format: uuid } }
         - { name: assignee, in: query, description: "A person id, or me", schema: { type: string } }
@@ -70,12 +69,6 @@ paths:
       summary: One clock with its escalation history. Permission sla-management:clock:read.
       parameters: [{ $ref: "#/components/parameters/Id" }]
       responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ClockDetail" } } } }, "404": { description: "Not found" } }
-  /clocks/{id}/waive:
-    post:
-      summary: Waive a recorded breach so it no longer counts against compliance. The breach stays in history. Publishes sla-management.clock.waived. Permission sla-management:clock:waive.
-      parameters: [{ $ref: "#/components/parameters/Id" }]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Reason" } } } }
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Clock" } } } }, "409": { description: "Not breached, already waived, or cancelled" } }
   /tickets/{ticket_id}:
     get:
       summary: The SLA clocks of one helpdesk ticket, for showing due times on helpdesk screens. Permission sla-management:clock:read.
@@ -84,24 +77,13 @@ paths:
   /stats/breaches:
     get:
       summary: >-
-        Breached and at-risk clocks that are still running, breaches recorded today (in the default calendar's time zone),
-        and the most overdue clocks. scope=mine counts clocks of tickets assigned to the caller; all (default) every clock.
+        Breached and at-risk clocks that are still running, breaches recorded in the last 24 hours, and the most overdue
+        clocks. scope=mine counts clocks of tickets assigned to the caller; all (default) every clock.
         Backs the Support Staff widget sla-management.breaches. Permission sla-management:clock:read.
       parameters:
         - { name: scope, in: query, schema: { type: string, enum: [mine, all], default: all } }
         - { name: limit, in: query, description: "Most overdue clocks to return; defaults to SLA_MANAGEMENT_BREACH_LIST_LIMIT", schema: { type: integer, minimum: 1, maximum: 50 } }
       responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BreachSummary" } } } } }
-  /reports/compliance:
-    get:
-      summary: >-
-        Share of stopped clocks that met their target over a period, by priority, category or queue. Waived breaches count
-        as met; cancelled clocks are left out. Permission sla-management:report:read.
-      parameters:
-        - { name: from, in: query, required: true, schema: { type: string, format: date } }
-        - { name: to, in: query, required: true, schema: { type: string, format: date } }
-        - { name: group_by, in: query, schema: { type: string, enum: [priority, category, queue], default: priority } }
-        - { name: kind, in: query, schema: { $ref: "#/components/schemas/ClockKind" } }
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ComplianceReport" } } } }, "422": { description: "to before from, or period longer than one year" } }
 components:
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
@@ -122,10 +104,6 @@ components:
     ClockState:
       type: string
       enum: [running, paused, stopped, cancelled]
-    Reason:
-      type: object
-      required: [reason]
-      properties: { reason: { type: string, minLength: 3 } }
     WorkingInterval:
       type: object
       required: [weekday, start, end]
@@ -148,7 +126,6 @@ components:
         always_open: { type: boolean, default: false, description: "Count every minute; working_hours and holidays are ignored" }
         working_hours: { type: array, items: { $ref: "#/components/schemas/WorkingInterval" }, description: "Required unless always_open" }
         holidays: { type: array, items: { $ref: "#/components/schemas/Holiday" } }
-        is_default: { type: boolean, default: false }
         active: { type: boolean, default: true }
     Calendar:
       allOf:
@@ -190,7 +167,7 @@ components:
             organisation_id: { type: string, format: uuid }
     Clock:
       type: object
-      required: [id, organisation_id, ticket_id, ticket_number, kind, policy_id, target_minutes, state, started_at, due_at, breached, waived]
+      required: [id, organisation_id, ticket_id, ticket_number, kind, policy_id, target_minutes, state, started_at, breached]
       properties:
         id: { type: string, format: uuid }
         organisation_id: { type: string, format: uuid }
@@ -215,9 +192,6 @@ components:
         warned: { type: boolean }
         breached: { type: boolean }
         breached_at: { type: [string, "null"], format: date-time }
-        waived: { type: boolean }
-        waived_reason: { type: [string, "null"] }
-        waived_by: { type: [string, "null"], format: uuid }
     Escalation:
       type: object
       required: [id, clock_id, level, sent_at, recipient_ids]
@@ -249,12 +223,12 @@ components:
         next_cursor: { type: [string, "null"] }
     BreachSummary:
       type: object
-      required: [scope, breached_open, at_risk, breached_today, most_overdue]
+      required: [scope, breached_open, at_risk, breached_last_24h, most_overdue]
       properties:
         scope: { type: string, enum: [mine, all] }
         breached_open: { type: integer, description: "Running clocks past their due time" }
         at_risk: { type: integer, description: "Running clocks past their warning time, not yet breached" }
-        breached_today: { type: integer, description: "Breaches recorded today, whatever the clock's state now" }
+        breached_last_24h: { type: integer, description: "Breaches recorded in the last 24 hours, whatever the clock's state now" }
         most_overdue:
           type: array
           items:
@@ -269,23 +243,3 @@ components:
               assignee_id: { type: [string, "null"], format: uuid }
               due_at: { type: string, format: date-time }
               overdue_business_minutes: { type: integer }
-    ComplianceReport:
-      type: object
-      required: [from, to, group_by, rows]
-      properties:
-        from: { type: string, format: date }
-        to: { type: string, format: date }
-        group_by: { type: string, enum: [priority, category, queue] }
-        rows:
-          type: array
-          items:
-            type: object
-            required: [key, kind, total, met, breached, waived, compliance_percent]
-            properties:
-              key: { type: string, description: "The priority, category id or queue id" }
-              kind: { $ref: "#/components/schemas/ClockKind" }
-              total: { type: integer }
-              met: { type: integer }
-              breached: { type: integer, description: "Breached and not waived" }
-              waived: { type: integer }
-              compliance_percent: { type: number, description: "(met + waived) / total × 100" }
