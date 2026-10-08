@@ -23,8 +23,10 @@ events:
       notification tells the employee.
     payload: { organisation_id: uuid, leave_request_id: uuid, employee_id: uuid, user_id: uuid, from: date, to: date, half_day: string }
   - name: hr-payroll.leave-request.rejected
+    description: A leave request was rejected by the approver. notification tells the employee.
     payload: { organisation_id: uuid, leave_request_id: uuid, employee_id: uuid }
   - name: hr-payroll.leave-request.cancelled
+    description: An approved or pending leave request was cancelled by the employee; timetable-attendance may release any cover.
     payload: { organisation_id: uuid, leave_request_id: uuid, employee_id: uuid, from: date, to: date }
   - name: hr-payroll.payroll-run.submitted
     description: notification tells the approvers.
@@ -36,4 +38,5 @@ events:
     description: Salaries disbursed. budget-grants may record the expense against the salary budget head.
     payload: { organisation_id: uuid, run_id: uuid, period: string, net_total: string, paid_on: date }
   - name: hr-payroll.appraisal.completed
+    description: An appraisal cycle was completed for an employee and the result recorded.
     payload: { organisation_id: uuid, appraisal_id: uuid, employee_id: uuid, cycle: string }
