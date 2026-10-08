@@ -59,7 +59,7 @@ paths:
     post:
       summary: Assign or reassign to one technician or one vendor. Permission maintenance:ticket:manage.
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Assignment" } } } }
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Ticket is resolved, closed or cancelled } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: "Ticket is resolved, closed or cancelled" } }
   /tickets/{id}/start:
     parameters: [{ $ref: "#/components/parameters/Id" }]
     post:
@@ -94,7 +94,7 @@ paths:
     post:
       summary: Cancel a ticket not yet resolved (duplicate, not needed). The reporter before work starts, or maintenance:ticket:manage.
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string }, duplicate_of: { type: string, format: uuid } } } } } }
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: Already resolved, closed or cancelled } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Ticket" } } } }, "409": { description: "Already resolved, closed or cancelled" } }
   /tickets/{id}/work-entries:
     parameters: [{ $ref: "#/components/parameters/Id" }]
     get:
