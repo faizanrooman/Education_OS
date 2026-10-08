@@ -1,9 +1,46 @@
 # Domain events published by asset-management.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
+# Money is { amount: decimal string, currency: ISO 4217 }.
 module: asset-management
 version: 1
-events: []
-#  - name: asset-management.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: asset-management.asset.registered
+    description: An asset was added to the register.
+    payload: { organisation_id: uuid, asset_id: uuid, tag: string, name: string, category_id: uuid, org_unit_id: uuid, custodian_id: uuid, cost: money, purchase_reference: object }
+  - name: asset-management.asset.updated
+    description: Descriptive, acquisition, warranty or depreciation fields changed.
+    payload: { organisation_id: uuid, asset_id: uuid, changed: [string] }
+  - name: asset-management.asset.transferred
+    description: The asset moved to another location, department or custodian.
+    payload: { organisation_id: uuid, asset_id: uuid, transfer_id: uuid, from: object, to: object, effective_on: date, source: string }
+  - name: asset-management.asset.status-changed
+    description: The asset became in_service, in_repair, idle or missing. Disposal steps have their own events.
+    payload: { organisation_id: uuid, asset_id: uuid, tag: string, from: string, to: string, reason: string }
+  - name: asset-management.asset.verification-overdue
+    description: The asset passed its next verification date without being verified. Published once per due date.
+    payload: { organisation_id: uuid, asset_id: uuid, tag: string, next_verification_due: date, org_unit_id: uuid, custodian_id: uuid }
+  - name: asset-management.verification-cycle.started
+    description: A physical verification cycle started. Notification tells the verifiers.
+    payload: { organisation_id: uuid, cycle_id: uuid, name: string, due_on: date, asset_count: integer, verifier_user_ids: [uuid] }
+  - name: asset-management.verification-cycle.closed
+    description: A cycle closed and its results were applied to the assets.
+    payload: { organisation_id: uuid, cycle_id: uuid, found: integer, missing: integer, damaged: integer, relocated: integer, missing_asset_ids: [uuid] }
+  - name: asset-management.depreciation-run.posted
+    description: Depreciation for a period was posted and locked. Finance modules may book the totals.
+    payload: { organisation_id: uuid, run_id: uuid, period_start: date, period_end: date, total: money, by_category: [object] }
+  - name: asset-management.disposal.requested
+    description: Disposal of an asset was requested. Notification tells the approvers.
+    payload: { organisation_id: uuid, disposal_id: uuid, asset_id: uuid, method: string, reason: string, requested_by: uuid }
+  - name: asset-management.disposal.approved
+    description: A disposal was approved and can be carried out.
+    payload: { organisation_id: uuid, disposal_id: uuid, asset_id: uuid, approved_by: uuid }
+  - name: asset-management.disposal.rejected
+    description: A disposal was rejected; the asset is back in its previous status.
+    payload: { organisation_id: uuid, disposal_id: uuid, asset_id: uuid, rejected_by: uuid, reason: string }
+  - name: asset-management.disposal.cancelled
+    description: A disposal request was withdrawn; the asset is back in its previous status.
+    payload: { organisation_id: uuid, disposal_id: uuid, asset_id: uuid, cancelled_by: uuid }
+  - name: asset-management.asset.disposed
+    description: The asset left the organisation. Finance modules may book the proceeds and gain or loss.
+    payload: { organisation_id: uuid, asset_id: uuid, disposal_id: uuid, tag: string, method: string, disposed_on: date, proceeds: money, book_value: money, gain_or_loss: money, inventory_unit_id: uuid }
