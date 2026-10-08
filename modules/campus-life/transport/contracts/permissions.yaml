@@ -1,11 +1,55 @@
 # Permission catalogue for transport. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: transport
-permissions: []
-#  - key: transport:record:read
-#    description: ...
-#  - key: transport:record:write
-#    description: ...
-roles: []
-#  - name: transport-admin
-#    grants: [transport:record:read, transport:record:write]
+permissions:
+  - key: transport:route:read
+    description: View stops, routes and their assignments.
+  - key: transport:route:manage
+    description: Create and update stops and routes; assign vehicles and drivers to routes.
+  - key: transport:vehicle:read
+    description: View vehicles, drivers and compliance dates.
+  - key: transport:vehicle:manage
+    description: Add and update vehicles and drivers.
+  - key: transport:pass:read
+    description: View passes and pass requests.
+  - key: transport:pass:manage
+    description: Issue, reject and cancel passes.
+  - key: transport:tracking:read
+    description: View live trips and positions on every route.
+  - key: transport:tracking:record
+    description: Start and end trips, send positions, report delays and publish notices for the route the caller drives.
+  - key: transport:notice:publish
+    description: Publish and withdraw notices to any route.
+  - key: transport:self:read
+    description: View own passes and notices, routes and stops, and live position on routes with an issued pass.
+  - key: transport:self:request
+    description: Request a pass and cancel own pass.
+roles:
+  - name: transport-admin
+    description: Transport office. Sets up routes, fleet and drivers and manages passes.
+    grants:
+      - transport:route:read
+      - transport:route:manage
+      - transport:vehicle:read
+      - transport:vehicle:manage
+      - transport:pass:read
+      - transport:pass:manage
+      - transport:tracking:read
+      - transport:notice:publish
+  - name: transport-driver
+    description: Driver. Runs trips on the assigned route.
+    grants:
+      - transport:route:read
+      - transport:tracking:record
+  - name: transport-rider
+    description: Students and staff who use transport. Default for the student role.
+    grants:
+      - transport:self:read
+      - transport:self:request
+  - name: transport-viewer
+    description: Management and org admin oversight, read only.
+    grants:
+      - transport:route:read
+      - transport:vehicle:read
+      - transport:pass:read
+      - transport:tracking:read
