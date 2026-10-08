@@ -7,11 +7,12 @@ tier: common        # core (platform) | common (every institution) | specialized
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "SBIePay payment gateway adapter (initiate, callback, reconcile)."
-owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
+owners: [gokulalakshmirooman-source]                # GitHub handles. Keep in sync with CODEOWNERS.
 
 # Platform services this module calls through packages/sdk. Nothing else.
+# documents: settlement report uploads. scheduler: expiry sweep and daily reconciliation.
 depends_on:
-  platform: [identity, audit]
+  platform: [identity, audit, documents, scheduler]
   integrations: []
 
 # Public surface. Other modules may ONLY use these.

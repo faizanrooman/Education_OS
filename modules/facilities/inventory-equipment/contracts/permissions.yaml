@@ -1,11 +1,33 @@
 # Permission catalogue for inventory-equipment. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
+# Each academy profile maps its borrower, approver and store staff roles to the module roles below.
 module: inventory-equipment
-permissions: []
-#  - key: inventory-equipment:record:read
-#    description: ...
-#  - key: inventory-equipment:record:write
-#    description: ...
-roles: []
-#  - name: inventory-equipment-admin
-#    grants: [inventory-equipment:record:read, inventory-equipment:record:write]
+permissions:
+  - key: inventory-equipment:item:read
+    description: Browse the catalogue, categories, locations and units, and see what is available.
+  - key: inventory-equipment:item:manage
+    description: Create and edit categories, locations, items and unit details.
+  - key: inventory-equipment:stock:read
+    description: See stock levels, the stock ledger and low-stock items.
+  - key: inventory-equipment:stock:manage
+    description: Receive, issue, transfer, adjust and write off stock; register units and change their status or condition.
+  - key: inventory-equipment:loan:read
+    description: See own loans, and loans of items the user approves.
+  - key: inventory-equipment:loan:read-all
+    description: See every loan in the organisation.
+  - key: inventory-equipment:loan:request
+    description: Request a loan for oneself, cancel it before hand-out, and extend it once.
+  - key: inventory-equipment:loan:approve
+    description: Approve or reject loan requests for categories where the user is a listed approver.
+  - key: inventory-equipment:loan:manage
+    description: Act on any loan. Lend to others, approve or reject any request, hand out, take back, extend and record losses.
+roles:
+  - name: inventory-equipment-borrower
+    description: Learners and instructors who borrow items.
+    grants: [inventory-equipment:item:read, inventory-equipment:loan:read, inventory-equipment:loan:request]
+  - name: inventory-equipment-approver
+    description: Instructors and leads who approve loans of the categories they look after.
+    grants: [inventory-equipment:item:read, inventory-equipment:loan:read, inventory-equipment:loan:request, inventory-equipment:loan:approve]
+  - name: inventory-equipment-manager
+    description: Store staff (Facility / Inventory Staff, equipment manager, lab in-charge). Runs the catalogue, stores and every loan.
+    grants: [inventory-equipment:item:read, inventory-equipment:item:manage, inventory-equipment:stock:read, inventory-equipment:stock:manage, inventory-equipment:loan:read, inventory-equipment:loan:read-all, inventory-equipment:loan:request, inventory-equipment:loan:approve, inventory-equipment:loan:manage]

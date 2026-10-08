@@ -2,9 +2,430 @@ openapi: 3.1.0
 info:
   title: hostel API
   version: 0.1.0
-  description: "Room allocation, mess, visitors, discipline and fee linkage."
+  description: "Room allocation, mess, visitors, discipline and fee linkage. See docs/prd.md."
 servers:
   - url: /api/v1/hostel
-paths: {}
+paths:
+  /hostels:
+    get:
+      summary: Hostels of the organisation. Permission hostel:hostel:read.
+      parameters: [{ name: active, in: query, schema: { type: boolean } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Hostel" } } } } } }
+    post:
+      summary: Create a hostel. Permission hostel:hostel:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/HostelInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Hostel" } } } } }
+  /hostels/{id}:
+    get:
+      summary: One hostel with its occupancy. Permission hostel:hostel:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/HostelDetail" } } } }, "404": { description: "Not found" } }
+    patch:
+      summary: Update name, occupancy type, wardens or deactivate. Permission hostel:hostel:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/HostelInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Hostel" } } } } }
+  /hostels/{id}/rooms:
+    get:
+      summary: Rooms of a hostel with free beds. Permission hostel:hostel:read.
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/RoomStatus" } }
+        - { name: has_free_bed, in: query, schema: { type: boolean } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Room" } } } } } }
+    post:
+      summary: Add a room. Permission hostel:hostel:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/RoomInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Room" } } } }, "409": { description: "Room number already exists in this hostel" } }
+  /rooms/{id}:
+    patch:
+      summary: Update room type or capacity, or close and reopen it. Capacity cannot drop below current occupancy. Closing publishes hostel.room.closed, reopening hostel.room.reopened. Permission hostel:hostel:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/RoomUpdate" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Room" } } } }, "409": { description: "Capacity below occupancy" } }
+  /allocations:
+    get:
+      summary: Allocations and room requests. Permission hostel:allocation:read.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/AllocationStatus" } }
+        - { name: hostel_id, in: query, schema: { type: string, format: uuid } }
+        - { name: academic_year, in: query, schema: { type: string } }
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AllocationPage" } } } } }
+    post:
+      summary: Allocate a bed to a person directly, without a request. Publishes hostel.allocation.confirmed. Permission hostel:allocation:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AllocationInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Allocation" } } } }, "409": { description: "Bed taken, room closed or person already allocated for the period" } }
+  /allocations/{id}:
+    get:
+      summary: One allocation. Permission hostel:allocation:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Allocation" } } } }, "404": { description: "Not found" } }
+  /allocations/{id}/confirm:
+    post:
+      summary: Allocate a bed to a requested allocation (requested → confirmed). Publishes hostel.allocation.confirmed. Permission hostel:allocation:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [room_id, bed], properties: { room_id: { type: string, format: uuid }, bed: { type: string }, from: { type: string, format: date }, to: { type: string, format: date } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Allocation" } } } }, "409": { description: "Not requested, bed taken or room closed" } }
+  /allocations/{id}/check-in:
+    post:
+      summary: Record check-in (confirmed → occupied). Publishes hostel.allocation.occupied. Permission hostel:allocation:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Allocation" } } } }, "409": { description: "Not confirmed" } }
+  /allocations/{id}/check-out:
+    post:
+      summary: Record check-out and room condition (occupied → vacated). Publishes hostel.allocation.vacated. Permission hostel:allocation:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { condition_notes: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Allocation" } } } }, "409": { description: "Not occupied" } }
+  /allocations/{id}/cancel:
+    post:
+      summary: Cancel a request or a confirmed allocation before check-in. Publishes hostel.allocation.cancelled. Permission hostel:allocation:manage, or hostel:self:request for the caller's own request.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Reason" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Allocation" } } } }, "409": { description: "Already occupied, vacated or cancelled" } }
+  /mess-menus:
+    get:
+      summary: Mess menu for a hostel and date range. Permission hostel:hostel:read or hostel:self:read.
+      parameters:
+        - { name: hostel_id, in: query, required: true, schema: { type: string, format: uuid } }
+        - { name: from, in: query, required: true, schema: { type: string, format: date } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/MessMenu" } } } } } }
+    put:
+      summary: Set the menu for hostels, dates and meals, replacing what was there. Permission hostel:mess:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/MessMenu" } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/MessMenu" } } } } } }
+  /leave-requests:
+    get:
+      summary: Leave requests. Permission hostel:leave:approve.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/LeaveStatus" } }
+        - { name: hostel_id, in: query, schema: { type: string, format: uuid } }
+        - { name: overdue, in: query, description: Approved leave whose end date has passed without a return, schema: { type: boolean } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeavePage" } } } } }
+  /leave-requests/{id}/decision:
+    post:
+      summary: Approve or reject a leave request (hostel.leave.approved or hostel.leave.rejected). The requester can never decide their own. Permission hostel:leave:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [decision], properties: { decision: { type: string, enum: [approved, rejected] }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequest" } } } }, "409": { description: "Not in requested status" } }
+  /leave-requests/{id}/return:
+    post:
+      summary: Mark an approved leave as returned. Publishes hostel.leave.returned. Permission hostel:leave:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequest" } } } }, "409": { description: "Not approved" } }
+  /visits:
+    get:
+      summary: Visitor log. Permission hostel:visitor:read.
+      parameters:
+        - { name: hostel_id, in: query, schema: { type: string, format: uuid } }
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { name: date, in: query, schema: { type: string, format: date } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/VisitPage" } } } } }
+    post:
+      summary: Record a visitor arriving to see a resident. Permission hostel:visitor:record.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VisitInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Visit" } } } }, "409": { description: "Person is not a current resident" } }
+  /visits/{id}/out:
+    post:
+      summary: Record the visitor leaving. Permission hostel:visitor:record.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Visit" } } } }, "409": { description: "Already out" } }
+  /incidents:
+    get:
+      summary: Discipline incidents. Permission hostel:incident:read.
+      parameters:
+        - { name: hostel_id, in: query, schema: { type: string, format: uuid } }
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { type: string, enum: [open, closed] } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/IncidentPage" } } } } }
+    post:
+      summary: Record an incident against a resident. Permission hostel:incident:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/IncidentInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Incident" } } } } }
+  /incidents/{id}:
+    patch:
+      summary: Update action taken, or close the incident. Permission hostel:incident:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { action_taken: { type: string }, status: { type: string, enum: [open, closed] } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Incident" } } } } }
+  /notices:
+    get:
+      summary: Notices, including expired ones. Permission hostel:notice:publish.
+      parameters: [{ name: hostel_id, in: query, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Notice" } } } } } }
+    post:
+      summary: Publish a notice to one hostel, or to every hostel when hostel_id is null. Publishes hostel.notice.published. Permission hostel:notice:publish.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/NoticeInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Notice" } } } } }
+  /notices/{id}/withdraw:
+    post:
+      summary: Withdraw a notice before its expiry. Permission hostel:notice:publish.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Notice" } } } } }
+  /me/allocation:
+    get:
+      summary: The caller's current or upcoming allocation and open room request, if any. Permission hostel:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MyHostel" } } } } }
+  /me/room-requests:
+    post:
+      summary: Request a room for an academic year. One open request per person per year. Publishes hostel.allocation.requested. Permission hostel:self:request.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/RoomRequestInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Allocation" } } } }, "409": { description: "Open request or allocation already exists for the year" } }
+  /me/notices:
+    get:
+      summary: >-
+        Current notices for the caller: their hostel's notices plus notices to every hostel, newest first; a student
+        with no allocation sees only the latter. Backs the Student widget hostel.notices. Permission hostel:self:read.
+      parameters: [{ $ref: "#/components/parameters/Limit" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Notice" } } } } } }
+  /me/leave-requests:
+    get:
+      summary: The caller's leave requests, newest first. Permission hostel:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LeaveRequest" } } } } } }
+    post:
+      summary: Apply for leave. Only a current resident may apply. Publishes hostel.leave.requested. Permission hostel:self:request.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequest" } } } }, "409": { description: "Not a current resident, or overlaps another leave" } }
+  /me/leave-requests/{id}/withdraw:
+    post:
+      summary: Withdraw the caller's own leave request before it is decided. Permission hostel:self:request.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequest" } } } }, "409": { description: "Already decided" } }
+  /me/visits:
+    get:
+      summary: Visitors recorded for the caller. Permission hostel:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Visit" } } } } } }
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, description: Opaque cursor from the previous page, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+  schemas:
+    Reason:
+      type: object
+      required: [reason]
+      properties: { reason: { type: string, minLength: 3 } }
+    HostelInput:
+      type: object
+      required: [name, occupancy_type]
+      properties:
+        name: { type: string }
+        occupancy_type: { type: string, description: "Label from the organisation, such as men, women or mixed" }
+        warden_ids: { type: array, items: { type: string, format: uuid } }
+        active: { type: boolean, default: true }
+    Hostel:
+      allOf:
+        - { $ref: "#/components/schemas/HostelInput" }
+        - type: object
+          required: [id, organisation_id]
+          properties: { id: { type: string, format: uuid }, organisation_id: { type: string, format: uuid } }
+    HostelDetail:
+      allOf:
+        - { $ref: "#/components/schemas/Hostel" }
+        - type: object
+          properties:
+            rooms: { type: integer }
+            beds: { type: integer }
+            beds_occupied: { type: integer }
+            beds_confirmed: { type: integer, description: "Confirmed but not yet checked in" }
+    RoomStatus: { type: string, enum: [open, closed] }
+    RoomInput:
+      type: object
+      required: [number, room_type, capacity]
+      properties:
+        number: { type: string }
+        floor: { type: string }
+        room_type: { type: string, description: "Label from the organisation, such as single, double or dormitory" }
+        capacity: { type: integer, minimum: 1 }
+    RoomUpdate:
+      type: object
+      properties:
+        room_type: { type: string }
+        capacity: { type: integer, minimum: 1 }
+        status: { $ref: "#/components/schemas/RoomStatus" }
+        reason: { type: string, description: "Required when closing" }
+    Room:
+      allOf:
+        - { $ref: "#/components/schemas/RoomInput" }
+        - type: object
+          required: [id, hostel_id, status]
+          properties:
+            id: { type: string, format: uuid }
+            hostel_id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/RoomStatus" }
+            free_beds: { type: array, items: { type: string } }
+    AllocationStatus: { type: string, enum: [requested, confirmed, occupied, vacated, cancelled] }
+    RoomRequestInput:
+      type: object
+      required: [academic_year]
+      properties:
+        academic_year: { type: string, examples: ["2026-27"] }
+        preferred_hostel_id: { type: string, format: uuid }
+        preferred_room_type: { type: string }
+        notes: { type: string }
+    AllocationInput:
+      type: object
+      required: [person_id, room_id, bed, academic_year, from, to]
+      properties:
+        person_id: { type: string, format: uuid }
+        room_id: { type: string, format: uuid }
+        bed: { type: string }
+        academic_year: { type: string }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+    Allocation:
+      type: object
+      required: [id, organisation_id, person_id, academic_year, status]
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        person_id: { type: string, format: uuid }
+        person_name: { type: string, description: "Cached from student-information" }
+        academic_year: { type: string }
+        status: { $ref: "#/components/schemas/AllocationStatus" }
+        preferred_hostel_id: { type: [string, "null"], format: uuid }
+        preferred_room_type: { type: [string, "null"] }
+        notes: { type: [string, "null"] }
+        hostel_id: { type: [string, "null"], format: uuid }
+        room_id: { type: [string, "null"], format: uuid }
+        room_number: { type: [string, "null"] }
+        bed: { type: [string, "null"] }
+        from: { type: [string, "null"], format: date }
+        to: { type: [string, "null"], format: date }
+        checked_in_at: { type: [string, "null"], format: date-time }
+        checked_out_at: { type: [string, "null"], format: date-time }
+        condition_notes: { type: [string, "null"] }
+        cancel_reason: { type: [string, "null"] }
+    AllocationPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Allocation" } }
+        next_cursor: { type: [string, "null"] }
+    MyHostel:
+      type: object
+      properties:
+        allocation: { oneOf: [{ $ref: "#/components/schemas/Allocation" }, { type: "null" }] }
+        hostel: { oneOf: [{ $ref: "#/components/schemas/Hostel" }, { type: "null" }] }
+    MessMenu:
+      type: object
+      required: [hostel_id, date, meal, items]
+      properties:
+        hostel_id: { type: string, format: uuid }
+        date: { type: string, format: date }
+        meal: { type: string, description: "Label from the organisation, such as breakfast, lunch, snacks or dinner" }
+        items: { type: array, items: { type: string } }
+    LeaveStatus: { type: string, enum: [requested, approved, rejected, withdrawn, returned] }
+    LeaveInput:
+      type: object
+      required: [from, to, destination, reason]
+      properties:
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        destination: { type: string }
+        reason: { type: string }
+        contact_phone: { type: string }
+    LeaveRequest:
+      allOf:
+        - { $ref: "#/components/schemas/LeaveInput" }
+        - type: object
+          required: [id, organisation_id, person_id, hostel_id, status]
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            person_id: { type: string, format: uuid }
+            person_name: { type: string }
+            hostel_id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/LeaveStatus" }
+            decided_by: { type: [string, "null"], format: uuid }
+            decision_reason: { type: [string, "null"] }
+            returned_at: { type: [string, "null"], format: date-time }
+    LeavePage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/LeaveRequest" } }
+        next_cursor: { type: [string, "null"] }
+    VisitInput:
+      type: object
+      required: [person_id, visitor_name]
+      properties:
+        person_id: { type: string, format: uuid, description: "The resident being visited" }
+        visitor_name: { type: string }
+        relation: { type: string }
+        id_document_note: { type: string, description: "Type and last digits only; never the full document number" }
+    Visit:
+      allOf:
+        - { $ref: "#/components/schemas/VisitInput" }
+        - type: object
+          required: [id, organisation_id, hostel_id, in_at]
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            hostel_id: { type: string, format: uuid }
+            in_at: { type: string, format: date-time }
+            out_at: { type: [string, "null"], format: date-time }
+            recorded_by: { type: string, format: uuid }
+    VisitPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Visit" } }
+        next_cursor: { type: [string, "null"] }
+    IncidentInput:
+      type: object
+      required: [person_id, occurred_at, category, description]
+      properties:
+        person_id: { type: string, format: uuid }
+        occurred_at: { type: string, format: date-time }
+        category: { type: string, description: "Category from the organisation's hostel rules" }
+        description: { type: string }
+        action_taken: { type: string }
+    Incident:
+      allOf:
+        - { $ref: "#/components/schemas/IncidentInput" }
+        - type: object
+          required: [id, organisation_id, hostel_id, status]
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            hostel_id: { type: string, format: uuid }
+            status: { type: string, enum: [open, closed] }
+            recorded_by: { type: string, format: uuid }
+            closed_at: { type: [string, "null"], format: date-time }
+    IncidentPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Incident" } }
+        next_cursor: { type: [string, "null"] }
+    NoticeInput:
+      type: object
+      required: [title, body]
+      properties:
+        hostel_id: { type: [string, "null"], format: uuid, description: "Null sends the notice to every hostel" }
+        title: { type: string, maxLength: 120 }
+        body: { type: string }
+        expires_at: { type: [string, "null"], format: date-time }
+    Notice:
+      allOf:
+        - { $ref: "#/components/schemas/NoticeInput" }
+        - type: object
+          required: [id, organisation_id, published_at, status]
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            published_at: { type: string, format: date-time }
+            published_by: { type: string, format: uuid }
+            status: { type: string, enum: [current, expired, withdrawn] }

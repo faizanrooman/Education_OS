@@ -1,11 +1,46 @@
 # Permission catalogue for skill-progress. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: skill-progress
-permissions: []
-#  - key: skill-progress:record:read
-#    description: ...
-#  - key: skill-progress:record:write
-#    description: ...
-roles: []
-#  - name: skill-progress-admin
-#    grants: [skill-progress:record:read, skill-progress:record:write]
+permissions:
+  - key: skill-progress:framework:read
+    description: View skill frameworks, competencies, and rubrics
+  - key: skill-progress:framework:write
+    description: Create, edit, and archive skill frameworks and rubrics
+  - key: skill-progress:assessment:read
+    description: View skill assessments and evaluation records
+  - key: skill-progress:assessment:record
+    description: Record and submit assessments and skill evaluations
+  - key: skill-progress:assessment:approve
+    description: Review, verify, or finalize recorded skill assessments
+  - key: skill-progress:assessment:delete
+    description: Void or remove an assessment record
+  - key: skill-progress:progress:read
+    description: View learner skill progression, proficiency levels, and timelines
+  - key: skill-progress:progress:export
+    description: Export learner competency reports and progress metrics
+roles:
+  - name: skill-progress-admin
+    description: Full administration of frameworks, rubrics, assessments, and progress records
+    grants:
+      - skill-progress:framework:read
+      - skill-progress:framework:write
+      - skill-progress:assessment:read
+      - skill-progress:assessment:record
+      - skill-progress:assessment:approve
+      - skill-progress:assessment:delete
+      - skill-progress:progress:read
+      - skill-progress:progress:export
+  - name: skill-progress-evaluator
+    description: Evaluators, instructors, mentors, and supervisors recording skill assessments
+    grants:
+      - skill-progress:framework:read
+      - skill-progress:assessment:read
+      - skill-progress:assessment:record
+      - skill-progress:progress:read
+  - name: skill-progress-viewer
+    description: Learners and observers viewing skill frameworks and individual progress
+    grants:
+      - skill-progress:framework:read
+      - skill-progress:assessment:read
+      - skill-progress:progress:read
+
