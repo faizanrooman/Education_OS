@@ -1,9 +1,43 @@
 # Domain events published by maintenance.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
+# target is { kind: asset | resource | unit | location, id, label }; the owning module may react when blocks_use is true.
 module: maintenance
 version: 1
-events: []
-#  - name: maintenance.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: maintenance.ticket.raised
+    description: A fault was reported or a preventive ticket was raised by a schedule. Notification tells the default assignees and managers.
+    payload: { organisation_id: uuid, ticket_id: uuid, number: string, kind: string, category_id: uuid, priority: string, target: object, blocks_use: boolean, reported_by: uuid, schedule_id: uuid, source: object }
+  - name: maintenance.ticket.assigned
+    description: A ticket was assigned or reassigned to a technician or a vendor.
+    payload: { organisation_id: uuid, ticket_id: uuid, assignee_id: uuid, vendor_name: string, previous_assignee_id: uuid }
+  - name: maintenance.ticket.started
+    description: Work started, or resumed after hold.
+    payload: { organisation_id: uuid, ticket_id: uuid, target: object, blocks_use: boolean, started_by: uuid }
+  - name: maintenance.ticket.put-on-hold
+    description: Work paused; SLA timers paused.
+    payload: { organisation_id: uuid, ticket_id: uuid, reason: string }
+  - name: maintenance.ticket.resolved
+    description: Work is done. target_usable false means the target is beyond repair; its owning module may retire or dispose of it.
+    payload: { organisation_id: uuid, ticket_id: uuid, target: object, blocks_use: boolean, target_usable: boolean, total_minutes: integer, total_cost: money, resolved_by: uuid }
+  - name: maintenance.ticket.closed
+    description: The reporter confirmed, a manager closed, or the auto-close job closed a resolved ticket.
+    payload: { organisation_id: uuid, ticket_id: uuid, closed_by: string, rating: integer }
+  - name: maintenance.ticket.reopened
+    description: A resolved or closed ticket was reopened within the window.
+    payload: { organisation_id: uuid, ticket_id: uuid, target: object, blocks_use: boolean, reason: string, reopened_by: uuid }
+  - name: maintenance.ticket.cancelled
+    description: A ticket was cancelled before resolution (duplicate, not needed).
+    payload: { organisation_id: uuid, ticket_id: uuid, target: object, reason: string, duplicate_of: uuid }
+  - name: maintenance.ticket.priority-changed
+    description: Triage changed the priority; SLA due times were recomputed.
+    payload: { organisation_id: uuid, ticket_id: uuid, from: string, to: string, response_due_at: datetime, resolution_due_at: datetime }
+  - name: maintenance.ticket.sla-breached
+    description: A response or resolution target passed. Published once per target.
+    payload: { organisation_id: uuid, ticket_id: uuid, number: string, which: string, due_at: datetime, priority: string, assignee_id: uuid }
+  - name: maintenance.schedule.created
+    description: A preventive schedule was set up for a target.
+    payload: { organisation_id: uuid, schedule_id: uuid, target: object, every: integer, unit: string, next_due_on: date }
+  - name: maintenance.schedule.deactivated
+    description: A preventive schedule was paused or deleted.
+    payload: { organisation_id: uuid, schedule_id: uuid, target: object, deleted: boolean }

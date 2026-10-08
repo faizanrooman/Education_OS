@@ -1,9 +1,41 @@
 # Domain events published by procurement.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Naming: <module>.<entity>.<past-tense-verb>
 # Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Amounts are decimal strings in rupees. line_id is the budget-grants budget or grant line.
 module: procurement
 version: 1
-events: []
-#  - name: procurement.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: procurement.indent.submitted
+    description: notification tells the approver.
+    payload: { organisation_id: uuid, indent_id: uuid, number: string, requested_by: uuid, department_id: uuid, estimated_cost: string }
+  - name: procurement.indent.approved
+    description: An indent was approved against a budget or grant line; budget-grants may reserve estimated_cost on line_id.
+    payload: { organisation_id: uuid, indent_id: uuid, number: string, requested_by: uuid, line_id: uuid, estimated_cost: string, purchase_method: string }
+  - name: procurement.indent.rejected
+    description: An indent was rejected with a note. notification tells the requester.
+    payload: { organisation_id: uuid, indent_id: uuid, number: string, requested_by: uuid, note: string }
+  - name: procurement.tender.published
+    description: A tender or request for quotation is open for bids until closes_at.
+    payload: { organisation_id: uuid, tender_id: uuid, number: string, method: string, category: string, closes_at: datetime }
+  - name: procurement.tender.awarded
+    description: A tender was awarded to a vendor on the given quote; a purchase order follows.
+    payload: { organisation_id: uuid, tender_id: uuid, vendor_id: uuid, quote_id: uuid, total: string }
+  - name: procurement.purchase-order.issued
+    description: budget-grants records a commitment of total on line_id. notification sends the order to the vendor.
+    payload: { organisation_id: uuid, purchase_order_id: uuid, number: string, vendor_id: uuid, line_id: uuid, total: string, delivery_by: date, document_id: string }
+  - name: procurement.purchase-order.cancelled
+    description: >-
+      Cancelled, or the undelivered remainder closed. budget-grants releases released_amount of the commitment on line_id.
+    payload: { organisation_id: uuid, purchase_order_id: uuid, line_id: uuid, released_amount: string, reason: string }
+  - name: procurement.goods-receipt.recorded
+    description: Goods accepted. inventory-equipment or asset-management may add stock or register assets.
+    payload: { organisation_id: uuid, goods_receipt_id: uuid, purchase_order_id: uuid, vendor_id: uuid, received_on: date, items: array }
+  - name: procurement.vendor-invoice.approved
+    description: A vendor invoice was approved for payment against its purchase order.
+    payload: { organisation_id: uuid, vendor_invoice_id: uuid, purchase_order_id: uuid, vendor_id: uuid, amount: string }
+  - name: procurement.vendor-invoice.paid
+    description: budget-grants moves amount on line_id from committed to spent.
+    payload: { organisation_id: uuid, vendor_invoice_id: uuid, purchase_order_id: uuid, vendor_id: uuid, line_id: uuid, amount: string, paid_on: date }
+  - name: procurement.vendor.blacklisted
+    description: A vendor was blacklisted and can no longer be invited or awarded.
+    payload: { organisation_id: uuid, vendor_id: uuid, reason: string }

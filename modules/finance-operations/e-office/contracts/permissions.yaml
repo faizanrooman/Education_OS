@@ -1,11 +1,43 @@
 # Permission catalogue for e-office. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
+# e-office:file:use is for every staff role; the roles below are the staff roles of the management institute
+# profile. Other profiles' staff roles need the same grant (see docs/prd.md, open questions).
 module: e-office
-permissions: []
-#  - key: e-office:record:read
-#    description: ...
-#  - key: e-office:record:write
-#    description: ...
-roles: []
-#  - name: e-office-admin
-#    grants: [e-office:record:read, e-office:record:write]
+permissions:
+  - key: e-office:file:use
+    description: See files one has held; note, attach, forward and close files one holds; see one's inbox.
+  - key: e-office:file:create
+    description: Open new files and reopen closed ones.
+  - key: e-office:file:decide
+    description: Approve, reject or return a proposal as competent authority.
+  - key: e-office:file:read-all
+    description: See every non-confidential file of the organisation.
+  - key: e-office:correspondence:manage
+    description: Register inward correspondence and send outward dispatch (central registry).
+  - key: e-office:report:read
+    description: View pendency reports.
+  - key: e-office:settings:manage
+    description: Manage file categories.
+roles:
+  - name: hr-staff
+    grants: [e-office:file:use, e-office:file:create, e-office:correspondence:manage]
+  - name: finance-staff
+    grants: [e-office:file:use, e-office:file:create]
+  - name: department-admin
+    grants: [e-office:file:use, e-office:file:create, e-office:file:decide, e-office:report:read]
+  - name: management
+    grants: [e-office:file:use, e-office:file:create, e-office:file:decide, e-office:file:read-all, e-office:report:read]
+  - name: org-admin
+    grants: [e-office:file:use, e-office:report:read, e-office:settings:manage]
+  - name: faculty
+    grants: [e-office:file:use, e-office:file:create]
+  - name: examination-staff
+    grants: [e-office:file:use, e-office:file:create]
+  - name: facility-staff
+    grants: [e-office:file:use, e-office:file:create]
+  - name: support-staff
+    grants: [e-office:file:use, e-office:file:create]
+  - name: placement-officer
+    grants: [e-office:file:use, e-office:file:create]
+  - name: governance
+    grants: [e-office:file:use, e-office:file:create]

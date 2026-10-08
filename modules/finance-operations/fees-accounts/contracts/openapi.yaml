@@ -2,9 +2,532 @@ openapi: 3.1.0
 info:
   title: fees-accounts API
   version: 0.1.0
-  description: "Fee structures, invoices, online payments, receipts, ledgers."
+  description: >-
+    Fee heads and structures, invoices (demands), online and offline payments, receipts, concessions,
+    refunds, per-person ledgers and collection reports. Online payments go through the payment adapter
+    (integrations/payment-sbiepay, purpose=fee). People are referenced by person_id from student-information;
+    programmes by programme_id from academic-management. Amounts are decimal strings in rupees.
 servers:
   - url: /api/v1/fees-accounts
-paths: {}
+paths:
+  /fee-heads:
+    get:
+      summary: Fee heads of the organisation (tuition, hostel, application fee and so on). Permission fees-accounts:fee-structure:read.
+      parameters: [{ name: active, in: query, schema: { type: boolean } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/FeeHead" } } } } } }
+    post:
+      summary: Create a fee head. Permission fees-accounts:fee-structure:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/FeeHeadInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/FeeHead" } } } }
+        "409": { description: Code already used }
+  /fee-heads/{id}:
+    put:
+      summary: Rename or deactivate a fee head. Heads used on an invoice cannot be deleted. Permission fees-accounts:fee-structure:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/FeeHeadInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FeeHead" } } } } }
+  /fee-structures:
+    get:
+      summary: Fee structures. Permission fees-accounts:fee-structure:read.
+      parameters:
+        - { name: academic_year, in: query, schema: { type: string } }
+        - { name: programme_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { type: string, enum: [draft, published, archived] } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/FeeStructure" } } } } } }
+    post:
+      summary: Create a draft fee structure. Permission fees-accounts:fee-structure:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/FeeStructureInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/FeeStructure" } } } } }
+  /fee-structures/{id}:
+    get:
+      summary: One fee structure with its items and instalments. Permission fees-accounts:fee-structure:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FeeStructure" } } } } }
+    put:
+      summary: Edit a draft. A published structure is changed by archiving it and creating a new one. Permission fees-accounts:fee-structure:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/FeeStructureInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FeeStructure" } } } }
+        "409": { description: Structure is not a draft }
+  /fee-structures/{id}/publish:
+    post:
+      summary: Publish a draft so invoices can be raised from it. Publishes fees-accounts.fee-structure.published. Permission fees-accounts:fee-structure:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FeeStructure" } } } } }
+  /fee-structures/{id}/archive:
+    post:
+      summary: Archive a structure. Existing invoices are unaffected. Permission fees-accounts:fee-structure:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FeeStructure" } } } } }
+  /invoices:
+    get:
+      summary: Invoices of the organisation. Permission fees-accounts:invoice:read.
+      parameters:
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/InvoiceStatus" } }
+        - { name: fee_structure_id, in: query, schema: { type: string, format: uuid } }
+        - { name: overdue, in: query, schema: { type: boolean } }
+        - { name: due_from, in: query, schema: { type: string, format: date } }
+        - { name: due_to, in: query, schema: { type: string, format: date } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/InvoicePage" } } } } }
+    post:
+      summary: >-
+        Raise one invoice for one person, from a fee structure instalment or from ad hoc lines (fines, certificates).
+        Publishes fees-accounts.invoice.issued. Permission fees-accounts:invoice:create.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Invoice" } } } }
+        "409": { description: "An invoice for this person, structure and instalment already exists" }
+  /invoices/bulk:
+    post:
+      summary: >-
+        Raise invoices for many people from one published structure and instalment. Runs as a job;
+        people who already have that invoice are skipped. Permission fees-accounts:invoice:create.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BulkInvoiceInput" } } } }
+      responses: { "202": { description: Job queued, content: { application/json: { schema: { $ref: "#/components/schemas/BulkJob" } } } } }
+  /invoices/bulk/{id}:
+    get:
+      summary: Progress and result of a bulk invoice job. Permission fees-accounts:invoice:create.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BulkJob" } } } } }
+  /invoices/{id}:
+    get:
+      summary: One invoice with lines, concessions and payments. Permission fees-accounts:invoice:read, or the person it is for.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Invoice" } } } }
+        "404": { description: Not found in the caller's organisation }
+  /invoices/{id}/cancel:
+    post:
+      summary: >-
+        Cancel an invoice with no payments against it. Publishes fees-accounts.invoice.cancelled.
+        Permission fees-accounts:invoice:cancel.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Invoice" } } } }
+        "409": { description: Invoice has payments; refund them first }
+  /invoices/{id}/pay:
+    post:
+      summary: >-
+        Pay an invoice online. Calls payment-sbiepay POST /payments (purpose=fee) and returns its session; the
+        browser goes to payment_url. The invoice is updated when payment-sbiepay.payment.succeeded arrives.
+        Permission fees-accounts:self:pay for one's own invoice.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { amount: { $ref: "#/components/schemas/Money" }, return_url: { type: string, format: uri } }, description: "amount defaults to the balance; a smaller amount is allowed only when the structure allows part payment" } } } }
+      responses:
+        "201": { description: Payment session from the adapter, content: { application/json: { schema: { $ref: "#/components/schemas/PaymentSession" } } } }
+        "409": { description: Invoice is paid or cancelled }
+        "503": { description: Online payment not configured for this organisation }
+  /invoices/{id}/payments:
+    post:
+      summary: >-
+        Record an offline payment (cash, cheque, demand draft, bank transfer). Issues a receipt. Publishes
+        fees-accounts.payment.received. Permission fees-accounts:payment:record.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/OfflinePaymentInput" } } } }
+      responses:
+        "201": { description: Recorded, content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
+        "422": { description: Amount exceeds the invoice balance }
+  /payments:
+    get:
+      summary: Payments received, online and offline. Permission fees-accounts:invoice:read.
+      parameters:
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { name: mode, in: query, schema: { $ref: "#/components/schemas/PaymentMode" } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PaymentPage" } } } } }
+  /payments/{id}:
+    get:
+      summary: One payment. Permission fees-accounts:invoice:read, or the person who paid.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } } }
+  /payments/{id}/refunds:
+    post:
+      summary: >-
+        Refund all or part of a payment. Online payments are refunded through payment-sbiepay; offline refunds are recorded.
+        Publishes fees-accounts.refund.issued once complete. Permission fees-accounts:payment:refund.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/RefundInput" } } } }
+      responses:
+        "202": { description: Refund started, content: { application/json: { schema: { $ref: "#/components/schemas/Refund" } } } }
+        "422": { description: Amount exceeds the refundable balance }
+  /payments/{id}/void:
+    post:
+      summary: >-
+        Void an offline payment recorded in error (for example a bounced cheque). The receipt is cancelled and
+        the invoice balance restored. Online payments cannot be voided; refund them. Permission fees-accounts:payment:refund.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
+        "409": { description: Payment is online }
+  /receipts/{id}:
+    get:
+      summary: One receipt. The PDF is in platform/documents. Permission fees-accounts:invoice:read, or the person who paid.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Receipt" } } } } }
+  /concessions:
+    get:
+      summary: Concessions and waivers. Permission fees-accounts:concession:request.
+      parameters:
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { type: string, enum: [requested, approved, rejected] } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Concession" } } } } } }
+    post:
+      summary: Request a concession (scholarship, fee waiver, staff ward) on an invoice. Permission fees-accounts:concession:request.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ConcessionInput" } } } }
+      responses: { "201": { description: Requested, content: { application/json: { schema: { $ref: "#/components/schemas/Concession" } } } } }
+  /concessions/{id}/decision:
+    post:
+      summary: >-
+        Approve or reject a concession. Approval reduces the invoice balance and publishes fees-accounts.concession.approved.
+        The requester cannot decide their own request. Permission fees-accounts:concession:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [decision], properties: { decision: { type: string, enum: [approved, rejected] }, note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Concession" } } } } }
+  /accounts/{person_id}/statement:
+    get:
+      summary: Ledger of one person (invoices, concessions, payments, refunds) with running balance. Permission fees-accounts:ledger:read.
+      parameters:
+        - { name: person_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Statement" } } } } }
+  /me/dues:
+    get:
+      summary: >-
+        The caller's unpaid and part-paid invoices, earliest due first. Backs the Applicant widget fees-accounts.fee-due
+        and the Student widget fees-accounts.fee-dues. Permission fees-accounts:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MyDues" } } } } }
+  /me/invoices:
+    get:
+      summary: All of the caller's invoices. Permission fees-accounts:self:read.
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/InvoicePage" } } } } }
+  /me/receipts:
+    get:
+      summary: The caller's receipts. Permission fees-accounts:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Receipt" } } } } } }
+  /collection-targets:
+    get:
+      summary: Collection targets by period. Permission fees-accounts:report:read.
+      parameters: [{ name: academic_year, in: query, schema: { type: string } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CollectionTarget" } } } } } }
+    put:
+      summary: Set targets for an academic year, replacing the previous set for that year. Permission fees-accounts:target:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [academic_year, targets], properties: { academic_year: { type: string }, targets: { type: array, items: { $ref: "#/components/schemas/CollectionTarget" } } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CollectionTarget" } } } } } }
+  /reports/collections:
+    get:
+      summary: >-
+        Amount collected on one day, by payment mode and fee head, with the previous day for comparison.
+        Backs the Finance Staff widget fees-accounts.collections-today. Permission fees-accounts:report:read.
+      parameters: [{ name: date, in: query, schema: { type: string, format: date }, description: "Defaults to today in the organisation's time zone" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CollectionsReport" } } } } }
+  /reports/outstanding:
+    get:
+      summary: >-
+        Outstanding and overdue balances with ageing buckets and the largest heads. Backs the Finance Staff widget
+        fees-accounts.outstanding-dues. Permission fees-accounts:report:read.
+      parameters: [{ name: programme_id, in: query, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/OutstandingReport" } } } } }
+  /reports/collection-vs-target:
+    get:
+      summary: >-
+        Collected against target per period of an academic year. Backs the Management widget
+        fees-accounts.collection-vs-target. Permission fees-accounts:report:read.
+      parameters: [{ name: academic_year, in: query, schema: { type: string }, description: "Defaults to the current academic year" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CollectionVsTargetReport" } } } } }
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+  schemas:
+    Money: { type: string, pattern: "^-?[0-9]+(\\.[0-9]{1,2})?$", description: "Decimal string in rupees, e.g. 1500.00" }
+    FeeHeadInput:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, pattern: "^[A-Z0-9_]{2,20}$" }
+        name: { type: string }
+        category: { type: string, enum: [admission, tuition, examination, hostel, transport, library, deposit, fine, other] }
+        refundable: { type: boolean, default: false }
+        active: { type: boolean, default: true }
+    FeeHead:
+      allOf:
+        - { $ref: "#/components/schemas/FeeHeadInput" }
+        - { type: object, properties: { id: { type: string, format: uuid } } }
+    FeeStructureInput:
+      type: object
+      required: [name, academic_year, items, instalments]
+      properties:
+        name: { type: string }
+        academic_year: { type: string, description: "e.g. 2026-27" }
+        programme_id: { type: string, format: uuid, nullable: true, description: "From academic-management. Null means every programme." }
+        applies_to: { type: string, enum: [applicant, student], default: student }
+        category: { type: string, nullable: true, description: "Student category the structure is for, from the organisation's reference data" }
+        items:
+          type: array
+          minItems: 1
+          items: { type: object, required: [fee_head_id, amount], properties: { fee_head_id: { type: string, format: uuid }, amount: { $ref: "#/components/schemas/Money" } } }
+        instalments:
+          type: array
+          minItems: 1
+          description: Shares of the total, in order. Percentages must add up to 100.
+          items: { type: object, required: [label, percent, due_date], properties: { label: { type: string }, percent: { type: number, minimum: 0, maximum: 100 }, due_date: { type: string, format: date } } }
+        allow_part_payment: { type: boolean, default: false }
+        late_fee: { $ref: "#/components/schemas/LateFeeRule" }
+    LateFeeRule:
+      type: object
+      nullable: true
+      properties:
+        kind: { type: string, enum: [flat, per_day] }
+        amount: { $ref: "#/components/schemas/Money" }
+        grace_days: { type: integer, minimum: 0, default: 0 }
+        cap: { $ref: "#/components/schemas/Money" }
+    FeeStructure:
+      allOf:
+        - { $ref: "#/components/schemas/FeeStructureInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            status: { type: string, enum: [draft, published, archived] }
+            total: { $ref: "#/components/schemas/Money" }
+            published_at: { type: string, format: date-time, nullable: true }
+    InvoiceStatus: { type: string, enum: [issued, partially_paid, paid, cancelled] }
+    InvoiceInput:
+      type: object
+      required: [person_id]
+      description: Either fee_structure_id with instalment, or lines.
+      properties:
+        person_id: { type: string, format: uuid }
+        fee_structure_id: { type: string, format: uuid }
+        instalment: { type: integer, minimum: 1, description: "1-based position in the structure's instalments" }
+        lines: { type: array, items: { $ref: "#/components/schemas/InvoiceLineInput" } }
+        due_date: { type: string, format: date, description: "Required with lines; taken from the instalment otherwise" }
+        source: { $ref: "#/components/schemas/InvoiceSource" }
+    InvoiceLineInput:
+      type: object
+      required: [fee_head_id, amount]
+      properties:
+        fee_head_id: { type: string, format: uuid }
+        description: { type: string }
+        amount: { $ref: "#/components/schemas/Money" }
+    InvoiceSource:
+      type: object
+      nullable: true
+      description: What caused the invoice, e.g. the event that raised it. Kept for audit.
+      properties:
+        module: { type: string }
+        reference: { type: string }
+    BulkInvoiceInput:
+      type: object
+      required: [fee_structure_id, instalment, person_ids]
+      properties:
+        fee_structure_id: { type: string, format: uuid }
+        instalment: { type: integer, minimum: 1 }
+        person_ids: { type: array, minItems: 1, maxItems: 5000, items: { type: string, format: uuid } }
+    BulkJob:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [queued, running, completed, failed] }
+        requested: { type: integer }
+        created: { type: integer }
+        skipped: { type: integer }
+        errors: { type: array, items: { type: object, properties: { person_id: { type: string, format: uuid }, message: { type: string } } } }
+    Invoice:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: string, description: "Organisation-wide sequential number" }
+        person_id: { type: string, format: uuid }
+        person_name: { type: string, description: "Cached from student-information" }
+        fee_structure_id: { type: string, format: uuid, nullable: true }
+        instalment: { type: integer, nullable: true }
+        academic_year: { type: string, nullable: true }
+        lines: { type: array, items: { type: object, properties: { fee_head_id: { type: string, format: uuid }, fee_head_name: { type: string }, description: { type: string }, amount: { $ref: "#/components/schemas/Money" } } } }
+        total: { $ref: "#/components/schemas/Money" }
+        concession_total: { $ref: "#/components/schemas/Money" }
+        late_fee: { $ref: "#/components/schemas/Money" }
+        paid_total: { $ref: "#/components/schemas/Money" }
+        balance: { $ref: "#/components/schemas/Money" }
+        status: { $ref: "#/components/schemas/InvoiceStatus" }
+        overdue: { type: boolean }
+        due_date: { type: string, format: date }
+        allow_part_payment: { type: boolean }
+        source: { $ref: "#/components/schemas/InvoiceSource" }
+        issued_at: { type: string, format: date-time }
+        payments: { type: array, items: { $ref: "#/components/schemas/Payment" } }
+        concessions: { type: array, items: { $ref: "#/components/schemas/Concession" } }
+    InvoicePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Invoice" } }
+        next_cursor: { type: string, nullable: true }
+    PaymentMode: { type: string, enum: [online, cash, cheque, demand_draft, bank_transfer] }
+    PaymentSession:
+      type: object
+      description: As returned by payment-sbiepay POST /payments.
+      properties:
+        reference: { type: string }
+        payment_url: { type: string, format: uri }
+        expires_at: { type: string, format: date-time }
+    OfflinePaymentInput:
+      type: object
+      required: [amount, mode, paid_on]
+      properties:
+        amount: { $ref: "#/components/schemas/Money" }
+        mode: { type: string, enum: [cash, cheque, demand_draft, bank_transfer] }
+        paid_on: { type: string, format: date }
+        instrument_number: { type: string, description: "Cheque, DD or bank transfer reference" }
+        bank_name: { type: string }
+        note: { type: string }
+    Payment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        invoice_id: { type: string, format: uuid }
+        person_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/Money" }
+        refunded_amount: { $ref: "#/components/schemas/Money" }
+        mode: { $ref: "#/components/schemas/PaymentMode" }
+        status: { type: string, enum: [completed, refunded, partially_refunded, void] }
+        gateway_reference: { type: string, nullable: true, description: "payment-sbiepay reference for online payments" }
+        instrument_number: { type: string, nullable: true }
+        paid_on: { type: string, format: date }
+        receipt_id: { type: string, format: uuid, nullable: true }
+        recorded_by: { type: string, format: uuid, nullable: true, description: "Staff user for offline payments" }
+        created_at: { type: string, format: date-time }
+    PaymentPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Payment" } }
+        next_cursor: { type: string, nullable: true }
+    RefundInput:
+      type: object
+      required: [amount, reason]
+      properties:
+        amount: { $ref: "#/components/schemas/Money" }
+        reason: { type: string }
+        mode: { type: string, enum: [original, cash, cheque, bank_transfer], default: original, description: "original = back through the gateway for online payments" }
+    Refund:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        payment_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/Money" }
+        status: { type: string, enum: [requested, completed, failed] }
+        reason: { type: string }
+        created_at: { type: string, format: date-time }
+    Receipt:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: string, description: "Organisation-wide sequential number" }
+        payment_id: { type: string, format: uuid }
+        invoice_id: { type: string, format: uuid }
+        person_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/Money" }
+        status: { type: string, enum: [valid, cancelled] }
+        document_id: { type: string, nullable: true, description: "PDF in platform/documents" }
+        issued_at: { type: string, format: date-time }
+    ConcessionInput:
+      type: object
+      required: [invoice_id, kind, reason]
+      description: Either amount or percent.
+      properties:
+        invoice_id: { type: string, format: uuid }
+        kind: { type: string, enum: [scholarship, waiver, staff_ward, sibling, other] }
+        amount: { $ref: "#/components/schemas/Money" }
+        percent: { type: number, minimum: 0, maximum: 100 }
+        reason: { type: string }
+        document_id: { type: string, nullable: true, description: "Supporting document in platform/documents" }
+    Concession:
+      allOf:
+        - { $ref: "#/components/schemas/ConcessionInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            person_id: { type: string, format: uuid }
+            status: { type: string, enum: [requested, approved, rejected] }
+            approved_amount: { $ref: "#/components/schemas/Money" }
+            requested_by: { type: string, format: uuid }
+            decided_by: { type: string, format: uuid, nullable: true }
+            decided_at: { type: string, format: date-time, nullable: true }
+    Statement:
+      type: object
+      properties:
+        person_id: { type: string, format: uuid }
+        opening_balance: { $ref: "#/components/schemas/Money" }
+        closing_balance: { $ref: "#/components/schemas/Money" }
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date }
+              kind: { type: string, enum: [invoice, late_fee, concession, payment, refund, void, cancellation] }
+              reference: { type: string, description: "Invoice, receipt or refund number" }
+              debit: { $ref: "#/components/schemas/Money" }
+              credit: { $ref: "#/components/schemas/Money" }
+              balance: { $ref: "#/components/schemas/Money" }
+    MyDues:
+      type: object
+      properties:
+        total_due: { $ref: "#/components/schemas/Money" }
+        overdue: { $ref: "#/components/schemas/Money" }
+        next_due_date: { type: string, format: date, nullable: true }
+        invoices:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              number: { type: string }
+              title: { type: string, description: "Structure name and instalment label, or the first line" }
+              balance: { $ref: "#/components/schemas/Money" }
+              due_date: { type: string, format: date }
+              overdue: { type: boolean }
+              can_pay_online: { type: boolean }
+    CollectionTarget:
+      type: object
+      required: [period, amount]
+      properties:
+        period: { type: string, pattern: "^[0-9]{4}-[0-9]{2}$", description: "Month, YYYY-MM" }
+        amount: { $ref: "#/components/schemas/Money" }
+        fee_head_id: { type: string, format: uuid, nullable: true, description: "Null means all heads" }
+    CollectionsReport:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        total: { $ref: "#/components/schemas/Money" }
+        count: { type: integer }
+        previous_day_total: { $ref: "#/components/schemas/Money" }
+        by_mode: { type: array, items: { type: object, properties: { mode: { $ref: "#/components/schemas/PaymentMode" }, amount: { $ref: "#/components/schemas/Money" }, count: { type: integer } } } }
+        by_fee_head: { type: array, items: { type: object, properties: { fee_head_id: { type: string, format: uuid }, name: { type: string }, amount: { $ref: "#/components/schemas/Money" } } } }
+    OutstandingReport:
+      type: object
+      properties:
+        as_of: { type: string, format: date }
+        outstanding: { $ref: "#/components/schemas/Money" }
+        overdue: { $ref: "#/components/schemas/Money" }
+        people_with_dues: { type: integer }
+        ageing: { type: array, items: { type: object, properties: { bucket: { type: string, enum: [not_due, "0-30", "31-60", "61-90", "90+"] }, amount: { $ref: "#/components/schemas/Money" }, count: { type: integer } } } }
+        top_fee_heads: { type: array, items: { type: object, properties: { fee_head_id: { type: string, format: uuid }, name: { type: string }, amount: { $ref: "#/components/schemas/Money" } } } }
+    CollectionVsTargetReport:
+      type: object
+      properties:
+        academic_year: { type: string }
+        target_total: { $ref: "#/components/schemas/Money" }
+        collected_total: { $ref: "#/components/schemas/Money" }
+        periods: { type: array, items: { type: object, properties: { period: { type: string }, target: { $ref: "#/components/schemas/Money" }, collected: { $ref: "#/components/schemas/Money" } } } }
