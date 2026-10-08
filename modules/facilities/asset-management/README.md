@@ -4,10 +4,18 @@
 **Kind:** feature
 **Status:** planned
 
-Fixed asset register, tagging, depreciation, disposal.
+Fixed asset register of the organisation: every long-lived, valuable thing it owns, where it is, who holds it, what it cost, what it is worth now and when it was last physically checked.
 
 ## Scope
-_Owner fills in: what this module is responsible for, and what it explicitly is not._
+Responsible for: asset categories, the asset register and tags, transfers between locations,
+departments and custodians, physical verification cycles (the audit-due widget), depreciation runs,
+and disposal with approval.
+
+Not responsible for: lending and stock (`inventory-equipment`), repairs (`maintenance`), buying
+(`procurement`), accounting ledgers (finance modules), AMC contracts (`amc-vendor-support`).
+Those are linked by reference ids and events, never by foreign keys.
+
+Requirements: [docs/prd.md](docs/prd.md).
 
 ## Public surface
 - API: [contracts/openapi.yaml](contracts/openapi.yaml)

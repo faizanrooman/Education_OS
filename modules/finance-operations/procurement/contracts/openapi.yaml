@@ -2,9 +2,466 @@ openapi: 3.1.0
 info:
   title: procurement API
   version: 0.1.0
-  description: "Indents, tenders, purchase orders, vendor management."
+  description: >-
+    Vendors, indents (purchase requests), quotations and tenders, purchase orders, goods receipts and vendor invoices.
+    Each indent is charged to one budget or grant line from budget-grants; availability is checked through the
+    budget-grants contract before approval. Amounts are decimal strings in rupees.
 servers:
   - url: /api/v1/procurement
-paths: {}
+paths:
+  /vendors:
+    get:
+      summary: Vendors. Permission procurement:vendor:read.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/VendorStatus" } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: q, in: query, schema: { type: string } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/VendorPage" } } } } }
+    post:
+      summary: Register a vendor (status pending). Permission procurement:vendor:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Vendor" } } } }
+        "409": { description: A vendor with this GSTIN or PAN exists }
+  /vendors/{id}:
+    get:
+      summary: One vendor with order history totals. Permission procurement:vendor:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Vendor" } } } } }
+    put:
+      summary: Update vendor details. Permission procurement:vendor:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Vendor" } } } } }
+  /vendors/{id}/status:
+    post:
+      summary: >-
+        Approve, suspend or blacklist a vendor with a reason. Only approved vendors receive tenders and orders.
+        Blacklisting publishes procurement.vendor.blacklisted. Permission procurement:vendor:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [status, reason], properties: { status: { type: string, enum: [approved, suspended, blacklisted] }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Vendor" } } } } }
+  /indents:
+    get:
+      summary: Indents. Permission procurement:indent:approve (all, or the approver's department).
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/IndentStatus" } }
+        - { name: department_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/IndentPage" } } } } }
+    post:
+      summary: Create a draft indent charged to one budget or grant line. Permission procurement:indent:create.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/IndentInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Indent" } } } } }
+  /indents/{id}:
+    get:
+      summary: One indent. Permission procurement:indent:approve, or its requester.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Indent" } } } } }
+    put:
+      summary: Edit one's own draft or returned indent. Permission procurement:indent:create.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/IndentInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Indent" } } } }
+        "409": { description: Indent is not a draft or returned }
+  /indents/{id}/submit:
+    post:
+      summary: Submit for approval. Publishes procurement.indent.submitted. Permission procurement:indent:create.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Indent" } } } } }
+  /indents/{id}/decision:
+    post:
+      summary: >-
+        Approve, return or reject an indent. Approval first checks budget-grants GET /availability for the estimated
+        cost and fails with 422 if the line cannot cover it. The requester cannot decide. Approval sets the purchase
+        method from the estimated value and publishes procurement.indent.approved. Permission procurement:indent:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { $ref: "#/components/requestBodies/Decision" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Indent" } } } }
+        "409": { description: Indent is not submitted }
+        "422": { description: Budget line cannot cover the estimated cost }
+  /me/indents:
+    get:
+      summary: The caller's indents and their progress to order and delivery. Permission procurement:indent:create.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Indent" } } } } } }
+  /tenders:
+    get:
+      summary: Quotation requests and tenders. Permission procurement:tender:manage.
+      parameters: [{ name: status, in: query, schema: { $ref: "#/components/schemas/TenderStatus" } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Tender" } } } } } }
+    post:
+      summary: Create a draft quotation request or tender from one or more approved indents on the same line. Permission procurement:tender:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TenderInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Tender" } } } } }
+  /tenders/{id}:
+    get:
+      summary: One tender with quotes and the comparative statement. Permission procurement:tender:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Tender" } } } } }
+  /tenders/{id}/publish:
+    post:
+      summary: Publish to the invited or all approved vendors of the category. Publishes procurement.tender.published. Permission procurement:tender:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Tender" } } } } }
+  /tenders/{id}/quotes:
+    post:
+      summary: Record a vendor's quote received before the closing date, with the document. Permission procurement:tender:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/QuoteInput" } } } }
+      responses:
+        "201": { description: Recorded, content: { application/json: { schema: { $ref: "#/components/schemas/Tender" } } } }
+        "409": { description: Tender is closed or the vendor is not approved }
+  /tenders/{id}/award:
+    post:
+      summary: >-
+        Award to one quote. A quote other than the lowest needs a justification. Creates a draft purchase order and
+        publishes procurement.tender.awarded. Permission procurement:tender:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quote_id], properties: { quote_id: { type: string, format: uuid }, justification: { type: string } } } } } }
+      responses: { "200": { description: Awarded, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrder" } } } } }
+  /purchase-orders:
+    get:
+      summary: Purchase orders. Permission procurement:purchase-order:read.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/PurchaseOrderStatus" } }
+        - { name: vendor_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrderPage" } } } } }
+    post:
+      summary: Create a draft purchase order directly from an approved indent (direct purchase). Permission procurement:purchase-order:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrderInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrder" } } } }
+        "422": { description: Indent's purchase method requires a tender }
+  /purchase-orders/{id}:
+    get:
+      summary: One purchase order with receipts and invoices. Permission procurement:purchase-order:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrder" } } } } }
+    put:
+      summary: Edit a draft or returned order. Permission procurement:purchase-order:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrderInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrder" } } } } }
+  /purchase-orders/{id}/submit:
+    post:
+      summary: Send a draft order for approval. Permission procurement:purchase-order:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrder" } } } } }
+  /purchase-orders/{id}/decision:
+    post:
+      summary: >-
+        Approve or return an order. Approval issues it: the PDF is generated, the vendor is notified and
+        procurement.purchase-order.issued is published (budget-grants records the commitment). The preparer cannot
+        approve. Permission procurement:purchase-order:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { $ref: "#/components/requestBodies/Decision" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrder" } } } }
+        "409": { description: Order is not submitted }
+  /purchase-orders/{id}/cancel:
+    post:
+      summary: >-
+        Cancel an issued order with nothing received, or close the remainder of a part-received one. Publishes
+        procurement.purchase-order.cancelled with the amount released. Permission procurement:purchase-order:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PurchaseOrder" } } } } }
+  /purchase-orders/{id}/goods-receipts:
+    get:
+      summary: Goods receipts against an order. Permission procurement:purchase-order:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GoodsReceipt" } } } } } }
+    post:
+      summary: >-
+        Record goods or services received and accepted or rejected per item. Publishes procurement.goods-receipt.recorded
+        (inventory and asset modules may add stock or assets). Permission procurement:goods-receipt:record.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/GoodsReceiptInput" } } } }
+      responses:
+        "201": { description: Recorded, content: { application/json: { schema: { $ref: "#/components/schemas/GoodsReceipt" } } } }
+        "422": { description: Quantity exceeds what is outstanding on the order }
+  /vendor-invoices:
+    get:
+      summary: Vendor invoices. Permission procurement:vendor-invoice:manage.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/VendorInvoiceStatus" } }
+        - { name: vendor_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInvoicePage" } } } } }
+    post:
+      summary: Record a vendor's invoice against an issued order, with the document. Permission procurement:vendor-invoice:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInvoiceInput" } } } }
+      responses:
+        "201": { description: Recorded, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInvoice" } } } }
+        "409": { description: Same vendor invoice number already recorded }
+  /vendor-invoices/{id}:
+    get:
+      summary: One invoice with its match against the order and receipts. Permission procurement:vendor-invoice:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInvoice" } } } } }
+  /vendor-invoices/{id}/decision:
+    post:
+      summary: >-
+        Approve for payment or reject. Approval requires the invoice to match the order and accepted receipts within
+        tolerance, unless overridden with a note. The person who recorded it cannot approve. Publishes
+        procurement.vendor-invoice.approved. Permission procurement:vendor-invoice:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { $ref: "#/components/requestBodies/Decision" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInvoice" } } } }
+        "422": { description: Invoice does not match the order and receipts }
+  /vendor-invoices/{id}/mark-paid:
+    post:
+      summary: >-
+        Record payment of an approved invoice. Publishes procurement.vendor-invoice.paid (budget-grants turns the
+        commitment into actual spend). Permission procurement:vendor-invoice:pay.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [paid_on, payment_reference], properties: { paid_on: { type: string, format: date }, payment_reference: { type: string }, tds_deducted: { $ref: "#/components/schemas/Money" } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/VendorInvoice" } } } }
+        "409": { description: Invoice is not approved }
+  /reports/purchase-orders-pending:
+    get:
+      summary: >-
+        Counts and values of orders awaiting approval, issued orders awaiting delivery (with overdue ones), and approved
+        invoices awaiting payment. Backs the Finance Staff widget procurement.purchase-orders-pending.
+        Permission procurement:report:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PendingReport" } } } } }
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+  requestBodies:
+    Decision:
+      required: true
+      content: { application/json: { schema: { type: object, required: [decision], properties: { decision: { type: string, enum: [approved, returned, rejected] }, note: { type: string } } } } }
+  schemas:
+    Money: { type: string, pattern: "^-?[0-9]+(\\.[0-9]{1,2})?$", description: "Decimal string in rupees" }
+    VendorStatus: { type: string, enum: [pending, approved, suspended, blacklisted] }
+    VendorInput:
+      type: object
+      required: [name, categories]
+      properties:
+        name: { type: string }
+        categories: { type: array, minItems: 1, items: { type: string }, description: "e.g. lab equipment, IT, furniture, services" }
+        contact_name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        address: { type: string }
+        gstin: { type: string, nullable: true }
+        pan: { type: string, nullable: true }
+        msme_registration: { type: string, nullable: true }
+        bank_account:
+          type: object
+          nullable: true
+          properties:
+            account_number: { type: string, writeOnly: true }
+            account_last4: { type: string, readOnly: true }
+            ifsc: { type: string }
+    Vendor:
+      allOf:
+        - { $ref: "#/components/schemas/VendorInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/VendorStatus" }
+            status_reason: { type: string, nullable: true }
+            orders_count: { type: integer }
+            orders_value: { $ref: "#/components/schemas/Money" }
+    VendorPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Vendor" } }
+        next_cursor: { type: string, nullable: true }
+    Item:
+      type: object
+      required: [description, quantity, unit]
+      properties:
+        description: { type: string }
+        specification: { type: string }
+        quantity: { type: number, exclusiveMinimum: 0 }
+        unit: { type: string, description: "e.g. nos, kg, set, hours" }
+        unit_price: { $ref: "#/components/schemas/Money" }
+        tax_percent: { type: number, minimum: 0, description: "As quoted by the vendor" }
+    IndentStatus: { type: string, enum: [draft, submitted, returned, approved, rejected, ordered, closed] }
+    IndentInput:
+      type: object
+      required: [title, line_id, items, estimated_cost]
+      properties:
+        title: { type: string }
+        justification: { type: string }
+        department_id: { type: string, format: uuid, nullable: true }
+        line_id: { type: string, format: uuid, description: "Budget or grant line from budget-grants GET /lines" }
+        items: { type: array, minItems: 1, items: { $ref: "#/components/schemas/Item" } }
+        estimated_cost: { $ref: "#/components/schemas/Money" }
+        needed_by: { type: string, format: date }
+        document_ids: { type: array, items: { type: string }, description: "Specifications or quotes in platform/documents" }
+    Indent:
+      allOf:
+        - { $ref: "#/components/schemas/IndentInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            number: { type: string }
+            status: { $ref: "#/components/schemas/IndentStatus" }
+            purchase_method: { type: string, nullable: true, enum: [direct, quotation, tender], description: "Set at approval from the estimated value" }
+            requested_by: { type: string, format: uuid }
+            requested_by_name: { type: string }
+            decided_by: { type: string, format: uuid, nullable: true }
+            note: { type: string, nullable: true }
+            purchase_order_ids: { type: array, items: { type: string, format: uuid } }
+            created_at: { type: string, format: date-time }
+    IndentPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Indent" } }
+        next_cursor: { type: string, nullable: true }
+    TenderStatus: { type: string, enum: [draft, published, closed, awarded, cancelled] }
+    TenderInput:
+      type: object
+      required: [title, indent_ids, method, closes_at]
+      properties:
+        title: { type: string }
+        indent_ids: { type: array, minItems: 1, items: { type: string, format: uuid } }
+        method: { type: string, enum: [quotation, tender] }
+        invited_vendor_ids: { type: array, items: { type: string, format: uuid }, description: "Empty means every approved vendor in the category" }
+        category: { type: string }
+        closes_at: { type: string, format: date-time }
+        terms: { type: string }
+        document_ids: { type: array, items: { type: string } }
+    QuoteInput:
+      type: object
+      required: [vendor_id, items, total]
+      properties:
+        vendor_id: { type: string, format: uuid }
+        items: { type: array, items: { $ref: "#/components/schemas/Item" } }
+        total: { $ref: "#/components/schemas/Money" }
+        delivery_days: { type: integer, minimum: 0 }
+        valid_until: { type: string, format: date }
+        document_id: { type: string, nullable: true }
+    Tender:
+      allOf:
+        - { $ref: "#/components/schemas/TenderInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            number: { type: string }
+            status: { $ref: "#/components/schemas/TenderStatus" }
+            line_id: { type: string, format: uuid }
+            quotes:
+              type: array
+              description: Sorted by total, lowest first (the comparative statement).
+              items:
+                allOf:
+                  - { $ref: "#/components/schemas/QuoteInput" }
+                  - { type: object, properties: { id: { type: string, format: uuid }, vendor_name: { type: string }, rank: { type: integer } } }
+            awarded_quote_id: { type: string, format: uuid, nullable: true }
+            award_justification: { type: string, nullable: true }
+    PurchaseOrderStatus: { type: string, enum: [draft, submitted, returned, issued, partially_received, received, closed, cancelled] }
+    PurchaseOrderInput:
+      type: object
+      required: [vendor_id, indent_ids, items, delivery_by]
+      properties:
+        vendor_id: { type: string, format: uuid }
+        indent_ids: { type: array, minItems: 1, items: { type: string, format: uuid } }
+        tender_id: { type: string, format: uuid, nullable: true }
+        items: { type: array, minItems: 1, items: { $ref: "#/components/schemas/Item" } }
+        delivery_by: { type: string, format: date }
+        delivery_address: { type: string }
+        terms: { type: string }
+    PurchaseOrder:
+      allOf:
+        - { $ref: "#/components/schemas/PurchaseOrderInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            number: { type: string }
+            status: { $ref: "#/components/schemas/PurchaseOrderStatus" }
+            vendor_name: { type: string }
+            line_id: { type: string, format: uuid }
+            subtotal: { $ref: "#/components/schemas/Money" }
+            tax_total: { $ref: "#/components/schemas/Money" }
+            total: { $ref: "#/components/schemas/Money" }
+            invoiced_total: { $ref: "#/components/schemas/Money" }
+            paid_total: { $ref: "#/components/schemas/Money" }
+            overdue: { type: boolean, description: "Issued and not fully received after delivery_by" }
+            document_id: { type: string, nullable: true, description: "Issued order PDF in platform/documents" }
+            prepared_by: { type: string, format: uuid }
+            approved_by: { type: string, format: uuid, nullable: true }
+            issued_at: { type: string, format: date-time, nullable: true }
+    PurchaseOrderPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/PurchaseOrder" } }
+        next_cursor: { type: string, nullable: true }
+    GoodsReceiptInput:
+      type: object
+      required: [received_on, items]
+      properties:
+        received_on: { type: string, format: date }
+        delivery_note: { type: string }
+        items:
+          type: array
+          minItems: 1
+          items: { type: object, required: [item_index, received, accepted], properties: { item_index: { type: integer, minimum: 0, description: "Position in the order's items" }, received: { type: number, minimum: 0 }, accepted: { type: number, minimum: 0 }, rejection_reason: { type: string } } }
+        document_id: { type: string, nullable: true }
+    GoodsReceipt:
+      allOf:
+        - { $ref: "#/components/schemas/GoodsReceiptInput" }
+        - { type: object, properties: { id: { type: string, format: uuid }, number: { type: string }, purchase_order_id: { type: string, format: uuid }, recorded_by: { type: string, format: uuid } } }
+    VendorInvoiceStatus: { type: string, enum: [recorded, approved, rejected, paid] }
+    VendorInvoiceInput:
+      type: object
+      required: [purchase_order_id, invoice_number, invoice_date, amount]
+      properties:
+        purchase_order_id: { type: string, format: uuid }
+        invoice_number: { type: string, description: "The vendor's own number" }
+        invoice_date: { type: string, format: date }
+        amount: { $ref: "#/components/schemas/Money" }
+        tax_amount: { $ref: "#/components/schemas/Money" }
+        document_id: { type: string, nullable: true }
+    VendorInvoice:
+      allOf:
+        - { $ref: "#/components/schemas/VendorInvoiceInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            vendor_id: { type: string, format: uuid }
+            vendor_name: { type: string }
+            status: { $ref: "#/components/schemas/VendorInvoiceStatus" }
+            match: { type: object, properties: { ordered: { $ref: "#/components/schemas/Money" }, accepted_value: { $ref: "#/components/schemas/Money" }, previously_invoiced: { $ref: "#/components/schemas/Money" }, within_tolerance: { type: boolean } } }
+            recorded_by: { type: string, format: uuid }
+            approved_by: { type: string, format: uuid, nullable: true }
+            paid_on: { type: string, format: date, nullable: true }
+            payment_reference: { type: string, nullable: true }
+            tds_deducted: { $ref: "#/components/schemas/Money" }
+    VendorInvoicePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/VendorInvoice" } }
+        next_cursor: { type: string, nullable: true }
+    PendingReport:
+      type: object
+      properties:
+        awaiting_approval: { $ref: "#/components/schemas/CountValue" }
+        awaiting_delivery: { $ref: "#/components/schemas/CountValue" }
+        overdue_delivery: { $ref: "#/components/schemas/CountValue" }
+        invoices_awaiting_payment: { $ref: "#/components/schemas/CountValue" }
+        oldest:
+          type: array
+          description: Up to ten oldest pending orders
+          items: { type: object, properties: { id: { type: string, format: uuid }, number: { type: string }, vendor_name: { type: string }, status: { $ref: "#/components/schemas/PurchaseOrderStatus" }, total: { $ref: "#/components/schemas/Money" }, since: { type: string, format: date } } }
+    CountValue:
+      type: object
+      properties:
+        count: { type: integer }
+        value: { $ref: "#/components/schemas/Money" }

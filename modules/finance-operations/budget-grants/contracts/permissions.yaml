@@ -1,11 +1,49 @@
 # Permission catalogue for budget-grants. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: budget-grants
-permissions: []
-#  - key: budget-grants:record:read
-#    description: ...
-#  - key: budget-grants:record:write
-#    description: ...
-roles: []
-#  - name: budget-grants-admin
-#    grants: [budget-grants:record:read, budget-grants:record:write]
+permissions:
+  - key: budget-grants:budget:read
+    description: View budget heads, budgets, reappropriations and expenditure.
+  - key: budget-grants:budget:manage
+    description: Create budget heads and budgets, submit them, request reappropriations.
+  - key: budget-grants:budget:approve
+    description: Approve or return budgets and decide reappropriations prepared by someone else.
+  - key: budget-grants:availability:read
+    description: List open budget and grant lines and check available amounts (used by procurement).
+  - key: budget-grants:expenditure:record
+    description: Record and reverse manual expenditure.
+  - key: budget-grants:grant:read
+    description: View all grants and their certificates.
+  - key: budget-grants:grant:manage
+    description: Record grants, funds received and closure; draft and mark certificates submitted.
+  - key: budget-grants:utilisation:approve
+    description: Certify utilisation certificates prepared by someone else.
+  - key: budget-grants:report:read
+    description: View budget-versus-spend reports.
+  - key: budget-grants:self:read
+    description: View grants where one is an investigator.
+roles:
+  - name: finance-staff
+    grants:
+      - budget-grants:budget:read
+      - budget-grants:budget:manage
+      - budget-grants:availability:read
+      - budget-grants:expenditure:record
+      - budget-grants:grant:read
+      - budget-grants:grant:manage
+      - budget-grants:utilisation:approve
+      - budget-grants:report:read
+  - name: research-office
+    grants: [budget-grants:availability:read, budget-grants:grant:read, budget-grants:grant:manage, budget-grants:report:read]
+  - name: management
+    grants: [budget-grants:budget:read, budget-grants:budget:approve, budget-grants:grant:read, budget-grants:utilisation:approve, budget-grants:report:read]
+  - name: department-admin
+    grants: [budget-grants:budget:read, budget-grants:availability:read, budget-grants:report:read, budget-grants:self:read]
+  - name: org-admin
+    grants: [budget-grants:budget:read, budget-grants:grant:read, budget-grants:report:read]
+  - name: faculty
+    grants: [budget-grants:availability:read, budget-grants:self:read]
+  - name: research-supervisor
+    grants: [budget-grants:availability:read, budget-grants:self:read]
+  - name: research-scholar
+    grants: [budget-grants:self:read]

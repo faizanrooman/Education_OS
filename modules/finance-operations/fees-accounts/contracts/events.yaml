@@ -1,9 +1,36 @@
 # Domain events published by fees-accounts.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Naming: <module>.<entity>.<past-tense-verb>
 # Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Amounts are decimal strings in rupees.
 module: fees-accounts
 version: 1
-events: []
-#  - name: fees-accounts.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: fees-accounts.fee-structure.published
+    description: A fee structure can now be used to raise invoices.
+    payload: { organisation_id: uuid, fee_structure_id: uuid, academic_year: string, programme_id: uuid, applies_to: string, total: string }
+  - name: fees-accounts.invoice.issued
+    description: An invoice was raised for a person. notification tells the person; admissions may show the fee due.
+    payload: { organisation_id: uuid, invoice_id: uuid, number: string, person_id: uuid, total: string, due_date: date, source_module: string, source_reference: string }
+  - name: fees-accounts.invoice.overdue
+    description: Sent once, the day after the due date, when a balance remains. notification reminds the person.
+    payload: { organisation_id: uuid, invoice_id: uuid, person_id: uuid, balance: string, due_date: date }
+  - name: fees-accounts.invoice.paid
+    description: >-
+      Balance reached zero. Modules that wait for a fee (for example admissions confirming a seat, or
+      enrolment-registration) react to this; source_module and source_reference echo what raised the invoice.
+    payload: { organisation_id: uuid, invoice_id: uuid, person_id: uuid, total: string, paid_at: datetime, source_module: string, source_reference: string }
+  - name: fees-accounts.invoice.cancelled
+    description: An unpaid invoice was cancelled with a reason; no balance remains due.
+    payload: { organisation_id: uuid, invoice_id: uuid, person_id: uuid, reason: string }
+  - name: fees-accounts.payment.received
+    description: An online or offline payment was applied to an invoice and a receipt issued.
+    payload: { organisation_id: uuid, payment_id: uuid, invoice_id: uuid, person_id: uuid, amount: string, mode: string, receipt_id: uuid }
+  - name: fees-accounts.payment.voided
+    description: An offline payment was voided (for example a bounced cheque); its receipt is cancelled.
+    payload: { organisation_id: uuid, payment_id: uuid, invoice_id: uuid, person_id: uuid, amount: string, reason: string }
+  - name: fees-accounts.refund.issued
+    description: A refund was issued against a payment. payment-sbiepay handles online refunds.
+    payload: { organisation_id: uuid, refund_id: uuid, payment_id: uuid, invoice_id: uuid, person_id: uuid, amount: string }
+  - name: fees-accounts.concession.approved
+    description: A concession or scholarship was applied to an invoice, reducing the amount due.
+    payload: { organisation_id: uuid, concession_id: uuid, invoice_id: uuid, person_id: uuid, kind: string, approved_amount: string }

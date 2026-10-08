@@ -2,12 +2,19 @@
 
 **Domain:** campus-life
 **Kind:** feature
-**Status:** planned
+**Status:** in-progress (contracts proposed)
 
 Catalogue, circulation, digital library, fines, reservations.
 
 ## Scope
-_Owner fills in: what this module is responsible for, and what it explicitly is not._
+Owner: Tejaswini (@tejaswini-rooman). Requirements: [docs/prd.md](docs/prd.md).
+
+**In scope:** catalogue of titles and copies; members and loan policies; circulation (issue, return,
+renew, lost); reservations and holds; fines paid at the desk or waived; a list of digital resources
+(links only). Publishes fine events that fees-accounts may use to invoice fines.
+
+**Not in scope:** buying books and subscriptions (procurement), hosting digital content, inter-library
+loans and RFID gates (later integrations), reading-room seat booking (facility-booking).
 
 ## Public surface
 - API: [contracts/openapi.yaml](contracts/openapi.yaml)
