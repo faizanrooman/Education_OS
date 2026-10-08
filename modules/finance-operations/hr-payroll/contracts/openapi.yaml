@@ -2,9 +2,436 @@ openapi: 3.1.0
 info:
   title: hr-payroll API
   version: 0.1.0
-  description: "Employee master, leave, payroll, appraisals, service records."
+  description: >-
+    Employee master, leave, salary and monthly payroll, payslips, appraisals and service records.
+    Employees sign in through platform/identity (user_id). Departments are referenced by id with a cached name.
+    Amounts are decimal strings in rupees.
 servers:
   - url: /api/v1/hr-payroll
-paths: {}
+paths:
+  /employees:
+    get:
+      summary: Employees of the organisation. Permission hr-payroll:employee:read.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/EmployeeStatus" } }
+        - { name: department_id, in: query, schema: { type: string, format: uuid } }
+        - { name: q, in: query, schema: { type: string }, description: "Name or employee code" }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EmployeePage" } } } } }
+    post:
+      summary: >-
+        Add an employee (joining). Publishes hr-payroll.employee.joined; identity may create the user account.
+        Permission hr-payroll:employee:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EmployeeInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Employee" } } } }
+        "409": { description: Employee code already used }
+  /employees/{id}:
+    get:
+      summary: One employee. Permission hr-payroll:employee:read, or the employee.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Employee" } } } } }
+    put:
+      summary: Update employee details. Department or designation changes add a service record. Permission hr-payroll:employee:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EmployeeInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Employee" } } } } }
+  /employees/{id}/exit:
+    post:
+      summary: >-
+        Record a resignation, retirement or termination with the last working day. Publishes hr-payroll.employee.exited
+        on that day; identity disables the user. Permission hr-payroll:employee:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ExitInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Employee" } } } } }
+  /employees/{id}/salary:
+    get:
+      summary: Current salary structure of an employee. Permission hr-payroll:payroll:read, or the employee.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Salary" } } } } }
+    put:
+      summary: Set the salary from an effective date. Earlier structures are kept. Permission hr-payroll:payroll:prepare.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Salary" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Salary" } } } } }
+  /employees/{id}/service-records:
+    get:
+      summary: Service book entries, oldest first. Permission hr-payroll:employee:read, or the employee.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ServiceRecord" } } } } } }
+    post:
+      summary: Add a service record (promotion, transfer, increment, award, disciplinary note). Permission hr-payroll:employee:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ServiceRecordInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/ServiceRecord" } } } } }
+  /leave-types:
+    get:
+      summary: Leave types and yearly entitlements. Any employee.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LeaveType" } } } } } }
+    post:
+      summary: Create a leave type. Permission hr-payroll:leave-type:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveType" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveType" } } } } }
+  /leave-types/{id}:
+    put:
+      summary: Edit a leave type. Permission hr-payroll:leave-type:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveType" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveType" } } } } }
+  /leave-requests:
+    get:
+      summary: >-
+        Leave requests. With status=pending this backs the HR Staff widget hr-payroll.leave-requests.
+        Permission hr-payroll:leave:approve (all, or the approver's department).
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/LeaveStatus" } }
+        - { name: employee_id, in: query, schema: { type: string, format: uuid } }
+        - { name: department_id, in: query, schema: { type: string, format: uuid } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequestPage" } } } } }
+    post:
+      summary: Apply for leave. Publishes hr-payroll.leave-request.submitted. Permission hr-payroll:self:use.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequestInput" } } } }
+      responses:
+        "201": { description: Submitted, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequest" } } } }
+        "422": { description: "Insufficient balance, overlapping request or dates in the past" }
+  /leave-requests/{id}/decision:
+    post:
+      summary: >-
+        Approve or reject a leave request. Nobody decides their own. Publishes hr-payroll.leave-request.approved
+        or .rejected. Permission hr-payroll:leave:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [decision], properties: { decision: { type: string, enum: [approved, rejected] }, note: { type: string } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequest" } } } }
+        "409": { description: Request is not pending }
+  /leave-requests/{id}/cancel:
+    post:
+      summary: Withdraw one's own request before it starts. An approved request returns its days to the balance. Permission hr-payroll:self:use.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LeaveRequest" } } } } }
+  /payroll-runs:
+    get:
+      summary: Payroll runs, newest first. Permission hr-payroll:payroll:read.
+      parameters: [{ name: year, in: query, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PayrollRun" } } } } } }
+    post:
+      summary: >-
+        Start the payroll for a month: computes payslips from salaries, with loss of pay for unpaid leave.
+        One run per month. Permission hr-payroll:payroll:prepare.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [period], properties: { period: { $ref: "#/components/schemas/Period" } } } } } }
+      responses:
+        "202": { description: Run started, content: { application/json: { schema: { $ref: "#/components/schemas/PayrollRun" } } } }
+        "409": { description: A run for this month already exists }
+  /payroll-runs/current:
+    get:
+      summary: The run for the current month, or the latest one. Backs the HR Staff widget hr-payroll.payroll-run-status. Permission hr-payroll:payroll:read.
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PayrollRun" } } } }
+        "404": { description: No run yet }
+  /payroll-runs/{id}:
+    get:
+      summary: One run with totals and exceptions. Permission hr-payroll:payroll:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PayrollRun" } } } } }
+  /payroll-runs/{id}/payslips:
+    get:
+      summary: Payslips in a run. Permission hr-payroll:payroll:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PayslipPage" } } } } }
+  /payroll-runs/{id}/payslips/{payslip_id}:
+    put:
+      summary: Adjust one payslip while the run is in review (arrears, one-off deductions) with a reason. Permission hr-payroll:payroll:prepare.
+      parameters: [{ $ref: "#/components/parameters/Id" }, { name: payslip_id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [lines, reason], properties: { lines: { type: array, items: { $ref: "#/components/schemas/PayLine" } }, reason: { type: string } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Payslip" } } } }
+        "409": { description: Run is not in review }
+  /payroll-runs/{id}/submit:
+    post:
+      summary: Send a computed run for approval. Permission hr-payroll:payroll:prepare.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PayrollRun" } } } } }
+  /payroll-runs/{id}/decision:
+    post:
+      summary: >-
+        Approve or return a submitted run. The preparer cannot approve. Approval locks the run, publishes payslips to
+        employees and publishes hr-payroll.payroll-run.approved. Permission hr-payroll:payroll:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [decision], properties: { decision: { type: string, enum: [approved, returned] }, note: { type: string } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PayrollRun" } } } }
+        "409": { description: Run is not submitted }
+  /payroll-runs/{id}/mark-paid:
+    post:
+      summary: Record that salaries were disbursed (bank file uploaded or transfer done). Publishes hr-payroll.payroll-run.paid. Permission hr-payroll:payroll:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [paid_on], properties: { paid_on: { type: string, format: date }, bank_reference: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PayrollRun" } } } } }
+  /appraisals:
+    get:
+      summary: Appraisals. Permission hr-payroll:appraisal:review (all, or the reviewer's reportees).
+      parameters:
+        - { name: cycle, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, enum: [self_review, manager_review, completed] } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Appraisal" } } } } } }
+    post:
+      summary: Open an appraisal cycle for a list of employees. Permission hr-payroll:employee:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [cycle, employee_ids], properties: { cycle: { type: string, description: "e.g. 2026-27" }, employee_ids: { type: array, items: { type: string, format: uuid } } } } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Appraisal" } } } } } }
+  /appraisals/{id}:
+    get:
+      summary: One appraisal. Permission hr-payroll:appraisal:review, or the employee.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Appraisal" } } } } }
+    put:
+      summary: >-
+        Save the self review (employee, permission hr-payroll:self:use) or the reviewer's rating
+        (permission hr-payroll:appraisal:review). submit=true moves it to the next stage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AppraisalInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Appraisal" } } } } }
+  /me:
+    get:
+      summary: The caller's own employee record. Permission hr-payroll:self:use.
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Employee" } } } }
+        "404": { description: The caller is not an employee }
+  /me/leave-balances:
+    get:
+      summary: The caller's leave balances for the current leave year. Permission hr-payroll:self:use.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LeaveBalance" } } } } } }
+  /me/leave-requests:
+    get:
+      summary: The caller's leave requests. Permission hr-payroll:self:use.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LeaveRequest" } } } } } }
+  /me/payslips:
+    get:
+      summary: The caller's payslips from approved runs. Permission hr-payroll:self:use.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Payslip" } } } } } }
+  /reports/joinings-and-exits:
+    get:
+      summary: >-
+        Joinings and exits in a date range with recent names and upcoming last working days.
+        Backs the HR Staff widget hr-payroll.joinings-and-exits. Permission hr-payroll:report:read.
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date }, description: "Defaults to the first day of the current month" }
+        - { name: to, in: query, schema: { type: string, format: date }, description: "Defaults to today" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/JoiningsAndExitsReport" } } } } }
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+  schemas:
+    Money: { type: string, pattern: "^-?[0-9]+(\\.[0-9]{1,2})?$", description: "Decimal string in rupees" }
+    Period: { type: string, pattern: "^[0-9]{4}-[0-9]{2}$", description: "Month, YYYY-MM" }
+    EmployeeStatus: { type: string, enum: [active, on_notice, exited] }
+    EmployeeInput:
+      type: object
+      required: [employee_code, name, joined_on, employment_type]
+      properties:
+        employee_code: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        date_of_birth: { type: string, format: date }
+        joined_on: { type: string, format: date }
+        employment_type: { type: string, enum: [permanent, contract, visiting, part_time] }
+        staff_category: { type: string, enum: [teaching, non_teaching] }
+        designation: { type: string }
+        department_id: { type: string, format: uuid, nullable: true }
+        reports_to: { type: string, format: uuid, nullable: true, description: "Employee id of the reporting manager" }
+        bank_account: { $ref: "#/components/schemas/BankAccount" }
+        pan: { type: string, writeOnly: true, description: "Returned masked" }
+    BankAccount:
+      type: object
+      nullable: true
+      properties:
+        account_holder: { type: string }
+        account_number: { type: string, writeOnly: true, description: "Returned masked as account_last4" }
+        account_last4: { type: string, readOnly: true }
+        ifsc: { type: string }
+    Employee:
+      allOf:
+        - { $ref: "#/components/schemas/EmployeeInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            user_id: { type: string, format: uuid, nullable: true, description: "platform/identity user" }
+            department_name: { type: string, nullable: true }
+            status: { $ref: "#/components/schemas/EmployeeStatus" }
+            pan_masked: { type: string, nullable: true }
+            exit: { $ref: "#/components/schemas/ExitInput" }
+    EmployeePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Employee" } }
+        next_cursor: { type: string, nullable: true }
+    ExitInput:
+      type: object
+      nullable: true
+      required: [kind, last_working_day]
+      properties:
+        kind: { type: string, enum: [resignation, retirement, termination, contract_end, death] }
+        last_working_day: { type: string, format: date }
+        reason: { type: string }
+    Salary:
+      type: object
+      required: [effective_from, lines]
+      properties:
+        effective_from: { type: string, format: date }
+        lines: { type: array, items: { $ref: "#/components/schemas/PayLine" } }
+        gross: { allOf: [{ $ref: "#/components/schemas/Money" }], readOnly: true }
+        net: { allOf: [{ $ref: "#/components/schemas/Money" }], readOnly: true }
+    PayLine:
+      type: object
+      required: [code, kind, amount]
+      properties:
+        code: { type: string, description: "Component code from the organisation's pay components, e.g. BASIC, DA, HRA, PF" }
+        name: { type: string }
+        kind: { type: string, enum: [earning, deduction] }
+        amount: { $ref: "#/components/schemas/Money" }
+    ServiceRecordInput:
+      type: object
+      required: [kind, effective_on, title]
+      properties:
+        kind: { type: string, enum: [joining, confirmation, promotion, transfer, increment, award, disciplinary, training, exit, other] }
+        effective_on: { type: string, format: date }
+        title: { type: string }
+        details: { type: string }
+        document_id: { type: string, nullable: true, description: "Order or letter in platform/documents" }
+    ServiceRecord:
+      allOf:
+        - { $ref: "#/components/schemas/ServiceRecordInput" }
+        - { type: object, properties: { id: { type: string, format: uuid }, recorded_by: { type: string, format: uuid }, recorded_at: { type: string, format: date-time } } }
+    LeaveType:
+      type: object
+      required: [code, name, days_per_year]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        code: { type: string }
+        name: { type: string }
+        days_per_year: { type: number, minimum: 0 }
+        carry_forward_max: { type: number, minimum: 0, default: 0 }
+        paid: { type: boolean, default: true }
+        half_day_allowed: { type: boolean, default: true }
+        applies_to: { type: array, items: { type: string, enum: [permanent, contract, visiting, part_time] } }
+        active: { type: boolean, default: true }
+    LeaveStatus: { type: string, enum: [pending, approved, rejected, cancelled] }
+    LeaveRequestInput:
+      type: object
+      required: [leave_type_id, from, to]
+      properties:
+        leave_type_id: { type: string, format: uuid }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        half_day: { type: string, enum: [none, first_half, second_half], default: none, description: "Only when from equals to" }
+        reason: { type: string }
+    LeaveRequest:
+      allOf:
+        - { $ref: "#/components/schemas/LeaveRequestInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            employee_id: { type: string, format: uuid }
+            employee_name: { type: string }
+            days: { type: number }
+            status: { $ref: "#/components/schemas/LeaveStatus" }
+            decided_by: { type: string, format: uuid, nullable: true }
+            decided_at: { type: string, format: date-time, nullable: true }
+            note: { type: string, nullable: true }
+            created_at: { type: string, format: date-time }
+    LeaveRequestPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/LeaveRequest" } }
+        pending_total: { type: integer }
+        next_cursor: { type: string, nullable: true }
+    LeaveBalance:
+      type: object
+      properties:
+        leave_type_id: { type: string, format: uuid }
+        name: { type: string }
+        entitled: { type: number }
+        carried_forward: { type: number }
+        taken: { type: number }
+        pending: { type: number }
+        available: { type: number }
+    PayrollRun:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        period: { $ref: "#/components/schemas/Period" }
+        status: { type: string, enum: [computing, review, submitted, approved, paid, failed] }
+        employees: { type: integer }
+        gross_total: { $ref: "#/components/schemas/Money" }
+        deductions_total: { $ref: "#/components/schemas/Money" }
+        net_total: { $ref: "#/components/schemas/Money" }
+        exceptions: { type: array, items: { type: object, properties: { employee_id: { type: string, format: uuid }, message: { type: string } } }, description: "e.g. missing salary or bank account" }
+        prepared_by: { type: string, format: uuid }
+        approved_by: { type: string, format: uuid, nullable: true }
+        paid_on: { type: string, format: date, nullable: true }
+        updated_at: { type: string, format: date-time }
+    Payslip:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        run_id: { type: string, format: uuid }
+        period: { $ref: "#/components/schemas/Period" }
+        employee_id: { type: string, format: uuid }
+        employee_name: { type: string }
+        paid_days: { type: number }
+        loss_of_pay_days: { type: number }
+        lines: { type: array, items: { $ref: "#/components/schemas/PayLine" } }
+        gross: { $ref: "#/components/schemas/Money" }
+        deductions: { $ref: "#/components/schemas/Money" }
+        net: { $ref: "#/components/schemas/Money" }
+        document_id: { type: string, nullable: true, description: "PDF in platform/documents, once the run is approved" }
+    PayslipPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Payslip" } }
+        next_cursor: { type: string, nullable: true }
+    AppraisalInput:
+      type: object
+      properties:
+        self_review: { type: string }
+        reviewer_comments: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        submit: { type: boolean, default: false }
+    Appraisal:
+      allOf:
+        - { $ref: "#/components/schemas/AppraisalInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            cycle: { type: string }
+            employee_id: { type: string, format: uuid }
+            employee_name: { type: string }
+            reviewer_id: { type: string, format: uuid, nullable: true }
+            status: { type: string, enum: [self_review, manager_review, completed] }
+            completed_at: { type: string, format: date-time, nullable: true }
+    JoiningsAndExitsReport:
+      type: object
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        joined: { type: integer }
+        exited: { type: integer }
+        headcount: { type: integer, description: "Active employees on the to date" }
+        recent_joinings: { type: array, items: { $ref: "#/components/schemas/PersonEntry" } }
+        recent_exits: { type: array, items: { $ref: "#/components/schemas/PersonEntry" } }
+        upcoming_exits: { type: array, items: { $ref: "#/components/schemas/PersonEntry" }, description: "On notice, by last working day" }
+    PersonEntry:
+      type: object
+      properties:
+        employee_id: { type: string, format: uuid }
+        name: { type: string }
+        designation: { type: string }
+        department_name: { type: string, nullable: true }
+        date: { type: string, format: date }

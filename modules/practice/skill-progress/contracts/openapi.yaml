@@ -2,9 +2,868 @@ openapi: 3.1.0
 info:
   title: skill-progress API
   version: 0.1.0
-  description: "Skill assessments and progression over time: technique, fitness, practicum, competencies."
+  description: "Generic skill assessments, rubrics, and progression tracking across competencies."
 servers:
   - url: /api/v1/skill-progress
-paths: {}
+paths:
+  /frameworks:
+    get:
+      summary: List skill frameworks
+      description: Retrieve competency frameworks configured for the organisation.
+      operationId: listFrameworks
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, draft, archived]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of skill frameworks
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SkillFramework"
+                  total:
+                    type: integer
+    post:
+      summary: Create a skill framework
+      description: Define a new competency framework.
+      operationId: createFramework
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFrameworkRequest"
+      responses:
+        "201":
+          description: Framework created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillFramework"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /frameworks/{framework_id}:
+    get:
+      summary: Get framework details
+      operationId: getFramework
+      parameters:
+        - name: framework_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Framework details including skills hierarchy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillFramework"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update a skill framework
+      operationId: updateFramework
+      parameters:
+        - name: framework_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFrameworkRequest"
+      responses:
+        "200":
+          description: Framework updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillFramework"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /skills:
+    get:
+      summary: List skills
+      description: Query skills by framework, category, or parent skill.
+      operationId: listSkills
+      parameters:
+        - name: framework_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: parent_skill_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of skills
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Skill"
+                  total:
+                    type: integer
+    post:
+      summary: Create a skill
+      description: Add a skill node to a framework.
+      operationId: createSkill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSkillRequest"
+      responses:
+        "201":
+          description: Skill created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Skill"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /skills/{skill_id}:
+    get:
+      summary: Get skill details
+      operationId: getSkill
+      parameters:
+        - name: skill_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Skill details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Skill"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update a skill
+      operationId: updateSkill
+      parameters:
+        - name: skill_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSkillRequest"
+      responses:
+        "200":
+          description: Skill updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Skill"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /rubrics:
+    get:
+      summary: List rubrics
+      description: Retrieve evaluation rubrics.
+      operationId: listRubrics
+      parameters:
+        - name: skill_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: framework_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of rubrics
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Rubric"
+                  total:
+                    type: integer
+    post:
+      summary: Create a rubric
+      description: Define criteria and scoring levels for skill evaluation.
+      operationId: createRubric
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRubricRequest"
+      responses:
+        "201":
+          description: Rubric created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rubric"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /rubrics/{rubric_id}:
+    get:
+      summary: Get rubric details
+      operationId: getRubric
+      parameters:
+        - name: rubric_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Rubric details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rubric"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /assessments:
+    get:
+      summary: List assessments
+      description: Query assessment records by learner, evaluator, or skill.
+      operationId: listAssessments
+      parameters:
+        - name: learner_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: evaluator_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: skill_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of assessment records
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AssessmentRecord"
+                  total:
+                    type: integer
+    post:
+      summary: Record an assessment
+      description: Record a learner skill evaluation with rubric scores and optional feedback.
+      operationId: recordAssessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordAssessmentRequest"
+      responses:
+        "201":
+          description: Assessment recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentRecord"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /assessments/{assessment_id}:
+    get:
+      summary: Get assessment details
+      operationId: getAssessment
+      parameters:
+        - name: assessment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Assessment record details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentRecord"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /learners/{learner_id}/progress:
+    get:
+      summary: Get learner skill progress summary
+      description: Returns the latest proficiency status across all evaluated skills.
+      operationId: getLearnerProgress
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: framework_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Learner skill progress summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearnerProgressSummary"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /learners/{learner_id}/timeline:
+    get:
+      summary: Get learner skill progression timeline
+      description: Returns a chronological timeline of assessments and milestones.
+      operationId: getLearnerTimeline
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: skill_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: Progression timeline
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TimelineEntry"
+                  total:
+                    type: integer
+
 components:
-  schemas: {}
+  responses:
+    BadRequest:
+      description: Invalid request parameters or body
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    SkillFramework:
+      type: object
+      required: [id, organisation_id, code, title, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: "TECH-2026"
+        title:
+          type: string
+          example: "Core Practical Competencies"
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, draft, archived]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateFrameworkRequest:
+      type: object
+      required: [code, title]
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, draft]
+          default: active
+
+    UpdateFrameworkRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, draft, archived]
+
+    Skill:
+      type: object
+      required: [id, organisation_id, framework_id, code, title, level_scale, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        framework_id:
+          type: string
+          format: uuid
+        parent_skill_id:
+          type: string
+          format: uuid
+          nullable: true
+        code:
+          type: string
+          example: "SKILL-01"
+        title:
+          type: string
+          example: "Foundational Technique"
+        description:
+          type: string
+        category:
+          type: string
+          example: "Practical Mechanics"
+        level_scale:
+          $ref: "#/components/schemas/ProficiencyScale"
+        created_at:
+          type: string
+          format: date-time
+
+    CreateSkillRequest:
+      type: object
+      required: [framework_id, code, title, level_scale]
+      properties:
+        framework_id:
+          type: string
+          format: uuid
+        parent_skill_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        level_scale:
+          $ref: "#/components/schemas/ProficiencyScale"
+
+    UpdateSkillRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        level_scale:
+          $ref: "#/components/schemas/ProficiencyScale"
+
+    ProficiencyScale:
+      type: object
+      required: [type, levels]
+      properties:
+        type:
+          type: string
+          enum: [discrete_stages, numeric_range, pass_fail]
+          example: discrete_stages
+        min_score:
+          type: number
+        max_score:
+          type: number
+        levels:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceLevel"
+
+    PerformanceLevel:
+      type: object
+      required: [key, label, rank]
+      properties:
+        key:
+          type: string
+          example: "level_3"
+        label:
+          type: string
+          example: "Proficient"
+        rank:
+          type: integer
+          example: 3
+        description:
+          type: string
+        min_score:
+          type: number
+
+    Rubric:
+      type: object
+      required: [id, organisation_id, title, criteria, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        skill_id:
+          type: string
+          format: uuid
+          nullable: true
+        framework_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          example: "Practicum Evaluation Rubric"
+        description:
+          type: string
+        criteria:
+          type: array
+          items:
+            $ref: "#/components/schemas/RubricCriterion"
+        created_at:
+          type: string
+          format: date-time
+
+    RubricCriterion:
+      type: object
+      required: [key, title, weight, max_points]
+      properties:
+        key:
+          type: string
+          example: "execution_accuracy"
+        title:
+          type: string
+          example: "Execution Accuracy"
+        description:
+          type: string
+        weight:
+          type: number
+          default: 1.0
+        max_points:
+          type: number
+          example: 10
+        levels:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceLevel"
+
+    CreateRubricRequest:
+      type: object
+      required: [title, criteria]
+      properties:
+        skill_id:
+          type: string
+          format: uuid
+        framework_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        criteria:
+          type: array
+          items:
+            $ref: "#/components/schemas/RubricCriterion"
+
+    AssessmentRecord:
+      type: object
+      required: [id, organisation_id, learner_id, evaluator_id, skill_id, rubric_id, assessed_at, criterion_scores, overall_score, level_achieved]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: string
+          format: uuid
+        evaluator_id:
+          type: string
+          format: uuid
+        skill_id:
+          type: string
+          format: uuid
+        rubric_id:
+          type: string
+          format: uuid
+        assessed_at:
+          type: string
+          format: date-time
+        criterion_scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/CriterionScore"
+        overall_score:
+          type: number
+          example: 88.5
+        level_achieved:
+          type: string
+          example: "Proficient"
+        feedback:
+          type: string
+        evidence_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        status:
+          type: string
+          enum: [submitted, verified, voided]
+          default: submitted
+
+    CriterionScore:
+      type: object
+      required: [criterion_key, points]
+      properties:
+        criterion_key:
+          type: string
+        points:
+          type: number
+        level_key:
+          type: string
+        notes:
+          type: string
+
+    RecordAssessmentRequest:
+      type: object
+      required: [learner_id, evaluator_id, skill_id, rubric_id, criterion_scores, overall_score, level_achieved]
+      properties:
+        learner_id:
+          type: string
+          format: uuid
+        evaluator_id:
+          type: string
+          format: uuid
+        skill_id:
+          type: string
+          format: uuid
+        rubric_id:
+          type: string
+          format: uuid
+        assessed_at:
+          type: string
+          format: date-time
+        criterion_scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/CriterionScore"
+        overall_score:
+          type: number
+        level_achieved:
+          type: string
+        feedback:
+          type: string
+        evidence_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+
+    LearnerProgressSummary:
+      type: object
+      required: [learner_id, organisation_id, skills_evaluated, current_skills]
+      properties:
+        learner_id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        skills_evaluated:
+          type: integer
+        current_skills:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkillProficiencyStatus"
+
+    SkillProficiencyStatus:
+      type: object
+      required: [skill_id, skill_title, latest_score, latest_level, latest_assessed_at]
+      properties:
+        skill_id:
+          type: string
+          format: uuid
+        skill_title:
+          type: string
+        category:
+          type: string
+        latest_score:
+          type: number
+        latest_level:
+          type: string
+        total_evaluations:
+          type: integer
+        latest_assessed_at:
+          type: string
+          format: date-time
+
+    TimelineEntry:
+      type: object
+      required: [id, event_type, occurred_at, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          enum: [assessment, milestone_achieved, level_advanced]
+        occurred_at:
+          type: string
+          format: date-time
+        skill_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        score:
+          type: number
+        level:
+          type: string
+

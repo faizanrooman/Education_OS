@@ -6,12 +6,12 @@ domain: facilities
 tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
-description: "Fixed asset register, tagging, depreciation, disposal."
-owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
+description: "Fixed asset register: tagging, transfers, physical verification, depreciation and disposal."
+owners: [Ashritharooman]  # GitHub handles. Keep in sync with CODEOWNERS.
 
 # Platform services this module calls through packages/sdk. Nothing else.
 depends_on:
-  platform: [identity, audit]
+  platform: [identity, audit, notification, scheduler, documents]
   integrations: []
 
 # Public surface. Other modules may ONLY use these.

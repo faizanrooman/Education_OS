@@ -2,9 +2,380 @@ openapi: 3.1.0
 info:
   title: library API
   version: 0.1.0
-  description: "Catalogue, circulation, digital library, fines, reservations."
+  description: "Catalogue, circulation, digital library, fines, reservations. See docs/prd.md."
 servers:
   - url: /api/v1/library
-paths: {}
+paths:
+  /titles:
+    get:
+      summary: Search the catalogue, with available copy counts. Permission library:catalogue:read or library:self:read.
+      parameters:
+        - { name: q, in: query, description: "Words in title, author, subject or ISBN", schema: { type: string } }
+        - { name: kind, in: query, schema: { type: string } }
+        - { name: available, in: query, schema: { type: boolean } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/TitlePage" } } } } }
+    post:
+      summary: Catalogue a title. Permission library:catalogue:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TitleInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Title" } } } }, "409": { description: "ISBN already catalogued" } }
+  /titles/{id}:
+    get:
+      summary: One title with its copies and reservation queue length. Permission library:catalogue:read or library:self:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/TitleDetail" } } } }, "404": { description: "Not found" } }
+    patch:
+      summary: Correct a title's details. Permission library:catalogue:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TitleInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Title" } } } } }
+  /titles/{id}/copies:
+    post:
+      summary: Add a copy of a title. Permission library:catalogue:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CopyInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Copy" } } } }, "409": { description: "Accession number or barcode already used" } }
+  /copies/{id}:
+    patch:
+      summary: Move a copy or withdraw it. A copy on loan cannot be withdrawn. Permission library:catalogue:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { location: { type: string }, withdrawn: { type: boolean }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Copy" } } } }, "409": { description: "Copy is on loan" } }
+  /members:
+    get:
+      summary: Members. Permission library:member:manage.
+      parameters:
+        - { name: q, in: query, description: Name contains, schema: { type: string } }
+        - { name: blocked, in: query, schema: { type: boolean } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MemberPage" } } } } }
+    post:
+      summary: Add a member. Permission library:member:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [person_id, category], properties: { person_id: { type: string, format: uuid }, category: { type: string } } } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Member" } } } }, "409": { description: "Already a member" } }
+  /members/{person_id}:
+    get:
+      summary: One member with current loans and open fines. Permission library:member:manage.
+      parameters: [{ $ref: "#/components/parameters/PersonId" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MemberDetail" } } } }, "404": { description: "Not a member" } }
+    patch:
+      summary: Change category, or block and unblock with a reason. Publishes library.member.blocked when blocking. Permission library:member:manage.
+      parameters: [{ $ref: "#/components/parameters/PersonId" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { category: { type: string }, blocked: { type: boolean }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Member" } } } } }
+  /loan-policies:
+    get:
+      summary: Loan policy per member category. Permission library:catalogue:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LoanPolicy" } } } } } }
+    put:
+      summary: Replace all loan policies. Applies to new loans and renewals only. Permission library:policy:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LoanPolicy" } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LoanPolicy" } } } } } }
+  /loans:
+    get:
+      summary: Loans. Permission library:circulation:manage.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/LoanStatus" } }
+        - { name: overdue, in: query, schema: { type: boolean } }
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LoanPage" } } } } }
+    post:
+      summary: >-
+        Issue a copy to a member at the desk. Refused if the member is blocked, at their loan limit or over the unpaid
+        fine limit, or the copy is not available to them. Publishes library.loan.issued. Permission library:circulation:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [barcode, person_id], properties: { barcode: { type: string }, person_id: { type: string, format: uuid } } } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "409": { description: Refused, content: { application/json: { schema: { $ref: "#/components/schemas/Refusal" } } } } }
+  /returns:
+    post:
+      summary: >-
+        Return a copy by barcode. Raises an overdue fine if late; puts the copy on hold for the next reservation if
+        any. Publishes library.loan.returned and, when applicable, library.fine.raised and library.reservation.ready. Permission library:circulation:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [barcode], properties: { barcode: { type: string }, damage_note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReturnResult" } } } }, "409": { description: "Copy is not on loan" } }
+  /loans/{id}/renew:
+    post:
+      summary: >-
+        Renew a loan if renewals remain and no one is waiting for the title. Publishes library.loan.renewed.
+        Permission library:circulation:manage, or library:self:borrow for the caller's own loan.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "409": { description: Refused, content: { application/json: { schema: { $ref: "#/components/schemas/Refusal" } } } } }
+  /loans/{id}/lost:
+    post:
+      summary: Mark a loaned copy lost. Raises a replacement fine. Publishes library.loan.lost and library.fine.raised. Permission library:circulation:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [replacement_amount], properties: { replacement_amount: { $ref: "#/components/schemas/Money" }, note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "409": { description: "Loan not active" } }
+  /reservations:
+    get:
+      summary: Reservations. Permission library:circulation:manage.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ReservationStatus" } }
+        - { name: title_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReservationPage" } } } } }
+  /reservations/{id}/cancel:
+    post:
+      summary: Cancel a waiting or ready reservation; a held copy goes to the next in the queue. Permission library:circulation:manage, or library:self:borrow for the caller's own.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Reservation" } } } }, "409": { description: "Already fulfilled, cancelled or expired" } }
+  /fines:
+    get:
+      summary: Fines. Permission library:fine:manage.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/FineStatus" } }
+        - { name: person_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FinePage" } } } } }
+  /fines/{id}/pay:
+    post:
+      summary: Record a fine paid at the desk or settled elsewhere, with a receipt reference. Publishes library.fine.paid. Permission library:fine:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [receipt_ref], properties: { receipt_ref: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Fine" } } } }, "409": { description: "Fine not open" } }
+  /fines/{id}/waive:
+    post:
+      summary: Waive a fine with a reason. Publishes library.fine.waived. Permission library:fine:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Reason" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Fine" } } } }, "409": { description: "Fine not open" } }
+  /digital-resources:
+    get:
+      summary: Digital resources. Permission library:catalogue:read or library:self:read.
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: kind, in: query, schema: { type: string } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/DigitalResource" } } } } } }
+    post:
+      summary: Add a digital resource (link only). Permission library:catalogue:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DigitalResourceInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/DigitalResource" } } } } }
+  /digital-resources/{id}:
+    patch:
+      summary: Update or deactivate a digital resource. Permission library:catalogue:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DigitalResourceInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DigitalResource" } } } } }
+  /me/loans:
+    get:
+      summary: >-
+        The caller's active loans, earliest due first, with overdue flag and fine accrued so far. Backs the Student
+        widget library.loans. Permission library:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Loan" } } } } } }
+  /me/reservations:
+    get:
+      summary: The caller's waiting and ready reservations. Permission library:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Reservation" } } } } } }
+    post:
+      summary: Reserve a title with no available copy. One active reservation per title per person. Publishes library.reservation.placed. Permission library:self:borrow.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [title_id], properties: { title_id: { type: string, format: uuid } } } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Reservation" } } } }, "409": { description: "A copy is available, or already reserved by the caller" } }
+  /me/fines:
+    get:
+      summary: The caller's open fines and total. Permission library:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MyFines" } } } } }
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    PersonId: { name: person_id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, description: Opaque cursor from the previous page, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+  schemas:
+    Money: { type: string, pattern: "^[0-9]+(\\.[0-9]{1,2})?$", description: "Exact decimal amount in the organisation's currency", examples: ["25.00"] }
+    Reason:
+      type: object
+      required: [reason]
+      properties: { reason: { type: string, minLength: 3 } }
+    Refusal:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, enum: [member-blocked, loan-limit, unpaid-fines, copy-unavailable, held-for-other, no-renewals-left, title-reserved, not-a-member] }
+        message: { type: string }
+    TitleInput:
+      type: object
+      required: [title, kind]
+      properties:
+        isbn: { type: [string, "null"] }
+        title: { type: string }
+        authors: { type: array, items: { type: string } }
+        publisher: { type: [string, "null"] }
+        year: { type: [integer, "null"] }
+        subjects: { type: array, items: { type: string } }
+        kind: { type: string, description: "Label from the organisation, such as book, journal, thesis or media" }
+    Title:
+      allOf:
+        - { $ref: "#/components/schemas/TitleInput" }
+        - type: object
+          required: [id, organisation_id]
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            copies_total: { type: integer }
+            copies_available: { type: integer }
+    TitleDetail:
+      allOf:
+        - { $ref: "#/components/schemas/Title" }
+        - type: object
+          properties:
+            copies: { type: array, items: { $ref: "#/components/schemas/Copy" } }
+            reservations_waiting: { type: integer }
+    TitlePage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Title" } }
+        next_cursor: { type: [string, "null"] }
+    CopyStatus: { type: string, enum: [available, on-loan, on-hold, lost, withdrawn] }
+    CopyInput:
+      type: object
+      required: [accession_no, barcode]
+      properties:
+        accession_no: { type: string }
+        barcode: { type: string }
+        location: { type: string, description: "Shelf or section" }
+    Copy:
+      allOf:
+        - { $ref: "#/components/schemas/CopyInput" }
+        - type: object
+          required: [id, organisation_id, title_id, status]
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            title_id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/CopyStatus" }
+    LoanPolicy:
+      type: object
+      required: [member_category, max_loans, loan_days, max_renewals, fine_per_day, max_unpaid_fines, hold_days]
+      properties:
+        member_category: { type: string }
+        max_loans: { type: integer, minimum: 0 }
+        loan_days: { type: integer, minimum: 1 }
+        max_renewals: { type: integer, minimum: 0 }
+        fine_per_day: { $ref: "#/components/schemas/Money" }
+        max_unpaid_fines: { $ref: "#/components/schemas/Money" }
+        hold_days: { type: integer, minimum: 1, description: "Days a returned copy is held for a reservation" }
+    Member:
+      type: object
+      required: [organisation_id, person_id, category, blocked]
+      properties:
+        organisation_id: { type: string, format: uuid }
+        person_id: { type: string, format: uuid }
+        person_name: { type: string, description: "Cached from student-information or hr-payroll" }
+        category: { type: string }
+        blocked: { type: boolean }
+        block_reason: { type: [string, "null"] }
+    MemberDetail:
+      allOf:
+        - { $ref: "#/components/schemas/Member" }
+        - type: object
+          properties:
+            loans: { type: array, items: { $ref: "#/components/schemas/Loan" } }
+            open_fines_total: { $ref: "#/components/schemas/Money" }
+    MemberPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Member" } }
+        next_cursor: { type: [string, "null"] }
+    LoanStatus: { type: string, enum: [active, returned, lost] }
+    Loan:
+      type: object
+      required: [id, organisation_id, copy_id, title_id, person_id, issued_at, due_on, status]
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        copy_id: { type: string, format: uuid }
+        title_id: { type: string, format: uuid }
+        title: { type: string }
+        person_id: { type: string, format: uuid }
+        issued_at: { type: string, format: date-time }
+        due_on: { type: string, format: date }
+        returned_at: { type: [string, "null"], format: date-time }
+        renewals: { type: integer, minimum: 0 }
+        renewals_left: { type: integer, minimum: 0 }
+        status: { $ref: "#/components/schemas/LoanStatus" }
+        overdue: { type: boolean }
+        fine_accrued: { $ref: "#/components/schemas/Money" }
+    LoanPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Loan" } }
+        next_cursor: { type: [string, "null"] }
+    ReturnResult:
+      type: object
+      required: [loan]
+      properties:
+        loan: { $ref: "#/components/schemas/Loan" }
+        fine: { oneOf: [{ $ref: "#/components/schemas/Fine" }, { type: "null" }] }
+        held_for_reservation: { oneOf: [{ $ref: "#/components/schemas/Reservation" }, { type: "null" }] }
+    ReservationStatus: { type: string, enum: [waiting, ready, fulfilled, cancelled, expired] }
+    Reservation:
+      type: object
+      required: [id, organisation_id, title_id, person_id, status, placed_at]
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        title_id: { type: string, format: uuid }
+        title: { type: string }
+        person_id: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/ReservationStatus" }
+        position: { type: [integer, "null"], description: "Place in the queue while waiting" }
+        held_copy_id: { type: [string, "null"], format: uuid }
+        hold_expires_on: { type: [string, "null"], format: date }
+        placed_at: { type: string, format: date-time }
+    ReservationPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Reservation" } }
+        next_cursor: { type: [string, "null"] }
+    FineStatus: { type: string, enum: [open, paid, waived] }
+    Fine:
+      type: object
+      required: [id, organisation_id, person_id, reason, amount, status]
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        person_id: { type: string, format: uuid }
+        loan_id: { type: [string, "null"], format: uuid }
+        reason: { type: string, enum: [overdue, lost, damage] }
+        amount: { $ref: "#/components/schemas/Money" }
+        status: { $ref: "#/components/schemas/FineStatus" }
+        receipt_ref: { type: [string, "null"] }
+        waive_reason: { type: [string, "null"] }
+        raised_at: { type: string, format: date-time }
+    FinePage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Fine" } }
+        next_cursor: { type: [string, "null"] }
+    MyFines:
+      type: object
+      required: [fines, total]
+      properties:
+        fines: { type: array, items: { $ref: "#/components/schemas/Fine" } }
+        total: { $ref: "#/components/schemas/Money" }
+    DigitalResourceInput:
+      type: object
+      required: [title, url, access]
+      properties:
+        title: { type: string }
+        provider: { type: string }
+        kind: { type: string, description: "Label from the organisation, such as e-book, e-journal or database" }
+        url: { type: string, format: uri }
+        access: { type: string, enum: [open, campus, licensed] }
+        active: { type: boolean, default: true }
+    DigitalResource:
+      allOf:
+        - { $ref: "#/components/schemas/DigitalResourceInput" }
+        - type: object
+          required: [id, organisation_id]
+          properties: { id: { type: string, format: uuid }, organisation_id: { type: string, format: uuid } }

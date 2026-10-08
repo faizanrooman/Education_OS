@@ -4,10 +4,17 @@
 **Kind:** feature
 **Status:** planned
 
-Booking calendar for classrooms, halls and venues with approvals.
+Generic resource-booking pattern (ADR-0004). People find a bookable resource, see when it is free and book it, with optional approval. Each academy names the resource in its profile vocabulary (`facility-booking.resource`), for example "Practice room", "Lab / skills room" or "Edit suite / studio".
 
 ## Scope
-_Owner fills in: what this module is responsible for, and what it explicitly is not._
+Responsible for: resource types and resources, opening hours and closures, availability,
+single and recurring bookings, approval, conflict prevention, check-in and no-show.
+
+Not responsible for: sports grounds (`sports-facilities`), fixed assets (`asset-management`),
+repairs (`maintenance`), lending movable items (`inventory-equipment`), class timetables
+(`timetable-attendance`). Those modules may book through this module's API.
+
+Requirements: [docs/prd.md](docs/prd.md).
 
 ## Public surface
 - API: [contracts/openapi.yaml](contracts/openapi.yaml)

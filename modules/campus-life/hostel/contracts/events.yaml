@@ -1,9 +1,46 @@
 # Domain events published by hostel.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
+# Discipline incidents and visitor records are personal data and are never published; they go to audit only.
 module: hostel
 version: 1
-events: []
-#  - name: hostel.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: hostel.allocation.requested
+    description: A student requested a room for an academic year.
+    payload: { organisation_id: uuid, allocation_id: uuid, person_id: uuid, academic_year: string, preferred_room_type: string }
+  - name: hostel.allocation.confirmed
+    description: A bed was allocated. fees-accounts may raise the hostel fee invoice from this event.
+    payload: { organisation_id: uuid, allocation_id: uuid, person_id: uuid, hostel_id: uuid, room_id: uuid, room_type: string, academic_year: string, from: date, to: date }
+  - name: hostel.allocation.occupied
+    description: The resident checked in.
+    payload: { organisation_id: uuid, allocation_id: uuid, person_id: uuid, hostel_id: uuid, checked_in_at: datetime }
+  - name: hostel.allocation.vacated
+    description: The resident checked out. The bed is free again.
+    payload: { organisation_id: uuid, allocation_id: uuid, person_id: uuid, hostel_id: uuid, checked_out_at: datetime }
+  - name: hostel.allocation.cancelled
+    description: A request or confirmed allocation was cancelled before check-in. A raised fee invoice may need cancelling.
+    payload: { organisation_id: uuid, allocation_id: uuid, person_id: uuid, academic_year: string, was_confirmed: boolean, reason: string }
+  - name: hostel.room.closed
+    description: A room was closed (for example for maintenance); its free beds cannot be allocated.
+    payload: { organisation_id: uuid, room_id: uuid, hostel_id: uuid, reason: string }
+  - name: hostel.room.reopened
+    description: A closed room is open for allocation again.
+    payload: { organisation_id: uuid, room_id: uuid, hostel_id: uuid }
+  - name: hostel.leave.requested
+    description: A resident applied for leave. Notification tells the warden.
+    payload: { organisation_id: uuid, leave_id: uuid, person_id: uuid, hostel_id: uuid, from: datetime, to: datetime }
+  - name: hostel.leave.approved
+    description: A warden approved leave. Notification tells the resident.
+    payload: { organisation_id: uuid, leave_id: uuid, person_id: uuid, from: datetime, to: datetime, decided_by: uuid }
+  - name: hostel.leave.rejected
+    description: A warden rejected leave. Notification tells the resident.
+    payload: { organisation_id: uuid, leave_id: uuid, person_id: uuid, decided_by: uuid }
+  - name: hostel.leave.returned
+    description: The resident returned from approved leave.
+    payload: { organisation_id: uuid, leave_id: uuid, person_id: uuid, returned_at: datetime }
+  - name: hostel.leave.overdue
+    description: Published once per leave by the daily job when a resident is not back by the end date.
+    payload: { organisation_id: uuid, leave_id: uuid, person_id: uuid, hostel_id: uuid, due_at: datetime }
+  - name: hostel.notice.published
+    description: A notice was published to one hostel or to every hostel (hostel_id null). Notification may alert residents.
+    payload: { organisation_id: uuid, notice_id: uuid, hostel_id: uuid, title: string }

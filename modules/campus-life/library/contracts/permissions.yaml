@@ -1,11 +1,47 @@
 # Permission catalogue for library. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: library
-permissions: []
-#  - key: library:record:read
-#    description: ...
-#  - key: library:record:write
-#    description: ...
-roles: []
-#  - name: library-admin
-#    grants: [library:record:read, library:record:write]
+permissions:
+  - key: library:catalogue:read
+    description: Search titles, copies and digital resources; view loan policies.
+  - key: library:catalogue:manage
+    description: Catalogue titles and copies, withdraw copies, manage digital resources.
+  - key: library:member:manage
+    description: Add, view, recategorise, block and unblock members.
+  - key: library:policy:manage
+    description: Set loan policies per member category.
+  - key: library:circulation:manage
+    description: Issue, return, renew and mark loans lost; view and cancel reservations.
+  - key: library:fine:manage
+    description: View fines, record payment and waive fines.
+  - key: library:self:read
+    description: Search the catalogue and digital resources; view own loans, reservations and fines.
+  - key: library:self:borrow
+    description: Renew own loans, reserve titles and cancel own reservations.
+roles:
+  - name: library-admin
+    description: Head librarian. Everything, including loan policies.
+    grants:
+      - library:catalogue:read
+      - library:catalogue:manage
+      - library:member:manage
+      - library:policy:manage
+      - library:circulation:manage
+      - library:fine:manage
+  - name: librarian
+    description: Desk and cataloguing staff.
+    grants:
+      - library:catalogue:read
+      - library:catalogue:manage
+      - library:member:manage
+      - library:circulation:manage
+      - library:fine:manage
+  - name: library-member
+    description: Students, faculty and staff who borrow. Default for the student role.
+    grants:
+      - library:self:read
+      - library:self:borrow
+  - name: library-viewer
+    description: Management and org admin oversight, read only.
+    grants:
+      - library:catalogue:read

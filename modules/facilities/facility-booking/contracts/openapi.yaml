@@ -2,9 +2,442 @@ openapi: 3.1.0
 info:
   title: facility-booking API
   version: 0.1.0
-  description: "Booking calendar for classrooms, halls and venues with approvals."
+  description: "Generic resource-booking pattern (ADR-0004): bookable resources, availability, bookings with optional approval. Field words come from the profile vocabulary (facility-booking.resource); this contract stays neutral. See docs/prd.md."
 servers:
   - url: /api/v1/facility-booking
-paths: {}
+paths:
+  /resource-types:
+    get:
+      summary: List resource types of the caller's organisation. Permission facility-booking:resource:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ResourceType" } } } } } }
+    post:
+      summary: Create a resource type. Permission facility-booking:resource:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ResourceTypeInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/ResourceType" } } } }, "409": { description: Name already in use } }
+  /resource-types/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      summary: Update a resource type. Permission facility-booking:resource:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ResourceTypeInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ResourceType" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    delete:
+      summary: Delete a resource type that no resource uses. Permission facility-booking:resource:manage.
+      responses: { "204": { description: Deleted }, "409": { description: Resources still use this type } }
+
+  /resources:
+    get:
+      summary: Find resources. With free_from and free_to, only resources free for the whole window are returned. Permission facility-booking:resource:read.
+      parameters:
+        - { name: type_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ResourceStatus" } }
+        - { name: min_capacity, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: q, in: query, description: "Search in name, code, location and attributes", schema: { type: string } }
+        - { name: free_from, in: query, schema: { type: string, format: date-time } }
+        - { name: free_to, in: query, schema: { type: string, format: date-time } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ResourcePage" } } } } }
+    post:
+      summary: Create a resource. Permission facility-booking:resource:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ResourceInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Resource" } } } }, "409": { description: Code already in use }, "422": { $ref: "#/components/responses/RuleViolation" } }
+  /resources/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One resource with its rules and opening hours. Permission facility-booking:resource:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Resource" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    patch:
+      summary: Update a resource's details or rules. Rule changes apply to new bookings only. Permission facility-booking:resource:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ResourceInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Resource" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+  /resources/{id}/status:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    put:
+      summary: Set a resource active, inactive or under maintenance. Non-active blocks new bookings; affected future bookings are returned, never cancelled silently. Permission facility-booking:resource:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [status], properties: { status: { $ref: "#/components/schemas/ResourceStatus" }, reason: { type: string } } } } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resource: { $ref: "#/components/schemas/Resource" }
+                  affected_bookings: { type: array, items: { $ref: "#/components/schemas/Booking" } }
+  /resources/{id}/availability:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Free and busy windows for a date range (at most 31 days). Busy windows name the booking only for holders of facility-booking:booking:read-all. Permission facility-booking:resource:read.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Availability" } } } }, "422": { $ref: "#/components/responses/RuleViolation" } }
+  /resources/{id}/opening-hours:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    put:
+      summary: Replace the weekly opening hours. An empty list means open at all times. Permission facility-booking:resource:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/OpeningHours" } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/OpeningHours" } } } } } }
+  /resources/{id}/blackouts:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Closures of a resource. Permission facility-booking:resource:read.
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Blackout" } } } } } }
+    post:
+      summary: Close a resource for a window. Overlapping bookings are returned for staff to move or cancel. Permission facility-booking:resource:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BlackoutInput" } } } }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blackout: { $ref: "#/components/schemas/Blackout" }
+                  affected_bookings: { type: array, items: { $ref: "#/components/schemas/Booking" } }
+  /blackouts/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    delete:
+      summary: Remove a closure. Permission facility-booking:resource:manage.
+      responses: { "204": { description: Deleted }, "404": { $ref: "#/components/responses/NotFound" } }
+
+  /bookings:
+    get:
+      summary: >
+        List bookings. scope=mine (default) returns the caller's own bookings (booked by or for them);
+        scope=managed returns bookings on resources the caller approves or, with facility-booking:booking:read-all, on every resource.
+        Backs the my-bookings, bookings-today and bookings widgets. Permission facility-booking:booking:read.
+      parameters:
+        - { name: scope, in: query, schema: { type: string, enum: [mine, managed], default: mine } }
+        - { name: date, in: query, description: "One local date (YYYY-MM-DD) or 'today'. Overrides from and to.", schema: { type: string } }
+        - { name: from, in: query, description: "Date-time, or 'now'", schema: { type: string } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: resource_id, in: query, schema: { type: string, format: uuid } }
+        - { name: type_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, style: form, explode: false, schema: { type: array, items: { $ref: "#/components/schemas/BookingStatus" } } }
+        - { name: source_module, in: query, description: "Only bookings created by this module", schema: { type: string } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BookingPage" } } } } }
+    post:
+      summary: >
+        Book a resource, once or recurring. Status is pending when the resource requires approval, else confirmed.
+        Booking for another user (booked_for) needs facility-booking:booking:manage. Permission facility-booking:booking:create.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BookingInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/BookingResult" } } } }
+        "403": { description: The caller's role may not book this resource }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/RuleViolation" }
+  /bookings/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One booking. Visible to the booker, the person booked for, the resource's approvers and read-all holders. Permission facility-booking:booking:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    patch:
+      summary: Reschedule or edit a pending or confirmed booking. Re-runs every check; returns to pending if the resource requires approval. Booker, or facility-booking:booking:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BookingUpdate" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/RuleViolation" }
+  /bookings/{id}/approve:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Approve a pending booking. A listed approver of the resource with facility-booking:booking:approve, or facility-booking:booking:manage.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "409": { description: Booking is not pending } }
+  /bookings/{id}/reject:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Reject a pending booking with a reason. Same permission as approve.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string, minLength: 1 } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "409": { description: Booking is not pending } }
+  /bookings/{id}/cancel:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Cancel a booking. The booker may cancel before it starts; facility-booking:booking:manage may cancel at any time and must give a reason.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "409": { description: "Booking already started, finished or cancelled" } }
+  /bookings/{id}/check-in:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Check in to a confirmed booking, from 15 minutes before its start until the no-show grace ends. Booker, or facility-booking:booking:manage.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "409": { description: Outside the check-in window or not confirmed } }
+  /bookings/{id}/no-show:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Record a no-show by hand (the scheduler also does this). Permission facility-booking:booking:manage.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "409": { description: Booking has not started or is not confirmed } }
+  /series/{id}/cancel:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Cancel every future occurrence of a recurring booking. Booker, or facility-booking:booking:manage.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { type: string } } } } } }
+      responses: { "200": { description: Cancelled occurrences, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Booking" } } } } } }
+
+  /summary:
+    get:
+      summary: Counts for dashboard widgets, over the resources the caller manages or approves. Permission facility-booking:booking:read.
+      parameters:
+        - { name: date, in: query, description: "Local date (YYYY-MM-DD) or 'today'", schema: { type: string, default: today } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Summary" } } } } }
+
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    PageSize: { name: page_size, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+
+  responses:
+    NotFound: { description: Not found in the caller's organisation }
+    Conflict:
+      description: The window clashes with existing bookings.
+      content: { application/json: { schema: { $ref: "#/components/schemas/ConflictError" } } }
+    RuleViolation:
+      description: A booking rule, the opening hours or a closure forbids this.
+      content: { application/json: { schema: { $ref: "#/components/schemas/RuleError" } } }
+
+  schemas:
+    ResourceStatus:
+      type: string
+      enum: [active, inactive, under_maintenance]
+    BookingStatus:
+      type: string
+      enum: [pending, confirmed, rejected, cancelled, checked_in, completed, no_show]
+
+    BookingRules:
+      type: object
+      description: "Per-resource rules. A missing value falls back to the resource type's default, then to the organisation default from config."
+      properties:
+        requires_approval: { type: boolean, default: false }
+        check_in_required: { type: boolean, default: false }
+        min_duration_minutes: { type: integer, minimum: 1 }
+        max_duration_minutes: { type: integer, minimum: 1 }
+        slot_minutes: { type: integer, minimum: 5, description: "Start and end must align to this grid" }
+        max_days_ahead: { type: integer, minimum: 0 }
+        buffer_minutes: { type: integer, minimum: 0, default: 0, description: "Gap kept free after each booking" }
+        max_concurrent_bookings: { type: integer, minimum: 1, default: 1, description: "More than 1 lets a shared space take several bookings at once" }
+        bookable_role_ids: { type: array, items: { type: string }, description: "Role ids allowed to book. Empty means anyone with facility-booking:booking:create." }
+
+    ResourceTypeInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 120, description: "The organisation's own word for this kind of resource" }
+        description: { type: string }
+        colour: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        default_rules: { $ref: "#/components/schemas/BookingRules" }
+    ResourceType:
+      allOf:
+        - $ref: "#/components/schemas/ResourceTypeInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            resource_count: { type: integer }
+            created_at: { type: string, format: date-time }
+
+    ResourceInput:
+      type: object
+      required: [name, type_id]
+      properties:
+        name: { type: string, maxLength: 120 }
+        type_id: { type: string, format: uuid }
+        code: { type: string, maxLength: 40, description: "Short label shown on signs, unique in the organisation" }
+        location: { type: string, description: "Free text: building, floor, room" }
+        capacity: { type: integer, minimum: 1, description: "People the resource holds" }
+        description: { type: string }
+        attributes: { type: object, additionalProperties: { type: string }, description: "Searchable features, e.g. { projector: 'yes', step_free_access: 'yes' }" }
+        image_document_id: { type: string, description: "Document id from the documents platform service" }
+        approver_user_ids: { type: array, items: { type: string, format: uuid }, description: "Identity users who approve bookings of this resource" }
+        rules: { $ref: "#/components/schemas/BookingRules" }
+    Resource:
+      allOf:
+        - $ref: "#/components/schemas/ResourceInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/ResourceStatus" }
+            effective_rules: { $ref: "#/components/schemas/BookingRules", description: "Rules after falling back to type and organisation defaults" }
+            opening_hours: { type: array, items: { $ref: "#/components/schemas/OpeningHours" } }
+            created_at: { type: string, format: date-time }
+            updated_at: { type: string, format: date-time }
+    ResourcePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Resource" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+
+    OpeningHours:
+      type: object
+      required: [weekday, opens, closes]
+      properties:
+        weekday: { type: integer, minimum: 1, maximum: 7, description: "ISO weekday, 1 = Monday" }
+        opens: { type: string, pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$", description: "Local time in the organisation's time zone" }
+        closes: { type: string, pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$|^24:00$" }
+
+    BlackoutInput:
+      type: object
+      required: [start_at, end_at, reason]
+      properties:
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        reason: { type: string }
+    Blackout:
+      allOf:
+        - $ref: "#/components/schemas/BlackoutInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            resource_id: { type: string, format: uuid }
+            created_by: { type: string, format: uuid }
+
+    Window:
+      type: object
+      properties:
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+    Availability:
+      type: object
+      properties:
+        resource_id: { type: string, format: uuid }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        free: { type: array, items: { $ref: "#/components/schemas/Window" } }
+        busy:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Window"
+              - type: object
+                properties:
+                  kind: { type: string, enum: [booking, blackout, closed] }
+                  booking_id: { type: string, format: uuid, description: "Only for read-all holders" }
+                  title: { type: string, description: "Only for read-all holders" }
+
+    Source:
+      type: object
+      description: "Set when another module books through this API, so it can match the events it receives."
+      required: [module, entity, id]
+      properties:
+        module: { type: string, description: "Module name, e.g. productions" }
+        entity: { type: string, description: "Entity in that module, e.g. rehearsal" }
+        id: { type: string }
+    Recurrence:
+      type: object
+      required: [frequency]
+      description: "Exactly one of until or count."
+      properties:
+        frequency: { type: string, enum: [daily, weekly] }
+        interval: { type: integer, minimum: 1, default: 1 }
+        weekdays: { type: array, items: { type: integer, minimum: 1, maximum: 7 }, description: "For weekly; defaults to the first occurrence's weekday" }
+        until: { type: string, format: date }
+        count: { type: integer, minimum: 1 }
+
+    BookingInput:
+      type: object
+      required: [resource_id, start_at, end_at]
+      properties:
+        resource_id: { type: string, format: uuid }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        title: { type: string, maxLength: 200, description: "What it is for, e.g. 'Group practice'" }
+        notes: { type: string }
+        party_size: { type: integer, minimum: 1, default: 1 }
+        booked_for: { type: string, format: uuid, description: "User the booking is for. Needs facility-booking:booking:manage when not the caller." }
+        source: { $ref: "#/components/schemas/Source" }
+        recurrence: { $ref: "#/components/schemas/Recurrence" }
+        skip_conflicts: { type: boolean, default: false, description: "For recurrence: skip clashing occurrences instead of refusing the whole series" }
+    BookingUpdate:
+      type: object
+      properties:
+        resource_id: { type: string, format: uuid }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        title: { type: string, maxLength: 200 }
+        notes: { type: string }
+        party_size: { type: integer, minimum: 1 }
+    Booking:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        resource_id: { type: string, format: uuid }
+        resource_name: { type: string }
+        resource_type_id: { type: string, format: uuid }
+        series_id: { type: string, format: uuid, nullable: true }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        status: { $ref: "#/components/schemas/BookingStatus" }
+        title: { type: string }
+        notes: { type: string }
+        party_size: { type: integer }
+        booked_by: { type: string, format: uuid }
+        booked_for: { type: string, format: uuid }
+        source: { $ref: "#/components/schemas/Source" }
+        decided_by: { type: string, format: uuid, nullable: true, description: "Approver or rejecter" }
+        decided_at: { type: string, format: date-time, nullable: true }
+        decision_note: { type: string, nullable: true }
+        cancelled_by: { type: string, format: uuid, nullable: true }
+        cancel_reason: { type: string, nullable: true }
+        checked_in_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        can: { type: array, items: { type: string, enum: [edit, cancel, approve, reject, check_in, no_show] }, description: "Actions the caller may take now; drives widget buttons" }
+    BookingResult:
+      type: object
+      properties:
+        booking: { $ref: "#/components/schemas/Booking", description: "The booking, or the first occurrence of a series" }
+        series_id: { type: string, format: uuid, nullable: true }
+        created: { type: array, items: { $ref: "#/components/schemas/Booking" }, description: "Every occurrence created" }
+        skipped: { type: array, items: { $ref: "#/components/schemas/Window" }, description: "Occurrences skipped because of clashes (skip_conflicts)" }
+    BookingPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Booking" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+
+    Summary:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        bookings_today: { type: integer }
+        pending_approval: { type: integer }
+        checked_in_now: { type: integer }
+        no_shows_today: { type: integer }
+        resources_out_of_service: { type: integer }
+
+    ConflictError:
+      type: object
+      properties:
+        code: { type: string, const: booking_conflict }
+        message: { type: string }
+        conflicts:
+          type: array
+          items:
+            type: object
+            properties:
+              start_at: { type: string, format: date-time }
+              end_at: { type: string, format: date-time }
+              booking_id: { type: string, format: uuid, description: "Only for read-all holders" }
+    RuleError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [outside_opening_hours, in_blackout, too_short, too_long, misaligned_slot, too_far_ahead, in_the_past, resource_not_active, over_capacity, too_many_occurrences, invalid_window]
+        message: { type: string }
+        rule: { type: string, description: "The rule that failed, e.g. max_duration_minutes" }
+        limit: { description: "The configured limit, when there is one" }
