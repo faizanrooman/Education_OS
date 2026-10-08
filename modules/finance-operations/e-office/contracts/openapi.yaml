@@ -2,9 +2,365 @@ openapi: 3.1.0
 info:
   title: e-office API
   version: 0.1.0
-  description: "File movement, notings, approvals, digital correspondence."
+  description: >-
+    Electronic files: note sheet (notings), attachments, movement from person to person, decisions by the competent
+    authority, inward correspondence (receipts) and outward dispatch. People are platform/identity users; attachments
+    are platform/documents ids. A file is visible to people who have held it, unless the caller can read all files.
 servers:
   - url: /api/v1/e-office
-paths: {}
+paths:
+  /categories:
+    get:
+      summary: File categories with their number prefix and default retention. Permission e-office:file:use.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Category" } } } } } }
+    post:
+      summary: Create a category. Permission e-office:settings:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } } }
+  /categories/{id}:
+    put:
+      summary: Edit or deactivate a category. Permission e-office:settings:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } } }
+  /files:
+    get:
+      summary: >-
+        Files the caller can see. With e-office:file:read-all, every file of the organisation.
+        Permission e-office:file:use.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/FileStatus" } }
+        - { name: category_id, in: query, schema: { type: string, format: uuid } }
+        - { name: department_id, in: query, schema: { type: string, format: uuid } }
+        - { name: holder_id, in: query, schema: { type: string, format: uuid } }
+        - { name: q, in: query, schema: { type: string }, description: "File number or subject" }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FilePage" } } } } }
+    post:
+      summary: >-
+        Open a new file. The creator holds it. A number is assigned from the category. Publishes e-office.file.created.
+        Permission e-office:file:create.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/FileInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/File" } } } } }
+  /files/{id}:
+    get:
+      summary: One file with note sheet, attachments and current holder. Permission e-office:file:use and access to the file.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/File" } } } }
+        "404": { description: Not found or not visible to the caller }
+  /files/{id}/notes:
+    post:
+      summary: >-
+        Add a noting to the note sheet. Only the current holder. Notings are never edited or deleted.
+        Permission e-office:file:use.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/NoteInput" } } } }
+      responses:
+        "201": { description: Added, content: { application/json: { schema: { $ref: "#/components/schemas/Note" } } } }
+        "409": { description: "The caller does not hold the file, or it is closed" }
+  /files/{id}/attachments:
+    post:
+      summary: Attach a document already uploaded to platform/documents. Only the current holder. Permission e-office:file:use.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AttachmentInput" } } } }
+      responses: { "201": { description: Attached, content: { application/json: { schema: { $ref: "#/components/schemas/Attachment" } } } } }
+  /files/{id}/forward:
+    post:
+      summary: >-
+        Send the file to another person with a remark and the action expected. The recipient becomes the holder.
+        Publishes e-office.file.forwarded. Only the current holder. Permission e-office:file:use.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ForwardInput" } } } }
+      responses:
+        "200": { description: Forwarded, content: { application/json: { schema: { $ref: "#/components/schemas/File" } } } }
+        "409": { description: "The caller does not hold the file, or it is closed" }
+  /files/{id}/decision:
+    post:
+      summary: >-
+        Record a decision on the proposal in the file (approve, reject, or return for revision) as competent authority.
+        The decision is added to the note sheet and published as e-office.file.decided. Only the current holder.
+        Permission e-office:file:decide.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DecisionInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/File" } } } }
+        "409": { description: "The caller does not hold the file, or it is closed" }
+  /files/{id}/close:
+    post:
+      summary: Close a file once action is complete. Publishes e-office.file.closed. Only the current holder. Permission e-office:file:use.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [remark], properties: { remark: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/File" } } } } }
+  /files/{id}/reopen:
+    post:
+      summary: Reopen a closed file; the caller becomes the holder. Permission e-office:file:create and access to the file.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [remark], properties: { remark: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/File" } } } } }
+  /files/{id}/movements:
+    get:
+      summary: Full movement history, oldest first. Permission e-office:file:use and access to the file.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Movement" } } } } } }
+  /me/inbox:
+    get:
+      summary: >-
+        Files the caller currently holds, oldest received first, with counts. Backs the HR Staff widget e-office.files-pending
+        (and the same widget on any dashboard that adds it). Permission e-office:file:use.
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Inbox" } } } } }
+  /me/sent:
+    get:
+      summary: Files the caller forwarded recently and where they are now. Permission e-office:file:use.
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FilePage" } } } } }
+  /receipts:
+    get:
+      summary: Inward correspondence registered at the central registry. Permission e-office:correspondence:manage.
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [registered, attached] } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReceiptPage" } } } } }
+    post:
+      summary: >-
+        Register an inward letter or email with its scanned copy and send it to a person, who may attach it to a file or
+        open a new one. Publishes e-office.receipt.registered. Permission e-office:correspondence:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ReceiptInput" } } } }
+      responses: { "201": { description: Registered, content: { application/json: { schema: { $ref: "#/components/schemas/Receipt" } } } } }
+  /receipts/{id}:
+    get:
+      summary: One receipt. Permission e-office:correspondence:manage, or the person it was sent to.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Receipt" } } } } }
+  /receipts/{id}/attach:
+    post:
+      summary: Attach a receipt to a file the caller holds. Permission e-office:file:use.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [file_id], properties: { file_id: { type: string, format: uuid } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Receipt" } } } }
+        "409": { description: The caller does not hold the file }
+  /dispatches:
+    get:
+      summary: Outward correspondence. Permission e-office:correspondence:manage.
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, sent] } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DispatchPage" } } } } }
+    post:
+      summary: >-
+        Request dispatch of an approved letter from a file the caller holds. The registry sends it.
+        Permission e-office:file:use.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DispatchInput" } } } }
+      responses:
+        "201": { description: Requested, content: { application/json: { schema: { $ref: "#/components/schemas/Dispatch" } } } }
+        "409": { description: The file has no approval decision }
+  /dispatches/{id}/mark-sent:
+    post:
+      summary: Record that the letter was sent, with mode and reference. Publishes e-office.dispatch.sent. Permission e-office:correspondence:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [mode, sent_on], properties: { mode: { type: string, enum: [email, post, courier, by_hand] }, sent_on: { type: string, format: date }, reference: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Dispatch" } } } } }
+  /reports/pendency:
+    get:
+      summary: Open files by holder and department with age buckets and overdue counts. Permission e-office:report:read.
+      parameters: [{ name: department_id, in: query, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PendencyReport" } } } } }
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+  schemas:
+    Category:
+      type: object
+      required: [code, name]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        code: { type: string, pattern: "^[A-Z0-9-]{2,20}$", description: "Used in the file number" }
+        name: { type: string }
+        retention_years: { type: integer, minimum: 0, nullable: true }
+        active: { type: boolean, default: true }
+    FileStatus: { type: string, enum: [open, closed] }
+    Priority: { type: string, enum: [normal, urgent, immediate] }
+    FileInput:
+      type: object
+      required: [subject, category_id]
+      properties:
+        subject: { type: string }
+        category_id: { type: string, format: uuid }
+        department_id: { type: string, format: uuid, nullable: true }
+        priority: { $ref: "#/components/schemas/Priority" }
+        confidential: { type: boolean, default: false, description: "Visible only to people who have held it, even with read-all" }
+        first_note: { type: string, description: "Optional opening noting" }
+    UserRef:
+      type: object
+      properties:
+        user_id: { type: string, format: uuid }
+        name: { type: string }
+        designation: { type: string, nullable: true }
+    File:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: string, description: "e.g. <category code>/<year>/<sequence>" }
+        subject: { type: string }
+        category_id: { type: string, format: uuid }
+        department_id: { type: string, format: uuid, nullable: true }
+        priority: { $ref: "#/components/schemas/Priority" }
+        confidential: { type: boolean }
+        status: { $ref: "#/components/schemas/FileStatus" }
+        created_by: { $ref: "#/components/schemas/UserRef" }
+        holder: { $ref: "#/components/schemas/UserRef" }
+        held_since: { type: string, format: date-time }
+        action_required: { type: string, nullable: true }
+        due_on: { type: string, format: date, nullable: true }
+        last_decision: { type: string, nullable: true, enum: [approved, rejected, returned] }
+        notes: { type: array, items: { $ref: "#/components/schemas/Note" } }
+        attachments: { type: array, items: { $ref: "#/components/schemas/Attachment" } }
+        created_at: { type: string, format: date-time }
+        closed_at: { type: string, format: date-time, nullable: true }
+    FilePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/FileSummary" } }
+        next_cursor: { type: string, nullable: true }
+    FileSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: string }
+        subject: { type: string }
+        priority: { $ref: "#/components/schemas/Priority" }
+        status: { $ref: "#/components/schemas/FileStatus" }
+        holder: { $ref: "#/components/schemas/UserRef" }
+        held_since: { type: string, format: date-time }
+        due_on: { type: string, format: date, nullable: true }
+        overdue: { type: boolean }
+    NoteInput:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+        attachment_ids: { type: array, items: { type: string, format: uuid }, description: "Attachments this noting refers to" }
+    Note:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        sequence: { type: integer, description: "Paragraph number on the note sheet" }
+        kind: { type: string, enum: [noting, decision, system] }
+        text: { type: string }
+        author: { $ref: "#/components/schemas/UserRef" }
+        attachment_ids: { type: array, items: { type: string, format: uuid } }
+        created_at: { type: string, format: date-time }
+    AttachmentInput:
+      type: object
+      required: [document_id, title]
+      properties:
+        document_id: { type: string, description: "platform/documents id" }
+        title: { type: string }
+        kind: { type: string, enum: [correspondence, draft, order, reference, other], default: reference }
+    Attachment:
+      allOf:
+        - { $ref: "#/components/schemas/AttachmentInput" }
+        - { type: object, properties: { id: { type: string, format: uuid }, added_by: { $ref: "#/components/schemas/UserRef" }, added_at: { type: string, format: date-time } } }
+    ForwardInput:
+      type: object
+      required: [to_user_id]
+      properties:
+        to_user_id: { type: string, format: uuid }
+        remark: { type: string }
+        action_required: { type: string, description: "e.g. for comments, for approval, for information" }
+        due_on: { type: string, format: date }
+    DecisionInput:
+      type: object
+      required: [decision, remark]
+      properties:
+        decision: { type: string, enum: [approved, rejected, returned] }
+        remark: { type: string }
+        forward_to_user_id: { type: string, format: uuid, nullable: true, description: "Optionally forward in the same step" }
+    Movement:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        from: { $ref: "#/components/schemas/UserRef" }
+        to: { $ref: "#/components/schemas/UserRef" }
+        kind: { type: string, enum: [created, forwarded, decided, closed, reopened] }
+        remark: { type: string, nullable: true }
+        action_required: { type: string, nullable: true }
+        at: { type: string, format: date-time }
+        held_for_hours: { type: number, description: "How long the sender held the file" }
+    Inbox:
+      type: object
+      properties:
+        total: { type: integer }
+        overdue: { type: integer }
+        urgent: { type: integer }
+        oldest_held_since: { type: string, format: date-time, nullable: true }
+        items: { type: array, items: { $ref: "#/components/schemas/FileSummary" } }
+        unattached_receipts: { type: integer, description: "Receipts sent to the caller and not yet attached to a file" }
+        next_cursor: { type: string, nullable: true }
+    ReceiptInput:
+      type: object
+      required: [received_on, sender, subject, document_id, send_to_user_id]
+      properties:
+        received_on: { type: string, format: date }
+        sender: { type: string }
+        sender_reference: { type: string }
+        subject: { type: string }
+        mode: { type: string, enum: [email, post, courier, by_hand] }
+        document_id: { type: string, description: "Scanned copy in platform/documents" }
+        send_to_user_id: { type: string, format: uuid }
+    Receipt:
+      allOf:
+        - { $ref: "#/components/schemas/ReceiptInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            number: { type: string }
+            status: { type: string, enum: [registered, attached] }
+            file_id: { type: string, format: uuid, nullable: true }
+    ReceiptPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Receipt" } }
+        next_cursor: { type: string, nullable: true }
+    DispatchInput:
+      type: object
+      required: [file_id, attachment_id, addressee]
+      properties:
+        file_id: { type: string, format: uuid }
+        attachment_id: { type: string, format: uuid, description: "The approved letter attached to the file" }
+        addressee: { type: string }
+        address: { type: string }
+        email: { type: string, format: email }
+    Dispatch:
+      allOf:
+        - { $ref: "#/components/schemas/DispatchInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            number: { type: string }
+            status: { type: string, enum: [pending, sent] }
+            mode: { type: string, nullable: true }
+            sent_on: { type: string, format: date, nullable: true }
+            reference: { type: string, nullable: true }
+    DispatchPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Dispatch" } }
+        next_cursor: { type: string, nullable: true }
+    PendencyReport:
+      type: object
+      properties:
+        open_files: { type: integer }
+        overdue: { type: integer }
+        by_age: { type: array, items: { type: object, properties: { bucket: { type: string, enum: ["0-3d", "4-7d", "8-15d", "16-30d", "30d+"] }, count: { type: integer } } } }
+        by_holder: { type: array, items: { type: object, properties: { holder: { $ref: "#/components/schemas/UserRef" }, open: { type: integer }, overdue: { type: integer }, oldest_held_since: { type: string, format: date-time } } } }
+        by_department: { type: array, items: { type: object, properties: { department_id: { type: string, format: uuid, nullable: true }, open: { type: integer }, overdue: { type: integer } } } }

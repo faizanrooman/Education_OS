@@ -2,12 +2,20 @@
 
 **Domain:** campus-life
 **Kind:** feature
-**Status:** planned
+**Status:** in-progress (contracts proposed)
 
 Routes, vehicles, passes, driver management, tracking.
 
 ## Scope
-_Owner fills in: what this module is responsible for, and what it explicitly is not._
+Owner: Tejaswini (@tejaswini-rooman). Requirements: [docs/prd.md](docs/prd.md).
+
+**In scope:** stops and routes; vehicles, drivers and their compliance dates; assigning vehicles and
+drivers to routes; pass requests and passes; trips with live position and delay; service notices.
+Publishes pass events that fees-accounts may use to raise transport fee invoices.
+
+**Not in scope:** charging and collecting transport fees (fees-accounts), fuel and parts (inventory-equipment,
+procurement), vehicle repairs (maintenance), driver payroll (hr-payroll), a GPS device adapter (a later
+integration).
 
 ## Public surface
 - API: [contracts/openapi.yaml](contracts/openapi.yaml)

@@ -1,0 +1,25 @@
+# Domain events published by payment-sbiepay.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Consumers filter on source_module: billing handles source_module=billing, fees-accounts handles source_module=fees-accounts.
+# Amounts are decimal strings in rupees.
+module: payment-sbiepay
+version: 1
+events:
+  - name: payment-sbiepay.payment.succeeded
+    description: >-
+      Payment confirmed by double verification. fees-accounts marks the invoice paid and issues a receipt.
+      billing receives the same outcome on its POST /webhooks/payment (notify_url) and activates the upgrade.
+    payload: { organisation_id: uuid, reference: string, purpose: string, source_module: string, source_reference: string, amount: string, currency: string, gateway_transaction_id: string, payment_mode: string, completed_at: datetime }
+  - name: payment-sbiepay.payment.failed
+    description: Gateway reported failure or the payer cancelled. The caller may start a new payment.
+    payload: { organisation_id: uuid, reference: string, purpose: string, source_module: string, source_reference: string, amount: string, currency: string, failure_reason: string }
+  - name: payment-sbiepay.payment.expired
+    description: Session expired with no gateway response and double verification found no transaction.
+    payload: { organisation_id: uuid, reference: string, purpose: string, source_module: string, source_reference: string }
+  - name: payment-sbiepay.payment.refunded
+    description: A refund succeeded at the gateway. fees-accounts records a credit against the invoice.
+    payload: { organisation_id: uuid, reference: string, purpose: string, source_module: string, source_reference: string, refund_id: uuid, amount: string, refunded_total: string, currency: string, gateway_refund_id: string }
+  - name: payment-sbiepay.reconciliation.mismatch-found
+    description: Settlement report and recorded payments disagree for one transaction. Finance staff investigate.
+    payload: { organisation_id: uuid, run_id: uuid, settlement_date: date, reference: string, gateway_transaction_id: string, kind: string }

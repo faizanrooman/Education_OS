@@ -7,11 +7,13 @@ tier: common        # core (platform) | common (every institution) | specialized
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "Indents, tenders, purchase orders, vendor management."
-owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
+owners: [gokulalakshmirooman-source]                # GitHub handles. Keep in sync with CODEOWNERS.
 
 # Platform services this module calls through packages/sdk. Nothing else.
+# documents: specifications, quotes, order PDFs, bills. notification: approvals and orders to vendors.
+# Also calls the budget-grants contract (GET /lines, GET /availability) through the gateway (ADR-0003).
 depends_on:
-  platform: [identity, audit]
+  platform: [identity, audit, documents, notification]
   integrations: []
 
 # Public surface. Other modules may ONLY use these.

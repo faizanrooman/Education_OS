@@ -2,9 +2,1170 @@ openapi: 3.1.0
 info:
   title: training-video-analysis API
   version: 0.1.0
-  description: "Training plans, sessions, video upload, tagging and annotation."
+  description: "Training plans, sessions, drills repository, video uploads, drill tagging, and video annotations."
 servers:
   - url: /api/v1/training-video-analysis
-paths: {}
+paths:
+  /plans:
+    get:
+      summary: List training plans
+      description: Retrieve training plans scoped to the organisation.
+      operationId: listTrainingPlans
+      parameters:
+        - name: coach_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, draft, completed, archived]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of training plans
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TrainingPlan"
+                  total:
+                    type: integer
+    post:
+      summary: Create a training plan
+      description: Define a new training period or seasonal plan.
+      operationId: createTrainingPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTrainingPlanRequest"
+      responses:
+        "201":
+          description: Training plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingPlan"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /plans/{plan_id}:
+    get:
+      summary: Get training plan details
+      operationId: getTrainingPlan
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Training plan details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingPlan"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update a training plan
+      operationId: updateTrainingPlan
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTrainingPlanRequest"
+      responses:
+        "200":
+          description: Training plan updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingPlan"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /sessions:
+    get:
+      summary: List training sessions
+      description: Query training sessions by plan, coach, date range, or status.
+      operationId: listTrainingSessions
+      parameters:
+        - name: plan_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: coach_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, in_progress, completed, cancelled]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of training sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TrainingSession"
+                  total:
+                    type: integer
+    post:
+      summary: Schedule a training session
+      description: Schedule a new practical training session.
+      operationId: scheduleTrainingSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTrainingSessionRequest"
+      responses:
+        "201":
+          description: Training session scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingSession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /sessions/{session_id}:
+    get:
+      summary: Get training session details
+      operationId: getTrainingSession
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Training session details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingSession"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update a training session
+      operationId: updateTrainingSession
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTrainingSessionRequest"
+      responses:
+        "200":
+          description: Training session updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingSession"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /drills:
+    get:
+      summary: List drills catalog
+      description: Retrieve catalogued exercises and drills.
+      operationId: listDrills
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            example: "conditioning"
+        - name: intensity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, maximum]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of drills
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Drill"
+                  total:
+                    type: integer
+    post:
+      summary: Create a drill definition
+      description: Add a new reusable drill to the catalog.
+      operationId: createDrill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDrillRequest"
+      responses:
+        "201":
+          description: Drill created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drill"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /drills/{drill_id}:
+    get:
+      summary: Get drill details
+      operationId: getDrill
+      parameters:
+        - name: drill_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Drill details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drill"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update a drill
+      operationId: updateDrill
+      parameters:
+        - name: drill_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDrillRequest"
+      responses:
+        "200":
+          description: Drill updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drill"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /videos:
+    get:
+      summary: List training videos
+      description: Retrieve recorded sessions and analysis videos.
+      operationId: listTrainingVideos
+      parameters:
+        - name: session_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: uploader_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of training videos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TrainingVideo"
+                  total:
+                    type: integer
+    post:
+      summary: Register an uploaded video
+      description: Store metadata for an uploaded training video file.
+      operationId: registerTrainingVideo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterVideoRequest"
+      responses:
+        "201":
+          description: Video registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingVideo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /videos/{video_id}:
+    get:
+      summary: Get video details
+      description: Retrieve video metadata, annotations, and tagged drills.
+      operationId: getTrainingVideo
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Video details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingVideo"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update video metadata
+      operationId: updateTrainingVideo
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVideoRequest"
+      responses:
+        "200":
+          description: Video updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingVideo"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /videos/{video_id}/annotations:
+    get:
+      summary: List video annotations
+      description: Retrieve time-coded annotations and drawings for a video.
+      operationId: listVideoAnnotations
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of annotations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VideoAnnotation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Add an annotation
+      description: Add a coaching note, voiceover, or visual drawing to a video timestamp.
+      operationId: addVideoAnnotation
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAnnotationRequest"
+      responses:
+        "201":
+          description: Annotation added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoAnnotation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /videos/{video_id}/annotations/{annotation_id}:
+    get:
+      summary: Get annotation details
+      operationId: getVideoAnnotation
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: annotation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Annotation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoAnnotation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update an annotation
+      operationId: updateVideoAnnotation
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: annotation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAnnotationRequest"
+      responses:
+        "200":
+          description: Annotation updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoAnnotation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete an annotation
+      operationId: deleteVideoAnnotation
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: annotation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Annotation deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /videos/{video_id}/drill-tags:
+    get:
+      summary: List drill tags for video
+      description: Retrieve drill timeline segments tagged on this video.
+      operationId: listVideoDrillTags
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of drill tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DrillTag"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Tag a drill segment
+      description: Tag a specific drill between start and end timestamps on the video.
+      operationId: tagDrillInVideo
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDrillTagRequest"
+      responses:
+        "201":
+          description: Drill tagged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DrillTag"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
-  schemas: {}
+  responses:
+    BadRequest:
+      description: Invalid request parameters or payload
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    TrainingPlan:
+      type: object
+      required: [id, organisation_id, title, coach_id, start_date, end_date, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Pre-Season Conditioning Block"
+        description:
+          type: string
+        coach_id:
+          type: string
+          format: uuid
+        squad_id:
+          type: string
+          format: uuid
+          nullable: true
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, draft, completed, archived]
+          default: active
+        objectives:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateTrainingPlanRequest:
+      type: object
+      required: [title, coach_id, start_date, end_date]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        coach_id:
+          type: string
+          format: uuid
+        squad_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, draft]
+          default: active
+        objectives:
+          type: array
+          items:
+            type: string
+
+    UpdateTrainingPlanRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        coach_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, draft, completed, archived]
+        objectives:
+          type: array
+          items:
+            type: string
+
+    TrainingSession:
+      type: object
+      required: [id, organisation_id, coach_id, title, scheduled_start, scheduled_end, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        plan_id:
+          type: string
+          format: uuid
+          nullable: true
+        coach_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Morning Speed and Agility Drills"
+        description:
+          type: string
+        facility_id:
+          type: string
+          format: uuid
+          nullable: true
+        scheduled_start:
+          type: string
+          format: date-time
+        scheduled_end:
+          type: string
+          format: date-time
+        actual_duration_minutes:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled]
+          default: scheduled
+        attendee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        drill_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateTrainingSessionRequest:
+      type: object
+      required: [coach_id, title, scheduled_start, scheduled_end]
+      properties:
+        plan_id:
+          type: string
+          format: uuid
+        coach_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        facility_id:
+          type: string
+          format: uuid
+        scheduled_start:
+          type: string
+          format: date-time
+        scheduled_end:
+          type: string
+          format: date-time
+        attendee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        drill_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateTrainingSessionRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        facility_id:
+          type: string
+          format: uuid
+        scheduled_start:
+          type: string
+          format: date-time
+        scheduled_end:
+          type: string
+          format: date-time
+        actual_duration_minutes:
+          type: integer
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled]
+        attendee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        drill_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        notes:
+          type: string
+
+    Drill:
+      type: object
+      required: [id, organisation_id, code, title, category, intensity, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: "DRILL-AGI-01"
+        title:
+          type: string
+          example: "Ladder Agility Shuffle"
+        description:
+          type: string
+        category:
+          type: string
+          example: "Agility"
+        intensity:
+          type: string
+          enum: [low, medium, high, maximum]
+          example: high
+        target_focus:
+          type: string
+          example: "Foot speed and change of direction"
+        equipment_needed:
+          type: array
+          items:
+            type: string
+        standard_duration_minutes:
+          type: integer
+          example: 15
+        created_at:
+          type: string
+          format: date-time
+
+    CreateDrillRequest:
+      type: object
+      required: [code, title, category, intensity]
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        intensity:
+          type: string
+          enum: [low, medium, high, maximum]
+        target_focus:
+          type: string
+        equipment_needed:
+          type: array
+          items:
+            type: string
+        standard_duration_minutes:
+          type: integer
+
+    UpdateDrillRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        intensity:
+          type: string
+          enum: [low, medium, high, maximum]
+        target_focus:
+          type: string
+        equipment_needed:
+          type: array
+          items:
+            type: string
+        standard_duration_minutes:
+          type: integer
+
+    TrainingVideo:
+      type: object
+      required: [id, organisation_id, title, video_url, duration_seconds, uploader_id, recorded_at, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+          nullable: true
+        uploader_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Session 12 - Sprint Mechanics Cam A"
+        description:
+          type: string
+        video_url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+          nullable: true
+        duration_seconds:
+          type: number
+          example: 245.5
+        resolution:
+          type: string
+          example: "1920x1080"
+        recorded_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    RegisterVideoRequest:
+      type: object
+      required: [title, video_url, duration_seconds, uploader_id, recorded_at]
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        uploader_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        video_url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+        duration_seconds:
+          type: number
+        resolution:
+          type: string
+        recorded_at:
+          type: string
+          format: date-time
+
+    UpdateVideoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        thumbnail_url:
+          type: string
+          format: uri
+
+    VideoAnnotation:
+      type: object
+      required: [id, video_id, author_id, start_timestamp, content, category, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        video_id:
+          type: string
+          format: uuid
+        author_id:
+          type: string
+          format: uuid
+        start_timestamp:
+          type: number
+          example: 42.5
+        end_timestamp:
+          type: number
+          nullable: true
+          example: 48.0
+        content:
+          type: string
+          example: "Knee angle is too low on the transition step"
+        category:
+          type: string
+          enum: [technical, tactical, biomechanical, praise, note]
+          default: technical
+        drawing_markup:
+          type: object
+          description: "JSON coordinates for telestration lines, arrows, or angles"
+        tagged_athlete_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    CreateAnnotationRequest:
+      type: object
+      required: [author_id, start_timestamp, content]
+      properties:
+        author_id:
+          type: string
+          format: uuid
+        start_timestamp:
+          type: number
+        end_timestamp:
+          type: number
+        content:
+          type: string
+        category:
+          type: string
+          enum: [technical, tactical, biomechanical, praise, note]
+          default: technical
+        drawing_markup:
+          type: object
+        tagged_athlete_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateAnnotationRequest:
+      type: object
+      properties:
+        start_timestamp:
+          type: number
+        end_timestamp:
+          type: number
+        content:
+          type: string
+        category:
+          type: string
+          enum: [technical, tactical, biomechanical, praise, note]
+        drawing_markup:
+          type: object
+        tagged_athlete_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    DrillTag:
+      type: object
+      required: [id, video_id, drill_id, start_timestamp, end_timestamp]
+      properties:
+        id:
+          type: string
+          format: uuid
+        video_id:
+          type: string
+          format: uuid
+        drill_id:
+          type: string
+          format: uuid
+        drill_title:
+          type: string
+        start_timestamp:
+          type: number
+          example: 12.0
+        end_timestamp:
+          type: number
+          example: 65.4
+        notes:
+          type: string
+
+    CreateDrillTagRequest:
+      type: object
+      required: [drill_id, start_timestamp, end_timestamp]
+      properties:
+        drill_id:
+          type: string
+          format: uuid
+        start_timestamp:
+          type: number
+        end_timestamp:
+          type: number
+        notes:
+          type: string
+
