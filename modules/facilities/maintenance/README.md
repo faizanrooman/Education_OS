@@ -4,10 +4,18 @@
 **Kind:** feature
 **Status:** planned
 
-Work orders, preventive maintenance schedules, vendor tickets.
+Keeps buildings, spaces and equipment working. Anyone reports a fault; maintenance staff triage it, assign it to a technician or vendor, track it against response and resolution targets and record the cost. Preventive schedules raise tickets on their own.
 
 ## Scope
-_Owner fills in: what this module is responsible for, and what it explicitly is not._
+Responsible for: ticket categories, tickets (corrective, preventive, inspection) on an asset,
+resource, inventory unit or location, assignment to technicians or vendors, SLA tracking, work log
+and costs, resolution and reopen, preventive schedules.
+
+Not responsible for: general service requests (`helpdesk`), vendor contracts and AMC renewals
+(`amc-vendor-support`), issuing spare parts (`inventory-equipment`), purchasing (`procurement`),
+taking a target out of use (its own module, reacting to this module's events).
+
+Requirements: [docs/prd.md](docs/prd.md).
 
 ## Public surface
 - API: [contracts/openapi.yaml](contracts/openapi.yaml)

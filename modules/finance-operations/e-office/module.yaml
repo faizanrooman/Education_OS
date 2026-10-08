@@ -7,11 +7,12 @@ tier: common        # core (platform) | common (every institution) | specialized
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
 description: "File movement, notings, approvals, digital correspondence."
-owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
+owners: [gokulalakshmirooman-source]                # GitHub handles. Keep in sync with CODEOWNERS.
 
 # Platform services this module calls through packages/sdk. Nothing else.
+# documents: attachments and scanned correspondence. notification: file movement. scheduler: overdue files.
 depends_on:
-  platform: [identity, audit]
+  platform: [identity, audit, documents, notification, scheduler]
   integrations: []
 
 # Public surface. Other modules may ONLY use these.

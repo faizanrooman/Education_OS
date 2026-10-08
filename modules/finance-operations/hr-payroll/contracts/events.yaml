@@ -1,9 +1,42 @@
 # Domain events published by hr-payroll.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
+# Naming: <module>.<entity>.<past-tense-verb>
 # Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Salary amounts are never put in events.
 module: hr-payroll
 version: 1
-events: []
-#  - name: hr-payroll.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: hr-payroll.employee.joined
+    description: An employee was added. identity may create or link the user account; other modules may cache the name.
+    payload: { organisation_id: uuid, employee_id: uuid, user_id: uuid, employee_code: string, name: string, email: string, designation: string, department_id: uuid, staff_category: string, joined_on: date }
+  - name: hr-payroll.employee.updated
+    description: Name, designation, department or reporting manager changed. Consumers refresh cached copies.
+    payload: { organisation_id: uuid, employee_id: uuid, name: string, designation: string, department_id: uuid, reports_to: uuid }
+  - name: hr-payroll.employee.exited
+    description: Published on the last working day. identity disables the user; modules release the employee's assignments.
+    payload: { organisation_id: uuid, employee_id: uuid, user_id: uuid, kind: string, last_working_day: date }
+  - name: hr-payroll.leave-request.submitted
+    description: notification tells the approver.
+    payload: { organisation_id: uuid, leave_request_id: uuid, employee_id: uuid, approver_id: uuid, from: date, to: date, days: number }
+  - name: hr-payroll.leave-request.approved
+    description: >-
+      Approved leave. timetable-attendance or other scheduling modules may use it to find substitutes;
+      notification tells the employee.
+    payload: { organisation_id: uuid, leave_request_id: uuid, employee_id: uuid, user_id: uuid, from: date, to: date, half_day: string }
+  - name: hr-payroll.leave-request.rejected
+    description: A leave request was rejected by the approver. notification tells the employee.
+    payload: { organisation_id: uuid, leave_request_id: uuid, employee_id: uuid }
+  - name: hr-payroll.leave-request.cancelled
+    description: An approved or pending leave request was cancelled by the employee; timetable-attendance may release any cover.
+    payload: { organisation_id: uuid, leave_request_id: uuid, employee_id: uuid, from: date, to: date }
+  - name: hr-payroll.payroll-run.submitted
+    description: notification tells the approvers.
+    payload: { organisation_id: uuid, run_id: uuid, period: string, employees: integer }
+  - name: hr-payroll.payroll-run.approved
+    description: Payslips are visible to employees; notification tells them.
+    payload: { organisation_id: uuid, run_id: uuid, period: string, employees: integer, net_total: string }
+  - name: hr-payroll.payroll-run.paid
+    description: Salaries disbursed. budget-grants may record the expense against the salary budget head.
+    payload: { organisation_id: uuid, run_id: uuid, period: string, net_total: string, paid_on: date }
+  - name: hr-payroll.appraisal.completed
+    description: An appraisal cycle was completed for an employee and the result recorded.
+    payload: { organisation_id: uuid, appraisal_id: uuid, employee_id: uuid, cycle: string }
