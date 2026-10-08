@@ -23,6 +23,17 @@ paths:
         "409": { description: An open payment already exists for this source_module and source_reference. Its session is returned. }
         "422": { description: "Invalid amount, currency or purpose." }
         "503": { description: No active merchant account for this purpose. }
+      callbacks:
+        paymentNotification:
+          "{$request.body#/notify_url}":
+            post:
+              summary: >-
+                Posted to the caller's notify_url on every final status, in addition to the event. Signed with
+                HMAC-SHA256 of the raw body in header X-Payment-Signature. Retried with backoff until the receiver
+                answers 2xx; receivers must treat it as idempotent by event_id.
+              requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PaymentNotification" } } } }
+              responses:
+                "200": { description: Notification accepted }
     get:
       summary: Payments of the caller's organisation, newest first. Permission payment-sbiepay:payment:read.
       parameters:
