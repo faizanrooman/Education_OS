@@ -1,9 +1,43 @@
 # Domain events published by facility-booking.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
+# Booking payloads carry `source` so a module that booked through the API can pick out its own bookings.
 module: facility-booking
 version: 1
-events: []
-#  - name: facility-booking.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: facility-booking.resource.created
+    description: A bookable resource was added.
+    payload: { organisation_id: uuid, resource_id: uuid, type_id: uuid, name: string, capacity: integer }
+  - name: facility-booking.resource.updated
+    description: A resource's details or booking rules changed. Rule changes apply to new bookings only.
+    payload: { organisation_id: uuid, resource_id: uuid, changed: [string] }
+  - name: facility-booking.resource.status-changed
+    description: A resource became active, inactive or under_maintenance. Non-active blocks new bookings; affected bookings are listed for follow-up.
+    payload: { organisation_id: uuid, resource_id: uuid, from: string, to: string, reason: string, affected_booking_ids: [uuid] }
+  - name: facility-booking.blackout.created
+    description: A resource was closed for a window. Affected bookings are listed for follow-up.
+    payload: { organisation_id: uuid, blackout_id: uuid, resource_id: uuid, start_at: datetime, end_at: datetime, reason: string, affected_booking_ids: [uuid] }
+  - name: facility-booking.booking.requested
+    description: A booking on a resource that requires approval now waits for an approver. Notification tells the approvers.
+    payload: { organisation_id: uuid, booking_id: uuid, series_id: uuid, resource_id: uuid, booked_by: uuid, booked_for: uuid, start_at: datetime, end_at: datetime, approver_user_ids: [uuid], source: object }
+  - name: facility-booking.booking.confirmed
+    description: A booking is confirmed, straight away (no approval needed) or after approval (approved_by set).
+    payload: { organisation_id: uuid, booking_id: uuid, series_id: uuid, resource_id: uuid, booked_by: uuid, booked_for: uuid, start_at: datetime, end_at: datetime, approved_by: uuid, source: object }
+  - name: facility-booking.booking.rejected
+    description: An approver rejected a pending booking.
+    payload: { organisation_id: uuid, booking_id: uuid, resource_id: uuid, booked_by: uuid, booked_for: uuid, rejected_by: uuid, reason: string, source: object }
+  - name: facility-booking.booking.rescheduled
+    description: A booking moved in time or to another resource. status tells whether it went back to pending.
+    payload: { organisation_id: uuid, booking_id: uuid, from_resource_id: uuid, to_resource_id: uuid, from_start_at: datetime, from_end_at: datetime, start_at: datetime, end_at: datetime, status: string, source: object }
+  - name: facility-booking.booking.cancelled
+    description: A booking was cancelled by its booker or by staff.
+    payload: { organisation_id: uuid, booking_id: uuid, series_id: uuid, resource_id: uuid, booked_by: uuid, booked_for: uuid, cancelled_by: uuid, reason: string, start_at: datetime, source: object }
+  - name: facility-booking.booking.checked-in
+    description: The person booked for arrived and checked in.
+    payload: { organisation_id: uuid, booking_id: uuid, resource_id: uuid, booked_for: uuid, checked_in_at: datetime }
+  - name: facility-booking.booking.no-show-recorded
+    description: A booking that required check-in was not checked in within the grace period (recorded by the scheduler or by staff).
+    payload: { organisation_id: uuid, booking_id: uuid, resource_id: uuid, booked_for: uuid, start_at: datetime, recorded_by: string }
+  - name: facility-booking.booking.completed
+    description: A checked-in booking reached its end time.
+    payload: { organisation_id: uuid, booking_id: uuid, resource_id: uuid, booked_for: uuid, start_at: datetime, end_at: datetime }

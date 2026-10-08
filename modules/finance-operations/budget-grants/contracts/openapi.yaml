@@ -2,9 +2,431 @@ openapi: 3.1.0
 info:
   title: budget-grants API
   version: 0.1.0
-  description: "Budget planning, grant tracking, utilisation certificates."
+  description: >-
+    Annual budgets by budget head and cost centre, reappropriation, commitments and actual spend, externally
+    funded grants with their own budget lines, funds received and utilisation certificates. Spend arrives from
+    procurement and hr-payroll events or is recorded by hand. Amounts are decimal strings in rupees.
+    Financial years are written 2026-27.
 servers:
   - url: /api/v1/budget-grants
-paths: {}
+paths:
+  /budget-heads:
+    get:
+      summary: Budget heads (salaries, equipment, consumables, travel and so on). Permission budget-grants:budget:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/BudgetHead" } } } } } }
+    post:
+      summary: Create a budget head. Permission budget-grants:budget:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BudgetHead" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/BudgetHead" } } } }
+        "409": { description: Code already used }
+  /budget-heads/{id}:
+    put:
+      summary: Rename or deactivate a budget head. Permission budget-grants:budget:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BudgetHead" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BudgetHead" } } } } }
+  /budgets:
+    get:
+      summary: Budgets. Permission budget-grants:budget:read.
+      parameters:
+        - { name: financial_year, in: query, schema: { type: string } }
+        - { name: department_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/BudgetStatus" } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Budget" } } } } } }
+    post:
+      summary: Create a draft budget for one financial year and cost centre. Permission budget-grants:budget:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BudgetInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Budget" } } } }
+        "409": { description: A budget for this year and cost centre already exists }
+  /budgets/{id}:
+    get:
+      summary: One budget with lines, allocated, committed, spent and available. Permission budget-grants:budget:read.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Budget" } } } } }
+    put:
+      summary: Edit a draft or returned budget. Permission budget-grants:budget:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/BudgetInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Budget" } } } }
+        "409": { description: Budget is submitted or approved }
+  /budgets/{id}/submit:
+    post:
+      summary: Send a draft budget for approval. Permission budget-grants:budget:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Budget" } } } } }
+  /budgets/{id}/decision:
+    post:
+      summary: >-
+        Approve or return a submitted budget. The preparer cannot approve. Approval publishes budget-grants.budget.approved
+        and makes its lines available for spending. Permission budget-grants:budget:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { $ref: "#/components/requestBodies/Decision" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Budget" } } } }
+        "409": { description: Budget is not submitted }
+  /reappropriations:
+    get:
+      summary: Requests to move money between lines of an approved budget. Permission budget-grants:budget:read.
+      parameters: [{ name: status, in: query, schema: { type: string, enum: [requested, approved, rejected] } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Reappropriation" } } } } } }
+    post:
+      summary: Request a reappropriation. The amount must be available on the source line. Permission budget-grants:budget:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ReappropriationInput" } } } }
+      responses:
+        "201": { description: Requested, content: { application/json: { schema: { $ref: "#/components/schemas/Reappropriation" } } } }
+        "422": { description: Amount exceeds what is available on the source line }
+  /reappropriations/{id}/decision:
+    post:
+      summary: Approve or reject a reappropriation. The requester cannot decide. Permission budget-grants:budget:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { $ref: "#/components/requestBodies/Decision" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Reappropriation" } } } } }
+  /availability:
+    get:
+      summary: >-
+        Whether an amount can be committed on a budget line or grant line. procurement calls this before approving an
+        indent. Read-only; it does not reserve the amount. Permission budget-grants:availability:read.
+      parameters:
+        - { name: line_id, in: query, required: true, schema: { type: string, format: uuid }, description: "Budget line or grant line id" }
+        - { name: amount, in: query, required: true, schema: { $ref: "#/components/schemas/Money" } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Availability" } } } }
+        "404": { description: No such line in an approved budget or active grant }
+  /lines:
+    get:
+      summary: >-
+        Budget and grant lines open for spending, for pickers in other modules (for example an indent form).
+        Permission budget-grants:availability:read.
+      parameters:
+        - { name: financial_year, in: query, schema: { type: string } }
+        - { name: department_id, in: query, schema: { type: string, format: uuid } }
+        - { name: q, in: query, schema: { type: string } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LineSummary" } } } } } }
+  /expenditures:
+    get:
+      summary: Commitments and actual spend. Permission budget-grants:budget:read.
+      parameters:
+        - { name: line_id, in: query, schema: { type: string, format: uuid } }
+        - { name: kind, in: query, schema: { type: string, enum: [commitment, actual] } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ExpenditurePage" } } } } }
+    post:
+      summary: >-
+        Record spend not coming from procurement or hr-payroll (for example travel reimbursed outside procurement).
+        Permission budget-grants:expenditure:record.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ExpenditureInput" } } } }
+      responses:
+        "201": { description: Recorded, content: { application/json: { schema: { $ref: "#/components/schemas/Expenditure" } } } }
+        "422": { description: Exceeds what is available on the line }
+  /expenditures/{id}/reverse:
+    post:
+      summary: Reverse a manual entry recorded in error with a reason. Entries are never deleted. Permission budget-grants:expenditure:record.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Expenditure" } } } }
+        "409": { description: Entry came from another module and is reversed by that module's event }
+  /grants:
+    get:
+      summary: Grants. Permission budget-grants:grant:read.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/GrantStatus" } }
+        - { name: funder, in: query, schema: { type: string } }
+        - { name: principal_investigator_id, in: query, schema: { type: string, format: uuid } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Grant" } } } } } }
+    post:
+      summary: Record a sanctioned grant with its lines. Publishes budget-grants.grant.sanctioned. Permission budget-grants:grant:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/GrantInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Grant" } } } } }
+  /grants/{id}:
+    get:
+      summary: One grant with lines, funds received, spend and certificates. Permission budget-grants:grant:read, or its investigators.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Grant" } } } } }
+    put:
+      summary: >-
+        Edit grant details, investigators or lines (a revised sanction). Line totals must equal the sanctioned amount.
+        Permission budget-grants:grant:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/GrantInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Grant" } } } } }
+  /grants/{id}/funds-received:
+    post:
+      summary: Record an instalment received from the funder. Publishes budget-grants.grant.funds-received. Permission budget-grants:grant:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/FundsReceivedInput" } } } }
+      responses: { "201": { description: Recorded, content: { application/json: { schema: { $ref: "#/components/schemas/Grant" } } } } }
+  /grants/{id}/close:
+    post:
+      summary: >-
+        Close a grant at the end of its period. Unspent balance is recorded for return to the funder or carry-over as the
+        sanction says. Publishes budget-grants.grant.closed. Permission budget-grants:grant:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [unspent_action], properties: { unspent_action: { type: string, enum: [returned, carried_over, none] }, note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Grant" } } } } }
+  /grants/{id}/utilisation-certificates:
+    get:
+      summary: Utilisation certificates of a grant. Permission budget-grants:grant:read, or its investigators.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/UtilisationCertificate" } } } } } }
+    post:
+      summary: >-
+        Draft a utilisation certificate for a period: funds received, spent by line and balance, computed from the
+        records. Permission budget-grants:grant:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [period_from, period_to], properties: { period_from: { type: string, format: date }, period_to: { type: string, format: date } } } } } }
+      responses: { "201": { description: Draft, content: { application/json: { schema: { $ref: "#/components/schemas/UtilisationCertificate" } } } } }
+  /utilisation-certificates/{id}/decision:
+    post:
+      summary: >-
+        Approve (certify) or return a draft certificate. Approval generates the PDF in platform/documents. The preparer
+        cannot approve. Permission budget-grants:utilisation:approve.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { $ref: "#/components/requestBodies/Decision" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/UtilisationCertificate" } } } } }
+  /utilisation-certificates/{id}/mark-submitted:
+    post:
+      summary: Record that an approved certificate was sent to the funder. Publishes budget-grants.utilisation-certificate.submitted. Permission budget-grants:grant:manage.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { submitted_on: { type: string, format: date }, reference: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/UtilisationCertificate" } } } } }
+  /me/grants:
+    get:
+      summary: >-
+        Grants where the caller is principal or co-investigator, with balance and next certificate due.
+        Backs the Research Scholar widget budget-grants.my-grants. Permission budget-grants:self:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/MyGrant" } } } } } }
+  /reports/budget-vs-spend:
+    get:
+      summary: >-
+        Allocated, committed and spent per budget head for a financial year, with grant totals.
+        Backs the Finance Staff and Research Office widget budget-grants.budget-vs-spend. Permission budget-grants:report:read.
+      parameters:
+        - { name: financial_year, in: query, schema: { type: string }, description: "Defaults to the current financial year" }
+        - { name: department_id, in: query, schema: { type: string, format: uuid } }
+        - { name: scope, in: query, schema: { type: string, enum: [all, budgets, grants], default: all } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BudgetVsSpendReport" } } } } }
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+  requestBodies:
+    Decision:
+      required: true
+      content: { application/json: { schema: { type: object, required: [decision], properties: { decision: { type: string, enum: [approved, returned, rejected], description: "returned for budgets and certificates, rejected for reappropriations" }, note: { type: string } } } } }
+  schemas:
+    Money: { type: string, pattern: "^-?[0-9]+(\\.[0-9]{1,2})?$", description: "Decimal string in rupees" }
+    BudgetHead:
+      type: object
+      required: [code, name]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        code: { type: string, pattern: "^[A-Z0-9_]{2,20}$" }
+        name: { type: string }
+        kind: { type: string, enum: [recurring, non_recurring] }
+        active: { type: boolean, default: true }
+    BudgetStatus: { type: string, enum: [draft, submitted, returned, approved, closed] }
+    BudgetInput:
+      type: object
+      required: [financial_year, lines]
+      properties:
+        financial_year: { type: string, pattern: "^[0-9]{4}-[0-9]{2}$" }
+        department_id: { type: string, format: uuid, nullable: true, description: "Null means the institution-wide budget" }
+        title: { type: string }
+        lines:
+          type: array
+          minItems: 1
+          items: { type: object, required: [budget_head_id, allocated], properties: { budget_head_id: { type: string, format: uuid }, allocated: { $ref: "#/components/schemas/Money" }, note: { type: string } } }
+    BudgetLine:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        budget_head_id: { type: string, format: uuid }
+        budget_head_name: { type: string }
+        allocated: { $ref: "#/components/schemas/Money" }
+        committed: { $ref: "#/components/schemas/Money" }
+        spent: { $ref: "#/components/schemas/Money" }
+        available: { $ref: "#/components/schemas/Money" }
+    Budget:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        financial_year: { type: string }
+        department_id: { type: string, format: uuid, nullable: true }
+        department_name: { type: string, nullable: true }
+        title: { type: string }
+        status: { $ref: "#/components/schemas/BudgetStatus" }
+        lines: { type: array, items: { $ref: "#/components/schemas/BudgetLine" } }
+        allocated_total: { $ref: "#/components/schemas/Money" }
+        spent_total: { $ref: "#/components/schemas/Money" }
+        prepared_by: { type: string, format: uuid }
+        approved_by: { type: string, format: uuid, nullable: true }
+        approved_at: { type: string, format: date-time, nullable: true }
+    ReappropriationInput:
+      type: object
+      required: [from_line_id, to_line_id, amount, reason]
+      properties:
+        from_line_id: { type: string, format: uuid }
+        to_line_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/Money" }
+        reason: { type: string }
+    Reappropriation:
+      allOf:
+        - { $ref: "#/components/schemas/ReappropriationInput" }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            status: { type: string, enum: [requested, approved, rejected] }
+            requested_by: { type: string, format: uuid }
+            decided_by: { type: string, format: uuid, nullable: true }
+            decided_at: { type: string, format: date-time, nullable: true }
+    Availability:
+      type: object
+      properties:
+        line_id: { type: string, format: uuid }
+        available: { $ref: "#/components/schemas/Money" }
+        sufficient: { type: boolean }
+    LineSummary:
+      type: object
+      properties:
+        line_id: { type: string, format: uuid }
+        kind: { type: string, enum: [budget, grant] }
+        label: { type: string, description: "e.g. 2026-27 Physics / Equipment, or the grant code and head" }
+        available: { $ref: "#/components/schemas/Money" }
+    ExpenditureSource:
+      type: object
+      properties:
+        module: { type: string, description: "procurement, hr-payroll or manual" }
+        reference: { type: string, description: "e.g. purchase order or payroll run id" }
+    ExpenditureInput:
+      type: object
+      required: [line_id, amount, date, description]
+      properties:
+        line_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/Money" }
+        date: { type: string, format: date }
+        description: { type: string }
+        document_id: { type: string, nullable: true, description: "Bill or voucher in platform/documents" }
+    Expenditure:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        line_id: { type: string, format: uuid }
+        kind: { type: string, enum: [commitment, actual] }
+        amount: { $ref: "#/components/schemas/Money" }
+        date: { type: string, format: date }
+        description: { type: string }
+        source: { $ref: "#/components/schemas/ExpenditureSource" }
+        reversed: { type: boolean }
+        document_id: { type: string, nullable: true }
+        recorded_at: { type: string, format: date-time }
+    ExpenditurePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Expenditure" } }
+        next_cursor: { type: string, nullable: true }
+    GrantStatus: { type: string, enum: [active, closed] }
+    Investigator:
+      type: object
+      required: [user_id, role]
+      properties:
+        user_id: { type: string, format: uuid, description: "platform/identity user" }
+        name: { type: string, readOnly: true }
+        role: { type: string, enum: [principal, co_investigator] }
+    GrantInput:
+      type: object
+      required: [code, title, funder, sanctioned_amount, start_date, end_date, investigators, lines]
+      properties:
+        code: { type: string, description: "Sanction or project number" }
+        title: { type: string }
+        funder: { type: string, description: "Funding agency name" }
+        scheme: { type: string }
+        sanction_order_document_id: { type: string, nullable: true }
+        sanctioned_amount: { $ref: "#/components/schemas/Money" }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        department_id: { type: string, format: uuid, nullable: true }
+        investigators: { type: array, minItems: 1, items: { $ref: "#/components/schemas/Investigator" } }
+        uc_frequency: { type: string, enum: [yearly, half_yearly, on_completion], default: yearly }
+        lines:
+          type: array
+          minItems: 1
+          items: { type: object, required: [budget_head_id, sanctioned], properties: { budget_head_id: { type: string, format: uuid }, sanctioned: { $ref: "#/components/schemas/Money" } } }
+    FundsReceivedInput:
+      type: object
+      required: [amount, received_on]
+      properties:
+        amount: { $ref: "#/components/schemas/Money" }
+        received_on: { type: string, format: date }
+        reference: { type: string }
+    Grant:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        title: { type: string }
+        funder: { type: string }
+        scheme: { type: string }
+        sanctioned_amount: { $ref: "#/components/schemas/Money" }
+        received_total: { $ref: "#/components/schemas/Money" }
+        committed_total: { $ref: "#/components/schemas/Money" }
+        spent_total: { $ref: "#/components/schemas/Money" }
+        balance: { $ref: "#/components/schemas/Money", description: "Received minus spent" }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        status: { $ref: "#/components/schemas/GrantStatus" }
+        department_id: { type: string, format: uuid, nullable: true }
+        investigators: { type: array, items: { $ref: "#/components/schemas/Investigator" } }
+        uc_frequency: { type: string }
+        next_uc_due: { type: string, format: date, nullable: true }
+        lines: { type: array, items: { $ref: "#/components/schemas/BudgetLine" } }
+        funds_received: { type: array, items: { $ref: "#/components/schemas/FundsReceivedInput" } }
+        unspent_action: { type: string, nullable: true, enum: [returned, carried_over, none], description: "Set when the grant is closed" }
+    UtilisationCertificate:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        grant_id: { type: string, format: uuid }
+        period_from: { type: string, format: date }
+        period_to: { type: string, format: date }
+        opening_balance: { $ref: "#/components/schemas/Money" }
+        received: { $ref: "#/components/schemas/Money" }
+        spent: { $ref: "#/components/schemas/Money" }
+        closing_balance: { $ref: "#/components/schemas/Money" }
+        by_head: { type: array, items: { type: object, properties: { budget_head_name: { type: string }, sanctioned: { $ref: "#/components/schemas/Money" }, spent: { $ref: "#/components/schemas/Money" } } } }
+        status: { type: string, enum: [draft, returned, approved, submitted] }
+        document_id: { type: string, nullable: true, description: "Certified PDF in platform/documents" }
+        prepared_by: { type: string, format: uuid }
+        approved_by: { type: string, format: uuid, nullable: true }
+        submitted_on: { type: string, format: date, nullable: true }
+    MyGrant:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        title: { type: string }
+        funder: { type: string }
+        my_role: { type: string, enum: [principal, co_investigator] }
+        sanctioned_amount: { $ref: "#/components/schemas/Money" }
+        spent_total: { $ref: "#/components/schemas/Money" }
+        balance: { $ref: "#/components/schemas/Money" }
+        end_date: { type: string, format: date }
+        next_uc_due: { type: string, format: date, nullable: true }
+    BudgetVsSpendReport:
+      type: object
+      properties:
+        financial_year: { type: string }
+        allocated: { $ref: "#/components/schemas/Money" }
+        committed: { $ref: "#/components/schemas/Money" }
+        spent: { $ref: "#/components/schemas/Money" }
+        by_head:
+          type: array
+          items: { type: object, properties: { budget_head_id: { type: string, format: uuid }, name: { type: string }, allocated: { $ref: "#/components/schemas/Money" }, committed: { $ref: "#/components/schemas/Money" }, spent: { $ref: "#/components/schemas/Money" } } }
+        grants: { type: object, properties: { active: { type: integer }, sanctioned: { $ref: "#/components/schemas/Money" }, spent: { $ref: "#/components/schemas/Money" }, ucs_due_30_days: { type: integer } } }

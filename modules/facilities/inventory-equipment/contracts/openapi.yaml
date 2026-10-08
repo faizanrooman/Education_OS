@@ -2,9 +2,530 @@ openapi: 3.1.0
 info:
   title: inventory-equipment API
   version: 0.1.0
-  description: "Stock, issue/return, consumables and sports equipment lifecycle."
+  description: "Generic inventory pattern (ADR-0004): catalogue, units, store locations, stock ledger, low stock and loans. Field words come from the profile vocabulary (inventory-equipment.item); this contract stays neutral. See docs/prd.md."
 servers:
   - url: /api/v1/inventory-equipment
-paths: {}
+paths:
+  /categories:
+    get:
+      summary: List item categories. Permission inventory-equipment:item:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Category" } } } } } }
+    post:
+      summary: Create a category. Permission inventory-equipment:item:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CategoryInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }, "409": { description: Name already in use } }
+  /categories/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      summary: Update a category. Permission inventory-equipment:item:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/CategoryInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    delete:
+      summary: Delete a category that no item uses. Permission inventory-equipment:item:manage.
+      responses: { "204": { description: Deleted }, "409": { description: Items still use this category } }
+
+  /locations:
+    get:
+      summary: List store locations. Permission inventory-equipment:item:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Location" } } } } } }
+    post:
+      summary: Create a store location. Permission inventory-equipment:item:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/LocationInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Location" } } } } }
+  /locations/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      summary: Update or deactivate a location. A location holding stock cannot be deactivated. Permission inventory-equipment:item:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/LocationInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Location" } } } }, "409": { description: Location still holds stock } }
+
+  /items:
+    get:
+      summary: Search the catalogue. Permission inventory-equipment:item:read.
+      parameters:
+        - { name: category_id, in: query, schema: { type: string, format: uuid } }
+        - { name: tracking, in: query, schema: { $ref: "#/components/schemas/Tracking" } }
+        - { name: loanable, in: query, schema: { type: boolean } }
+        - { name: available, in: query, description: "Only items with something available now", schema: { type: boolean } }
+        - { name: q, in: query, description: "Search in name, code and attributes", schema: { type: string } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ItemPage" } } } } }
+    post:
+      summary: Add an item to the catalogue. Permission inventory-equipment:item:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ItemInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Item" } } } }, "409": { description: Code already in use } }
+  /items/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One item with its availability. Permission inventory-equipment:item:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Item" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    patch:
+      summary: Update an item or deactivate it (active=false). Tracking cannot change once stock exists. Permission inventory-equipment:item:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ItemInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Item" } } } }, "409": { description: Tracking cannot change once stock exists } }
+  /items/{id}/units:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Units of an individually tracked item. Permission inventory-equipment:item:read.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/UnitStatus" } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Unit" } } } } } }
+    post:
+      summary: Register a new unit (writes a receipt movement). Permission inventory-equipment:stock:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/UnitInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Unit" } } } }, "409": { description: Tag already in use }, "422": { description: Item is quantity-tracked } }
+  /units/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One unit with its loan and movement history. Permission inventory-equipment:item:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/UnitDetail" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    patch:
+      summary: Update tag, serial number, notes or asset link. Permission inventory-equipment:item:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/UnitInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Unit" } } } } }
+  /units/{id}/status:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    put:
+      summary: Change a unit's status or condition (in repair, missing, retired, back to available). A unit on loan changes only through the loan. Permission inventory-equipment:stock:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { status: { $ref: "#/components/schemas/UnitStatus" }, condition: { $ref: "#/components/schemas/Condition" }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Unit" } } } }, "409": { description: Unit is on loan } }
+
+  /stock:
+    get:
+      summary: Stock levels per item and location. Permission inventory-equipment:stock:read.
+      parameters:
+        - { name: item_id, in: query, schema: { type: string, format: uuid } }
+        - { name: location_id, in: query, schema: { type: string, format: uuid } }
+        - { name: category_id, in: query, schema: { type: string, format: uuid } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/StockLevel" } } } } } }
+  /movements:
+    get:
+      summary: The stock ledger, newest first. Permission inventory-equipment:stock:read.
+      parameters:
+        - { name: item_id, in: query, schema: { type: string, format: uuid } }
+        - { name: unit_id, in: query, schema: { type: string, format: uuid } }
+        - { name: location_id, in: query, schema: { type: string, format: uuid } }
+        - { name: kind, in: query, schema: { $ref: "#/components/schemas/MovementKind" } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MovementPage" } } } } }
+    post:
+      summary: >
+        Record a receipt, issue (consumption), transfer, adjustment or write-off. Loan movements are written by the loan endpoints, not here.
+        Permission inventory-equipment:stock:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MovementInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Movement" } } } }
+        "409": { $ref: "#/components/responses/NotEnoughStock" }
+        "422": { description: "Missing reason, wrong tracking for the item, or same source and target location" }
+  /low-stock:
+    get:
+      summary: Items at or below their reorder level. Backs the low-stock widget. Permission inventory-equipment:stock:read.
+      parameters:
+        - { name: category_id, in: query, schema: { type: string, format: uuid } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/LowStockLine" } } } } } }
+
+  /loans:
+    get:
+      summary: >
+        List loans. scope=mine (default) returns the caller's loans; scope=managed returns loans the caller may approve or,
+        with inventory-equipment:loan:read-all, every loan. Backs the my-loans and overdue-loans widgets. Permission inventory-equipment:loan:read.
+      parameters:
+        - { name: scope, in: query, schema: { type: string, enum: [mine, managed], default: mine } }
+        - { name: status, in: query, style: form, explode: false, schema: { type: array, items: { $ref: "#/components/schemas/LoanStatus" } } }
+        - { name: open, in: query, description: "Only loans not yet finished (requested, approved, on_loan, partially_returned, overdue)", schema: { type: boolean } }
+        - { name: borrower_id, in: query, schema: { type: string, format: uuid } }
+        - { name: item_id, in: query, schema: { type: string, format: uuid } }
+        - { name: due_before, in: query, schema: { type: string, format: date-time } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LoanPage" } } } } }
+    post:
+      summary: >
+        Request a loan. Status is requested when any line needs approval, else approved (ready for hand-out).
+        A loan for another person (borrower_id) needs inventory-equipment:loan:manage. Permission inventory-equipment:loan:request.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/LoanInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }
+        "403": { description: The caller's role may not borrow this item }
+        "409": { $ref: "#/components/responses/NotEnoughStock" }
+        "422": { $ref: "#/components/responses/RuleViolation" }
+  /loans/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One loan with its lines. Visible to the borrower, approvers of its items and read-all holders. Permission inventory-equipment:loan:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+  /loans/{id}/approve:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Approve a requested loan. A listed approver of the item's category with inventory-equipment:loan:approve, or inventory-equipment:loan:manage.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "409": { description: Loan is not requested } }
+  /loans/{id}/reject:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Reject a requested loan with a reason. Same permission as approve.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string, minLength: 1 } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "409": { description: Loan is not requested } }
+  /loans/{id}/cancel:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Cancel a loan that has not been handed out. Borrower, or inventory-equipment:loan:manage.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "409": { description: Already handed out or finished } }
+  /loans/{id}/hand-out:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Hand out an approved loan. Picks the exact units (or location for quantity lines) and records their condition; writes loan_out movements. Permission inventory-equipment:loan:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/HandOutInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }
+        "409": { $ref: "#/components/responses/NotEnoughStock" }
+  /loans/{id}/return:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Take back some or all lines, recording condition and location; writes loan_return movements. Damaged units become in_repair. Permission inventory-equipment:loan:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ReturnInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "409": { description: Line not out on this loan } }
+  /loans/{id}/extend:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Move the due date. The borrower may extend once if nobody is waiting for the item; inventory-equipment:loan:manage may extend at any time.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [due_at], properties: { due_at: { type: string, format: date-time }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } }, "422": { $ref: "#/components/responses/RuleViolation" } }
+  /loans/{id}/mark-lost:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Record loan lines as lost. Units become missing; quantities are written off. Permission inventory-equipment:loan:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [line_ids, reason], properties: { line_ids: { type: array, items: { type: string, format: uuid } }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Loan" } } } } }
+
+  /summary:
+    get:
+      summary: Counts for dashboard widgets. Permission inventory-equipment:stock:read or inventory-equipment:loan:read-all.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Summary" } } } } }
+
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    PageSize: { name: page_size, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+
+  responses:
+    NotFound: { description: Not found in the caller's organisation }
+    NotEnoughStock:
+      description: Not enough available at the location, or the unit is not available.
+      content: { application/json: { schema: { $ref: "#/components/schemas/StockError" } } }
+    RuleViolation:
+      description: A loan rule forbids this.
+      content: { application/json: { schema: { $ref: "#/components/schemas/RuleError" } } }
+
+  schemas:
+    Tracking:
+      type: string
+      enum: [individual, quantity]
+      description: "individual: each piece is a Unit with a tag. quantity: only counts per location."
+    UnitStatus:
+      type: string
+      enum: [available, reserved, on_loan, in_repair, missing, retired]
+    Condition:
+      type: string
+      enum: [new, good, fair, poor, damaged]
+    MovementKind:
+      type: string
+      enum: [receipt, issue, transfer, adjustment, write_off, loan_out, loan_return]
+    LoanStatus:
+      type: string
+      enum: [requested, approved, rejected, cancelled, on_loan, partially_returned, overdue, returned, closed_with_loss]
+
+    LoanRules:
+      type: object
+      description: "A missing value falls back to the category's rule, then to the organisation default from config."
+      properties:
+        requires_approval: { type: boolean, default: false }
+        max_loan_days: { type: integer, minimum: 1 }
+        max_quantity_per_loan: { type: integer, minimum: 1 }
+        borrower_role_ids: { type: array, items: { type: string }, description: "Role ids allowed to borrow. Empty means anyone with inventory-equipment:loan:request." }
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 120, description: "The organisation's own word for this group of items" }
+        description: { type: string }
+        approver_user_ids: { type: array, items: { type: string, format: uuid }, description: "Identity users who approve loans of items in this category" }
+        default_loan_rules: { $ref: "#/components/schemas/LoanRules" }
+    Category:
+      allOf:
+        - $ref: "#/components/schemas/CategoryInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            item_count: { type: integer }
+
+    LocationInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 120 }
+        address: { type: string, description: "Free text: building, room, shelf" }
+        keeper_user_ids: { type: array, items: { type: string, format: uuid }, description: "Staff responsible for this store" }
+        active: { type: boolean, default: true }
+    Location:
+      allOf:
+        - $ref: "#/components/schemas/LocationInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+
+    ItemInput:
+      type: object
+      required: [name, category_id, tracking]
+      properties:
+        name: { type: string, maxLength: 200 }
+        code: { type: string, maxLength: 60, description: "Catalogue code, unique in the organisation" }
+        category_id: { type: string, format: uuid }
+        tracking: { $ref: "#/components/schemas/Tracking" }
+        unit_of_measure: { type: string, default: piece, description: "For quantity items, e.g. piece, box, metre, litre" }
+        loanable: { type: boolean, default: true }
+        consumable: { type: boolean, default: false, description: "Issued and used up, never returned. A consumable is not loanable." }
+        reorder_level: { type: number, minimum: 0, description: "Low stock when available quantity is at or below this" }
+        reorder_quantity: { type: number, minimum: 0, description: "Suggested quantity to order; passed on in the stock.ran-low event" }
+        description: { type: string }
+        attributes: { type: object, additionalProperties: { type: string }, description: "Searchable features, e.g. { size: M, power: '230V' }" }
+        image_document_id: { type: string, description: "Document id from the documents platform service" }
+        loan_rules: { $ref: "#/components/schemas/LoanRules" }
+        active: { type: boolean, default: true }
+    Item:
+      allOf:
+        - $ref: "#/components/schemas/ItemInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            effective_loan_rules: { $ref: "#/components/schemas/LoanRules" }
+            on_hand: { type: number, description: "In the stores, including reserved" }
+            available: { type: number, description: "On hand minus reserved; what can be lent or issued now" }
+            on_loan: { type: number }
+            low_stock: { type: boolean }
+            created_at: { type: string, format: date-time }
+            updated_at: { type: string, format: date-time }
+    ItemPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Item" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+
+    UnitInput:
+      type: object
+      required: [tag]
+      properties:
+        tag: { type: string, maxLength: 60, description: "Label or barcode on the piece, unique in the organisation" }
+        serial_number: { type: string }
+        location_id: { type: string, format: uuid, description: "Required when registering" }
+        condition: { $ref: "#/components/schemas/Condition" }
+        asset_id: { type: string, format: uuid, description: "Id of the matching asset in asset-management, if it is a registered asset" }
+        notes: { type: string }
+    Unit:
+      allOf:
+        - $ref: "#/components/schemas/UnitInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            item_id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/UnitStatus" }
+            current_loan_id: { type: string, format: uuid, nullable: true }
+            created_at: { type: string, format: date-time }
+    UnitDetail:
+      allOf:
+        - $ref: "#/components/schemas/Unit"
+        - type: object
+          properties:
+            recent_loans: { type: array, items: { $ref: "#/components/schemas/Loan" } }
+            recent_movements: { type: array, items: { $ref: "#/components/schemas/Movement" } }
+
+    StockLevel:
+      type: object
+      properties:
+        item_id: { type: string, format: uuid }
+        item_name: { type: string }
+        location_id: { type: string, format: uuid }
+        location_name: { type: string }
+        on_hand: { type: number }
+        reserved: { type: number }
+        available: { type: number }
+        unit_of_measure: { type: string }
+    LowStockLine:
+      type: object
+      properties:
+        item_id: { type: string, format: uuid }
+        item_name: { type: string }
+        category_id: { type: string, format: uuid }
+        available: { type: number }
+        reorder_level: { type: number }
+        reorder_quantity: { type: number }
+        unit_of_measure: { type: string }
+        low_since: { type: string, format: date-time }
+
+    MovementInput:
+      type: object
+      required: [kind, item_id, quantity]
+      description: "Rules by kind. receipt: to_location_id. issue and write_off: from_location_id and reason. transfer: both locations. adjustment: location and a signed quantity with reason. For individual items, unit_ids replace quantity."
+      properties:
+        kind: { type: string, enum: [receipt, issue, transfer, adjustment, write_off] }
+        item_id: { type: string, format: uuid }
+        quantity: { type: number, description: "Positive, except adjustment which may be negative" }
+        unit_ids: { type: array, items: { type: string, format: uuid } }
+        from_location_id: { type: string, format: uuid }
+        to_location_id: { type: string, format: uuid }
+        issued_to: { type: string, format: uuid, description: "For issue: who received the consumable" }
+        reason: { type: string }
+        reference: { $ref: "#/components/schemas/Reference" }
+    Movement:
+      allOf:
+        - $ref: "#/components/schemas/MovementInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            kind: { $ref: "#/components/schemas/MovementKind" }
+            loan_id: { type: string, format: uuid, nullable: true }
+            recorded_by: { type: string, format: uuid }
+            recorded_at: { type: string, format: date-time }
+    MovementPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Movement" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+    Reference:
+      type: object
+      description: "Optional link to a record in another module, e.g. a purchase order in procurement or a production that used the stock."
+      required: [module, entity, id]
+      properties:
+        module: { type: string }
+        entity: { type: string }
+        id: { type: string }
+
+    LoanLineInput:
+      type: object
+      required: [item_id]
+      properties:
+        item_id: { type: string, format: uuid }
+        quantity: { type: number, minimum: 1, default: 1 }
+        unit_id: { type: string, format: uuid, description: "Ask for a specific unit; otherwise staff pick at hand-out" }
+    LoanInput:
+      type: object
+      required: [lines, due_at]
+      properties:
+        lines: { type: array, minItems: 1, items: { $ref: "#/components/schemas/LoanLineInput" } }
+        due_at: { type: string, format: date-time }
+        purpose: { type: string, maxLength: 300 }
+        borrower_id: { type: string, format: uuid, description: "Person the loan is for. Needs inventory-equipment:loan:manage when not the caller." }
+        reference: { $ref: "#/components/schemas/Reference" }
+    LoanLine:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        item_id: { type: string, format: uuid }
+        item_name: { type: string }
+        quantity: { type: number }
+        unit_id: { type: string, format: uuid, nullable: true }
+        unit_tag: { type: string, nullable: true }
+        from_location_id: { type: string, format: uuid, nullable: true }
+        condition_out: { $ref: "#/components/schemas/Condition" }
+        condition_in: { $ref: "#/components/schemas/Condition" }
+        status: { type: string, enum: [waiting, out, returned, lost] }
+        returned_at: { type: string, format: date-time, nullable: true }
+    Loan:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        borrower_id: { type: string, format: uuid }
+        requested_by: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/LoanStatus" }
+        lines: { type: array, items: { $ref: "#/components/schemas/LoanLine" } }
+        purpose: { type: string }
+        due_at: { type: string, format: date-time }
+        handed_out_at: { type: string, format: date-time, nullable: true }
+        handed_out_by: { type: string, format: uuid, nullable: true }
+        closed_at: { type: string, format: date-time, nullable: true }
+        decided_by: { type: string, format: uuid, nullable: true }
+        decision_note: { type: string, nullable: true }
+        extensions: { type: integer, description: "Times the due date was moved" }
+        days_overdue: { type: integer, description: "0 when not overdue" }
+        reference: { $ref: "#/components/schemas/Reference" }
+        created_at: { type: string, format: date-time }
+        can: { type: array, items: { type: string, enum: [cancel, approve, reject, hand_out, return, extend, mark_lost] }, description: "Actions the caller may take now; drives widget buttons" }
+    LoanPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Loan" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+    HandOutInput:
+      type: object
+      required: [lines]
+      properties:
+        lines:
+          type: array
+          items:
+            type: object
+            required: [line_id]
+            properties:
+              line_id: { type: string, format: uuid }
+              unit_id: { type: string, format: uuid, description: "For individual items: the unit given" }
+              from_location_id: { type: string, format: uuid, description: "For quantity items: the store it comes from" }
+              condition_out: { $ref: "#/components/schemas/Condition" }
+    ReturnInput:
+      type: object
+      required: [lines]
+      properties:
+        lines:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [line_id, condition_in]
+            properties:
+              line_id: { type: string, format: uuid }
+              condition_in: { $ref: "#/components/schemas/Condition" }
+              to_location_id: { type: string, format: uuid, description: "Store it goes back to; defaults to where it came from" }
+              damage_note: { type: string, description: "Required when condition_in is damaged" }
+
+    Summary:
+      type: object
+      properties:
+        low_stock_items: { type: integer }
+        loans_awaiting_approval: { type: integer }
+        loans_ready_for_hand_out: { type: integer }
+        loans_out: { type: integer }
+        loans_overdue: { type: integer }
+        units_in_repair: { type: integer }
+
+    StockError:
+      type: object
+      properties:
+        code: { type: string, enum: [not_enough_stock, unit_not_available] }
+        message: { type: string }
+        item_id: { type: string, format: uuid }
+        available: { type: number }
+        requested: { type: number }
+    RuleError:
+      type: object
+      properties:
+        code: { type: string, enum: [too_long, too_many_items, too_many_open_loans, not_loanable, consumable_not_loanable, extension_not_allowed, due_in_past] }
+        message: { type: string }
+        rule: { type: string, description: "The rule that failed, e.g. max_loan_days" }
+        limit: { description: "The configured limit, when there is one" }

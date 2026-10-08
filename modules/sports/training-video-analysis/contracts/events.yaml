@@ -1,9 +1,30 @@
 # Domain events published by training-video-analysis.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
 module: training-video-analysis
 version: 1
-events: []
-#  - name: training-video-analysis.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: training-video-analysis.plan.created
+    description: A training plan was established for an athletic group or squad.
+    payload: { organisation_id: uuid, plan_id: uuid, title: string, coach_id: uuid, start_date: date, end_date: date }
+
+  - name: training-video-analysis.session.scheduled
+    description: A practical training session was scheduled.
+    payload: { organisation_id: uuid, session_id: uuid, plan_id: uuid, coach_id: uuid, scheduled_start: datetime, location: string }
+
+  - name: training-video-analysis.session.completed
+    description: A training session was concluded and marked completed.
+    payload: { organisation_id: uuid, session_id: uuid, completed_at: datetime, duration_minutes: integer }
+
+  - name: training-video-analysis.video.uploaded
+    description: A training or performance video was uploaded and registered.
+    payload: { organisation_id: uuid, video_id: uuid, session_id: uuid, title: string, duration_seconds: number, video_url: string }
+
+  - name: training-video-analysis.video.tagged
+    description: A drill or tactical phase was tagged on a video timeline.
+    payload: { organisation_id: uuid, video_id: uuid, drill_id: uuid, start_timestamp: number, end_timestamp: number }
+
+  - name: training-video-analysis.annotation.added
+    description: A time-coded technical or tactical coaching annotation was added to a video.
+    payload: { organisation_id: uuid, annotation_id: uuid, video_id: uuid, author_id: uuid, start_timestamp: number, category: string }
+

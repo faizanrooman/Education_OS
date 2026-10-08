@@ -1,11 +1,53 @@
 # Permission catalogue for fees-accounts. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: fees-accounts
-permissions: []
-#  - key: fees-accounts:record:read
-#    description: ...
-#  - key: fees-accounts:record:write
-#    description: ...
-roles: []
-#  - name: fees-accounts-admin
-#    grants: [fees-accounts:record:read, fees-accounts:record:write]
+permissions:
+  - key: fees-accounts:fee-structure:read
+    description: View fee heads and fee structures.
+  - key: fees-accounts:fee-structure:manage
+    description: Create and edit fee heads; create, publish and archive fee structures.
+  - key: fees-accounts:invoice:read
+    description: View all invoices, payments and receipts of the organisation.
+  - key: fees-accounts:invoice:create
+    description: Raise invoices, one at a time or in bulk.
+  - key: fees-accounts:invoice:cancel
+    description: Cancel an invoice that has no payments.
+  - key: fees-accounts:payment:record
+    description: Record offline payments (cash, cheque, demand draft, bank transfer) and issue receipts.
+  - key: fees-accounts:payment:refund
+    description: Refund payments and void offline payments recorded in error.
+  - key: fees-accounts:concession:request
+    description: View concessions and request one on an invoice.
+  - key: fees-accounts:concession:approve
+    description: Approve or reject a concession requested by someone else.
+  - key: fees-accounts:ledger:read
+    description: View any person's fee statement.
+  - key: fees-accounts:report:read
+    description: View collection, outstanding and collection-versus-target reports.
+  - key: fees-accounts:target:manage
+    description: Set collection targets.
+  - key: fees-accounts:self:read
+    description: View one's own dues, invoices and receipts.
+  - key: fees-accounts:self:pay
+    description: Pay one's own invoices online.
+roles:
+  - name: applicant
+    grants: [fees-accounts:self:read, fees-accounts:self:pay]
+  - name: student
+    grants: [fees-accounts:self:read, fees-accounts:self:pay]
+  - name: finance-staff
+    grants:
+      - fees-accounts:fee-structure:read
+      - fees-accounts:fee-structure:manage
+      - fees-accounts:invoice:read
+      - fees-accounts:invoice:create
+      - fees-accounts:invoice:cancel
+      - fees-accounts:payment:record
+      - fees-accounts:payment:refund
+      - fees-accounts:concession:request
+      - fees-accounts:ledger:read
+      - fees-accounts:report:read
+  - name: management
+    grants: [fees-accounts:fee-structure:read, fees-accounts:report:read, fees-accounts:target:manage, fees-accounts:concession:approve]
+  - name: org-admin
+    grants: [fees-accounts:fee-structure:read, fees-accounts:invoice:read, fees-accounts:report:read, fees-accounts:target:manage]

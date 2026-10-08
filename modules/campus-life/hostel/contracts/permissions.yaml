@@ -1,11 +1,72 @@
 # Permission catalogue for hostel. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: hostel
-permissions: []
-#  - key: hostel:record:read
-#    description: ...
-#  - key: hostel:record:write
-#    description: ...
-roles: []
-#  - name: hostel-admin
-#    grants: [hostel:record:read, hostel:record:write]
+permissions:
+  - key: hostel:hostel:read
+    description: View hostels, rooms, occupancy and the mess menu.
+  - key: hostel:hostel:manage
+    description: Create and update hostels and rooms; close and reopen rooms.
+  - key: hostel:allocation:read
+    description: View room requests and allocations.
+  - key: hostel:allocation:manage
+    description: Allocate beds, check residents in and out, cancel allocations.
+  - key: hostel:mess:manage
+    description: Set the mess menu.
+  - key: hostel:leave:approve
+    description: View leave requests, approve or reject them, mark returns.
+  - key: hostel:visitor:read
+    description: View the visitor log.
+  - key: hostel:visitor:record
+    description: Record visitors in and out.
+  - key: hostel:incident:read
+    description: View discipline incidents. Restricted personal data.
+  - key: hostel:incident:manage
+    description: Record, update and close discipline incidents.
+  - key: hostel:notice:publish
+    description: Publish and withdraw hostel notices.
+  - key: hostel:self:read
+    description: View own allocation, notices, mess menu, leave and visitors.
+  - key: hostel:self:request
+    description: Request a room, apply for and withdraw own leave, cancel own room request.
+roles:
+  - name: hostel-admin
+    description: Hostel office. Sets up hostels and rooms and runs allocation.
+    grants:
+      - hostel:hostel:read
+      - hostel:hostel:manage
+      - hostel:allocation:read
+      - hostel:allocation:manage
+      - hostel:mess:manage
+      - hostel:leave:approve
+      - hostel:visitor:read
+      - hostel:incident:read
+      - hostel:incident:manage
+      - hostel:notice:publish
+  - name: hostel-warden
+    description: Warden of one or more hostels. Day-to-day residents, leave, discipline and notices.
+    grants:
+      - hostel:hostel:read
+      - hostel:allocation:read
+      - hostel:allocation:manage
+      - hostel:leave:approve
+      - hostel:visitor:read
+      - hostel:visitor:record
+      - hostel:incident:read
+      - hostel:incident:manage
+      - hostel:notice:publish
+  - name: hostel-security
+    description: Security desk. Records visitors.
+    grants:
+      - hostel:hostel:read
+      - hostel:visitor:read
+      - hostel:visitor:record
+  - name: hostel-resident
+    description: Students and other residents. Default for the student role.
+    grants:
+      - hostel:self:read
+      - hostel:self:request
+  - name: hostel-viewer
+    description: Management and org admin oversight, read only. No incident access.
+    grants:
+      - hostel:hostel:read
+      - hostel:allocation:read

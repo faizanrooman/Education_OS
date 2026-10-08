@@ -1,11 +1,55 @@
 # Permission catalogue for procurement. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
 module: procurement
-permissions: []
-#  - key: procurement:record:read
-#    description: ...
-#  - key: procurement:record:write
-#    description: ...
-roles: []
-#  - name: procurement-admin
-#    grants: [procurement:record:read, procurement:record:write]
+permissions:
+  - key: procurement:vendor:read
+    description: View vendors.
+  - key: procurement:vendor:manage
+    description: Register and edit vendors; approve, suspend or blacklist them.
+  - key: procurement:indent:create
+    description: Raise, edit and submit one's own indents and follow them.
+  - key: procurement:indent:approve
+    description: View and decide indents raised by others (all, or one's department).
+  - key: procurement:tender:manage
+    description: Create, publish and award quotation requests and tenders; record quotes.
+  - key: procurement:purchase-order:read
+    description: View purchase orders and goods receipts.
+  - key: procurement:purchase-order:manage
+    description: Create, edit and submit purchase orders.
+  - key: procurement:purchase-order:approve
+    description: Approve, return or cancel purchase orders prepared by someone else.
+  - key: procurement:goods-receipt:record
+    description: Record goods and services received against an order.
+  - key: procurement:vendor-invoice:manage
+    description: Record and view vendor invoices.
+  - key: procurement:vendor-invoice:approve
+    description: Approve for payment or reject vendor invoices recorded by someone else.
+  - key: procurement:vendor-invoice:pay
+    description: Record payment of approved vendor invoices.
+  - key: procurement:report:read
+    description: View procurement reports.
+roles:
+  - name: finance-staff
+    grants:
+      - procurement:vendor:read
+      - procurement:vendor:manage
+      - procurement:indent:create
+      - procurement:tender:manage
+      - procurement:purchase-order:read
+      - procurement:purchase-order:manage
+      - procurement:vendor-invoice:manage
+      - procurement:vendor-invoice:approve
+      - procurement:vendor-invoice:pay
+      - procurement:report:read
+  - name: management
+    grants: [procurement:vendor:read, procurement:indent:approve, procurement:purchase-order:read, procurement:purchase-order:approve, procurement:vendor-invoice:approve, procurement:report:read]
+  - name: department-admin
+    grants: [procurement:indent:create, procurement:indent:approve, procurement:purchase-order:read]
+  - name: facility-staff
+    grants: [procurement:indent:create, procurement:purchase-order:read, procurement:goods-receipt:record]
+  - name: faculty
+    grants: [procurement:indent:create]
+  - name: research-office
+    grants: [procurement:indent:create, procurement:purchase-order:read]
+  - name: org-admin
+    grants: [procurement:vendor:read, procurement:purchase-order:read, procurement:report:read]

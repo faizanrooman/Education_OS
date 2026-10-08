@@ -1,11 +1,29 @@
 # Permission catalogue for facility-booking. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
+# Each academy profile maps its learner, approver and staff roles to the module roles below.
 module: facility-booking
-permissions: []
-#  - key: facility-booking:record:read
-#    description: ...
-#  - key: facility-booking:record:write
-#    description: ...
-roles: []
-#  - name: facility-booking-admin
-#    grants: [facility-booking:record:read, facility-booking:record:write]
+permissions:
+  - key: facility-booking:resource:read
+    description: Find resources, see their rules, opening hours, closures and free/busy availability.
+  - key: facility-booking:resource:manage
+    description: Create and edit resource types and resources, set opening hours and closures, take a resource out of service.
+  - key: facility-booking:booking:read
+    description: See own bookings, and bookings on resources the user approves.
+  - key: facility-booking:booking:read-all
+    description: See every booking in the organisation, including who holds a busy slot.
+  - key: facility-booking:booking:create
+    description: Book a resource for oneself, once or recurring, and edit or cancel own bookings before they start.
+  - key: facility-booking:booking:approve
+    description: Approve or reject pending bookings on resources where the user is a listed approver.
+  - key: facility-booking:booking:manage
+    description: Act on any booking. Book for others, approve or reject on any resource, cancel at any time, check in and record no-shows.
+roles:
+  - name: facility-booking-user
+    description: Learners and instructors who book resources for themselves.
+    grants: [facility-booking:resource:read, facility-booking:booking:read, facility-booking:booking:create]
+  - name: facility-booking-approver
+    description: HoDs, lab in-charges and instructors who approve bookings for the resources they look after.
+    grants: [facility-booking:resource:read, facility-booking:booking:read, facility-booking:booking:create, facility-booking:booking:approve]
+  - name: facility-booking-manager
+    description: Facility / Inventory Staff. Runs the resource register and every booking.
+    grants: [facility-booking:resource:read, facility-booking:resource:manage, facility-booking:booking:read, facility-booking:booking:read-all, facility-booking:booking:create, facility-booking:booking:approve, facility-booking:booking:manage]
