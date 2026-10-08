@@ -144,7 +144,12 @@ def test_as_user_without_permission_is_forbidden():
 
 def test_as_user_super_admin_and_explicit_principal():
     client = TestClient(app)
+    # A super admin gets no implicit grant, exactly like platform/identity's Principal.can.
     with as_user(app, current_principal, FakePrincipal(super_admin=True, organisation_id=None)):
+        assert client.get("/courses").status_code == 403
+    with as_user(
+        app, current_principal, FakePrincipal(super_admin=True, organisation_id=None, permissions={"lms.course.read"})
+    ):
         assert client.get("/courses").status_code == 200
     with pytest.raises(TypeError):
         with as_user(app, current_principal, FakePrincipal(), roles=["x"]):
