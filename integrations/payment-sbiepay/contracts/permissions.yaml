@@ -1,0 +1,23 @@
+# Permission catalogue for payment-sbiepay. Registered with platform/identity at startup.
+# Format: <module>:<resource>:<action>
+module: payment-sbiepay
+permissions:
+  - key: payment-sbiepay:payment:initiate
+    description: Start a payment for oneself or one's organisation (fee or plan upgrade).
+  - key: payment-sbiepay:payment:read
+    description: View the organisation's payments, reconciliation summary and runs.
+  - key: payment-sbiepay:payment:refund
+    description: Refund all or part of a successful payment.
+  - key: payment-sbiepay:payment:reconcile
+    description: Re-verify pending payments and run settlement reconciliation.
+  - key: payment-sbiepay:merchant-account:manage
+    description: View and set the organisation's SBIePay merchant account.
+roles:
+  - name: applicant
+    grants: [payment-sbiepay:payment:initiate]
+  - name: student
+    grants: [payment-sbiepay:payment:initiate]
+  - name: finance-staff
+    grants: [payment-sbiepay:payment:read, payment-sbiepay:payment:refund, payment-sbiepay:payment:reconcile]
+  - name: org-admin
+    grants: [payment-sbiepay:payment:initiate, payment-sbiepay:payment:read, payment-sbiepay:merchant-account:manage]
