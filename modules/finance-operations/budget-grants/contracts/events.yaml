@@ -9,6 +9,7 @@ events:
     description: A budget's lines are open for spending.
     payload: { organisation_id: uuid, budget_id: uuid, financial_year: string, department_id: uuid, allocated_total: string }
   - name: budget-grants.reappropriation.approved
+    description: Funds were moved from one budget line to another.
     payload: { organisation_id: uuid, reappropriation_id: uuid, from_line_id: uuid, to_line_id: uuid, amount: string }
   - name: budget-grants.line.threshold-reached
     description: >-
@@ -16,13 +17,17 @@ events:
       notification tells finance staff and, for grants, the investigators.
     payload: { organisation_id: uuid, line_id: uuid, kind: string, percent: integer, allocated: string, used: string }
   - name: budget-grants.grant.sanctioned
+    description: A grant was sanctioned by its funder and its lines are open for spending.
     payload: { organisation_id: uuid, grant_id: uuid, code: string, funder: string, sanctioned_amount: string, principal_investigator_id: uuid, start_date: date, end_date: date }
   - name: budget-grants.grant.funds-received
+    description: A tranche of grant money arrived from the funder.
     payload: { organisation_id: uuid, grant_id: uuid, amount: string, received_on: date }
   - name: budget-grants.grant.closed
+    description: A grant was closed; unspent_action says whether the balance is refunded or retained.
     payload: { organisation_id: uuid, grant_id: uuid, unspent: string, unspent_action: string }
   - name: budget-grants.utilisation-certificate.due
     description: Sent 30 and 7 days before a certificate is due. notification reminds the investigators and the research office.
     payload: { organisation_id: uuid, grant_id: uuid, due_on: date, days_left: integer }
   - name: budget-grants.utilisation-certificate.submitted
+    description: A utilisation certificate for the period was submitted to the funder.
     payload: { organisation_id: uuid, certificate_id: uuid, grant_id: uuid, period_from: date, period_to: date, spent: string }
