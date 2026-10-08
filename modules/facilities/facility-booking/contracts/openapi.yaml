@@ -163,7 +163,7 @@ paths:
     post:
       summary: Cancel a booking. The booker may cancel before it starts; facility-booking:booking:manage may cancel at any time and must give a reason.
       requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { type: string } } } } } }
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "409": { description: Booking already started, finished or cancelled } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Booking" } } } }, "409": { description: "Booking already started, finished or cancelled" } }
   /bookings/{id}/check-in:
     parameters: [{ $ref: "#/components/parameters/Id" }]
     post:
