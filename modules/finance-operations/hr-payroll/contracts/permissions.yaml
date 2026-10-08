@@ -1,11 +1,58 @@
 # Permission catalogue for hr-payroll. Registered with platform/identity at startup.
 # Format: <module>:<resource>:<action>
+# hr-payroll:self:use is for every role held by an employee; the roles below are the staff roles of the
+# management institute profile. Other profiles' staff roles need the same grant (see docs/prd.md, open questions).
 module: hr-payroll
-permissions: []
-#  - key: hr-payroll:record:read
-#    description: ...
-#  - key: hr-payroll:record:write
-#    description: ...
-roles: []
-#  - name: hr-payroll-admin
-#    grants: [hr-payroll:record:read, hr-payroll:record:write]
+permissions:
+  - key: hr-payroll:employee:read
+    description: View employee records and service books.
+  - key: hr-payroll:employee:manage
+    description: Add, edit and exit employees; add service records; open appraisal cycles.
+  - key: hr-payroll:leave-type:manage
+    description: Create and edit leave types and entitlements.
+  - key: hr-payroll:leave:approve
+    description: View and decide leave requests (all, or one's reportees and department).
+  - key: hr-payroll:payroll:read
+    description: View salaries, payroll runs and payslips.
+  - key: hr-payroll:payroll:prepare
+    description: Set salaries, start and adjust payroll runs, submit them for approval.
+  - key: hr-payroll:payroll:approve
+    description: Approve or return a payroll run prepared by someone else; mark it paid.
+  - key: hr-payroll:appraisal:review
+    description: Review and rate appraisals (all, or one's reportees).
+  - key: hr-payroll:report:read
+    description: View HR reports such as joinings and exits.
+  - key: hr-payroll:self:use
+    description: View one's own record, leave balances and payslips; apply for leave; write one's self review.
+roles:
+  - name: hr-staff
+    grants:
+      - hr-payroll:employee:read
+      - hr-payroll:employee:manage
+      - hr-payroll:leave-type:manage
+      - hr-payroll:leave:approve
+      - hr-payroll:payroll:read
+      - hr-payroll:payroll:prepare
+      - hr-payroll:appraisal:review
+      - hr-payroll:report:read
+      - hr-payroll:self:use
+  - name: finance-staff
+    grants: [hr-payroll:payroll:read, hr-payroll:payroll:approve, hr-payroll:self:use]
+  - name: department-admin
+    grants: [hr-payroll:employee:read, hr-payroll:leave:approve, hr-payroll:appraisal:review, hr-payroll:self:use]
+  - name: management
+    grants: [hr-payroll:employee:read, hr-payroll:leave:approve, hr-payroll:payroll:read, hr-payroll:payroll:approve, hr-payroll:appraisal:review, hr-payroll:report:read, hr-payroll:self:use]
+  - name: org-admin
+    grants: [hr-payroll:employee:read, hr-payroll:report:read]
+  - name: faculty
+    grants: [hr-payroll:self:use]
+  - name: examination-staff
+    grants: [hr-payroll:self:use]
+  - name: facility-staff
+    grants: [hr-payroll:self:use]
+  - name: support-staff
+    grants: [hr-payroll:self:use]
+  - name: placement-officer
+    grants: [hr-payroll:self:use]
+  - name: governance
+    grants: [hr-payroll:self:use]
