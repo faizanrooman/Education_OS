@@ -77,7 +77,7 @@ paths:
     parameters: [{ $ref: "#/components/parameters/Id" }]
     post:
       summary: Open a draft process for candidate registration and decisions. Requires at least one stage. Permission selection-process:process:manage.
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Process" } } } }, "404": { $ref: "#/components/responses/NotFound" }, "409": { description: Process is not a draft, or has no stages } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Process" } } } }, "404": { $ref: "#/components/responses/NotFound" }, "409": { description: "Process is not a draft, or has no stages" } }
 
   /processes/{id}/close:
     parameters: [{ $ref: "#/components/parameters/Id" }]
