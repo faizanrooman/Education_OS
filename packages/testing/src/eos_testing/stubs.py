@@ -322,7 +322,8 @@ class FakePrincipal:
     permissions: set[str] = field(default_factory=set)
 
     def can(self, permission: str) -> bool:
-        return self.super_admin or permission in self.permissions
+        # Same rule as platform/identity: a super admin is not granted every permission implicitly.
+        return permission in self.permissions
 
 
 @contextmanager
