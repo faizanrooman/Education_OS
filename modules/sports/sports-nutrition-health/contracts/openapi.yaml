@@ -1099,3 +1099,154 @@ components:
           - no_show
         notes:
           type: string
+    UpdateAppointmentRequest:
+      description: "Partial update of a appointment: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        athlete_id:
+          type: string
+          format: uuid
+        practitioner_id:
+          type: string
+          format: uuid
+          description: platform/identity user of the doctor, physio or nutritionist.
+        appointment_type:
+          type: string
+          enum:
+          - physiotherapy
+          - medical
+          - nutrition
+        injury_id:
+          type: string
+          format: uuid
+        scheduled_at:
+          type: string
+          format: date-time
+        duration_minutes:
+          type: integer
+          default: 30
+        status:
+          type: string
+          enum:
+          - scheduled
+          - completed
+          - cancelled
+          - no_show
+        notes:
+          type: string
+    UpdateHealthRecordRequest:
+      description: "Partial update of a health record: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        athlete_id:
+          type: string
+          format: uuid
+        record_type:
+          type: string
+          enum:
+          - medical_history
+          - allergy
+          - medication
+          - screening
+          - vaccination
+        title:
+          type: string
+        details:
+          type: string
+        recorded_on:
+          type: string
+          format: date
+    UpdateInjuryRequest:
+      description: "Partial update of a injury: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        athlete_id:
+          type: string
+          format: uuid
+        body_part:
+          type: string
+          example: Left hamstring
+        injury_type:
+          type: string
+          example: Strain
+        severity:
+          type: string
+          enum:
+          - minor
+          - moderate
+          - severe
+        occurred_on:
+          type: string
+          format: date
+        context:
+          type: string
+          enum:
+          - training
+          - competition
+          - other
+        status:
+          type: string
+          enum:
+          - active
+          - recovering
+          - resolved
+        expected_return_on:
+          type: string
+          format: date
+        clinical_notes:
+          type: string
+    UpdateNutritionPlanRequest:
+      description: "Partial update of a nutrition plan: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        athlete_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: 'Competition phase: sprint squad'
+        goal:
+          type: string
+          enum:
+          - performance
+          - weight_gain
+          - weight_loss
+          - recovery
+          - maintenance
+        daily_calories:
+          type: integer
+        protein_g:
+          type: number
+        carbohydrate_g:
+          type: number
+        fat_g:
+          type: number
+        meals:
+          type: array
+          items:
+            type: object
+            required:
+            - meal
+            - items
+            properties:
+              meal:
+                type: string
+                example: Breakfast
+              items:
+                type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        review_due_on:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - draft
+          - active
+          - completed
+          - archived

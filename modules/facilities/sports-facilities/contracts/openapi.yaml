@@ -854,3 +854,39 @@ components:
                 - maintenance
               hours:
                 type: number
+    UpdateFacilityRequest:
+      description: "Partial update of a facility: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        name:
+          type: string
+          example: Synthetic athletics track
+        facility_type:
+          type: string
+          enum:
+          - ground
+          - court
+          - pool
+          - gym
+          - track
+          - hall
+          - range
+          - other
+        sports:
+          type: array
+          items:
+            type: string
+            example: Athletics
+        surface:
+          type: string
+          example: Synthetic (polyurethane)
+        indoor:
+          type: boolean
+        capacity:
+          type: integer
+          description: Maximum people using it at once.
+        location:
+          type: string
+          example: North campus
+        description:
+          type: string

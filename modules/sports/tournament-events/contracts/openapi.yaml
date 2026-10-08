@@ -1215,3 +1215,52 @@ components:
           format: date-time
         venue:
           type: string
+    UpdateTournamentRequest:
+      description: "Partial update of a tournament: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        name:
+          type: string
+          example: Inter-University Athletics Meet 2026
+        discipline:
+          type: string
+          example: Athletics
+        discipline_id:
+          type: string
+          format: uuid
+          description: athlete-performance discipline, when known (reference only).
+        level:
+          type: string
+          enum:
+          - intra_institution
+          - inter_university
+          - state
+          - national
+          - international
+        format:
+          type: string
+          enum:
+          - knockout
+          - league
+          - round_robin
+          - heats_and_finals
+          - other
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        venue:
+          type: string
+        hosting:
+          type: string
+          enum:
+          - home
+          - away
+          - neutral
+        registration_closes_on:
+          type: string
+          format: date
+        description:
+          type: string

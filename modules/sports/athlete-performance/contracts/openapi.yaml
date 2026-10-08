@@ -1683,3 +1683,153 @@ components:
                 - steady
                 - declining
                 - no_data
+    UpdateAthleteRequest:
+      description: "Partial update of a athlete: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: platform/identity user, when the athlete can sign in.
+        student_id:
+          type: string
+          format: uuid
+          description: Student record id in student-information, if any (reference only).
+        full_name:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum:
+          - female
+          - male
+          - other
+          - undisclosed
+        primary_discipline_id:
+          type: string
+          format: uuid
+        discipline_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        coach_id:
+          type: string
+          format: uuid
+          description: platform/identity user of the assigned coach.
+        squad:
+          type: string
+          example: Senior sprint squad
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - alumni
+    UpdateBenchmarkRequest:
+      description: "Partial update of a benchmark: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        metric_id:
+          type: string
+          format: uuid
+        discipline_id:
+          type: string
+          format: uuid
+        level:
+          type: string
+          example: state
+        gender:
+          type: string
+          enum:
+          - female
+          - male
+          - any
+        age_group:
+          type: string
+          example: U-19
+        target_value:
+          type: number
+        source:
+          type: string
+          example: State federation qualifying standard 2026
+    UpdateDisciplineRequest:
+      description: "Partial update of a discipline: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        name:
+          type: string
+          example: Athletics (sprints)
+        category:
+          type: string
+          enum:
+          - individual
+          - team
+        description:
+          type: string
+        active:
+          type: boolean
+          default: true
+    UpdateFitnessTestRequest:
+      description: "Partial update of a fitness test: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        name:
+          type: string
+          example: Pre-season fitness test
+        description:
+          type: string
+        metric_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        discipline_id:
+          type: string
+          format: uuid
+    UpdateMetricRequest:
+      description: "Partial update of a metric: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        name:
+          type: string
+          example: 100 m sprint
+        unit:
+          type: string
+          example: s
+        direction:
+          type: string
+          enum:
+          - higher_is_better
+          - lower_is_better
+        discipline_id:
+          type: string
+          format: uuid
+          description: 'Optional: the discipline this metric belongs to.'
+        description:
+          type: string
+    UpdatePerformanceResultRequest:
+      description: "Partial update of a performance result: every field is optional and only the fields sent change."
+      type: object
+      properties:
+        athlete_id:
+          type: string
+          format: uuid
+        metric_id:
+          type: string
+          format: uuid
+        value:
+          type: number
+        recorded_at:
+          type: string
+          format: date-time
+        context:
+          type: string
+          enum:
+          - training
+          - trial
+          - competition
+        notes:
+          type: string
