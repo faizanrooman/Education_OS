@@ -115,7 +115,7 @@ paths:
     post:
       summary: Close a cycle and apply its results to the assets. Refused while lines are pending unless close_with_pending is true (pending become missing). Permission asset-management:verification:manage.
       requestBody: { content: { application/json: { schema: { type: object, properties: { close_with_pending: { type: boolean, default: false }, note: { type: string } } } } } }
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cycle" } } } }, "409": { description: Lines still pending, or cycle not in progress } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cycle" } } } }, "409": { description: "Lines still pending, or cycle not in progress" } }
 
   /depreciation-runs:
     get:
@@ -146,7 +146,7 @@ paths:
     parameters: [{ $ref: "#/components/parameters/Id" }]
     post:
       summary: Post a calculated draft. The run is locked and book values move. Permission asset-management:depreciation:manage.
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DepreciationRun" } } } }, "409": { description: Not a calculated draft, or an earlier period is not posted } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DepreciationRun" } } } }, "409": { description: "Not a calculated draft, or an earlier period is not posted" } }
 
   /disposals:
     get:
@@ -170,7 +170,7 @@ paths:
     post:
       summary: Approve a requested disposal. Not by the requester. Permission asset-management:disposal:approve.
       requestBody: { content: { application/json: { schema: { type: object, properties: { note: { type: string } } } } } }
-      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "409": { description: Not requested, or caller is the requester } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "409": { description: "Not requested, or caller is the requester" } }
   /disposals/{id}/reject:
     parameters: [{ $ref: "#/components/parameters/Id" }]
     post:
