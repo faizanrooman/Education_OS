@@ -6,6 +6,7 @@ module: e-office
 version: 1
 events:
   - name: e-office.file.created
+    description: A new file was opened, with its first holder being the creator.
     payload: { organisation_id: uuid, file_id: uuid, number: string, category_id: uuid, department_id: uuid, created_by: uuid, confidential: boolean }
   - name: e-office.file.forwarded
     description: notification tells the new holder. subject is empty for confidential files.
@@ -17,9 +18,11 @@ events:
     description: Sent once when a file passes its due date with the same holder. notification reminds the holder.
     payload: { organisation_id: uuid, file_id: uuid, number: string, holder_id: uuid, due_on: date }
   - name: e-office.file.closed
+    description: A file was closed after its decision was carried out; no further movement is possible.
     payload: { organisation_id: uuid, file_id: uuid, number: string, closed_by: uuid }
   - name: e-office.receipt.registered
     description: notification tells the person it was sent to.
     payload: { organisation_id: uuid, receipt_id: uuid, number: string, send_to_user_id: uuid, received_on: date }
   - name: e-office.dispatch.sent
+    description: An outgoing letter was dispatched by the given mode; the file, if any, records the dispatch number.
     payload: { organisation_id: uuid, dispatch_id: uuid, number: string, file_id: uuid, mode: string, sent_on: date }
