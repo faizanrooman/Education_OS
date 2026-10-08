@@ -1,9 +1,60 @@
 # Domain events published by inventory-equipment.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
 module: inventory-equipment
 version: 1
-events: []
-#  - name: inventory-equipment.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: inventory-equipment.item.created
+    description: An item was added to the catalogue.
+    payload: { organisation_id: uuid, item_id: uuid, category_id: uuid, name: string, tracking: string, consumable: boolean }
+  - name: inventory-equipment.item.updated
+    description: An item's details, rules or reorder level changed, or it was deactivated.
+    payload: { organisation_id: uuid, item_id: uuid, changed: [string], active: boolean }
+  - name: inventory-equipment.unit.status-changed
+    description: A unit's status changed outside a loan (in repair, missing, retired, back to available). asset_id lets asset-management follow its linked asset.
+    payload: { organisation_id: uuid, unit_id: uuid, item_id: uuid, asset_id: uuid, from: string, to: string, reason: string }
+  - name: inventory-equipment.unit.condition-changed
+    description: A unit's condition changed, on return or by staff. When to is damaged, maintenance may open a ticket.
+    payload: { organisation_id: uuid, unit_id: uuid, item_id: uuid, asset_id: uuid, from: string, to: string, note: string, loan_id: uuid }
+  - name: inventory-equipment.stock.received
+    description: Stock or units came into a store (receipt movement). reference may point to a purchase order.
+    payload: { organisation_id: uuid, movement_id: uuid, item_id: uuid, location_id: uuid, quantity: number, unit_ids: [uuid], reference: object }
+  - name: inventory-equipment.stock.issued
+    description: Consumable stock left a store for use (issue movement).
+    payload: { organisation_id: uuid, movement_id: uuid, item_id: uuid, location_id: uuid, quantity: number, issued_to: uuid, reference: object }
+  - name: inventory-equipment.stock.adjusted
+    description: Stock was corrected, transferred or written off. kind tells which.
+    payload: { organisation_id: uuid, movement_id: uuid, item_id: uuid, kind: string, quantity: number, from_location_id: uuid, to_location_id: uuid, reason: string }
+  - name: inventory-equipment.stock.ran-low
+    description: Available quantity fell to or below the reorder level. Published once until replenished. Procurement may raise an indent.
+    payload: { organisation_id: uuid, item_id: uuid, item_name: string, available: number, reorder_level: number, reorder_quantity: number, unit_of_measure: string }
+  - name: inventory-equipment.stock.replenished
+    description: Available quantity rose above the reorder level again.
+    payload: { organisation_id: uuid, item_id: uuid, available: number, reorder_level: number }
+  - name: inventory-equipment.loan.requested
+    description: A loan waits for approval. Notification tells the approvers.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, item_ids: [uuid], due_at: datetime, approver_user_ids: [uuid] }
+  - name: inventory-equipment.loan.approved
+    description: A loan is ready for hand-out, straight away (no approval needed) or after approval (approved_by set).
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, approved_by: uuid, due_at: datetime }
+  - name: inventory-equipment.loan.rejected
+    description: An approver rejected a loan request.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, rejected_by: uuid, reason: string }
+  - name: inventory-equipment.loan.cancelled
+    description: A loan was cancelled before hand-out, by the borrower, staff or the pickup-expiry job.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, cancelled_by: string, reason: string }
+  - name: inventory-equipment.loan.handed-out
+    description: Items left the store with the borrower.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, unit_ids: [uuid], due_at: datetime }
+  - name: inventory-equipment.loan.extended
+    description: The due date of a loan moved.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, from_due_at: datetime, due_at: datetime, extended_by: uuid }
+  - name: inventory-equipment.loan.overdue
+    description: The due date passed with items still out. A fees module may charge a fine.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, due_at: datetime, outstanding_line_ids: [uuid] }
+  - name: inventory-equipment.loan.returned
+    description: Some or all lines came back. damaged_unit_ids lists units returned damaged. complete is true when nothing is out any more.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, returned_line_ids: [uuid], damaged_unit_ids: [uuid], days_late: integer, complete: boolean }
+  - name: inventory-equipment.loan.lost-recorded
+    description: Loan lines were recorded as lost. A fees module may charge for them.
+    payload: { organisation_id: uuid, loan_id: uuid, borrower_id: uuid, lost_line_ids: [uuid], unit_ids: [uuid], reason: string }

@@ -2,9 +2,547 @@ openapi: 3.1.0
 info:
   title: asset-management API
   version: 0.1.0
-  description: "Fixed asset register, tagging, depreciation, disposal."
+  description: "Fixed asset register: categories, assets, transfers, physical verification (audit), depreciation and disposal. See docs/prd.md."
 servers:
   - url: /api/v1/asset-management
-paths: {}
+paths:
+  /categories:
+    get:
+      summary: List asset categories. Permission asset-management:asset:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Category" } } } } } }
+    post:
+      summary: Create a category. Permission asset-management:asset:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CategoryInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }, "409": { description: Name already in use } }
+  /categories/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      summary: Update a category. Depreciation changes apply from the next draft run. Permission asset-management:asset:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/CategoryInput" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+
+  /assets:
+    get:
+      summary: Search the register. Custodians without asset-management:asset:read-all see only assets in their care. Permission asset-management:asset:read.
+      parameters:
+        - { name: category_id, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, style: form, explode: false, schema: { type: array, items: { $ref: "#/components/schemas/AssetStatus" } } }
+        - { name: org_unit_id, in: query, schema: { type: string, format: uuid } }
+        - { name: custodian_id, in: query, schema: { type: string, format: uuid } }
+        - { name: location, in: query, description: "Text match on location", schema: { type: string } }
+        - { name: verification_due_before, in: query, schema: { type: string, format: date } }
+        - { name: warranty_expires_before, in: query, schema: { type: string, format: date } }
+        - { name: q, in: query, description: "Search in tag, name, serial, make and model", schema: { type: string } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AssetPage" } } } } }
+    post:
+      summary: Register an asset. A tag is generated when none is given. Permission asset-management:asset:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AssetInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Asset" } } } }, "409": { description: Tag already in use } }
+  /assets/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One asset with current book value. Permission asset-management:asset:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Asset" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+    patch:
+      summary: Edit descriptive fields, acquisition, warranty or depreciation settings. Location, department and custodian change only by transfer. Disposed assets are read-only. Permission asset-management:asset:manage.
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/AssetUpdate" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Asset" } } } }, "409": { description: Asset is disposed } }
+  /assets/{id}/status:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    put:
+      summary: Set in_service, in_repair, idle or missing, with a reason. Disposal statuses change only through a disposal. Permission asset-management:asset:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [status, reason], properties: { status: { type: string, enum: [in_service, in_repair, idle, missing] }, condition: { $ref: "#/components/schemas/Condition" }, reason: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Asset" } } } }, "409": { description: Asset is disposed or in disposal } }
+  /assets/{id}/transfers:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Transfer history, newest first. Permission asset-management:asset:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Transfer" } } } } } }
+    post:
+      summary: Move the asset to another location, department or custodian. Permission asset-management:asset:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TransferInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Transfer" } } } }, "409": { description: Asset is disposed } }
+  /assets/{id}/depreciation:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Posted depreciation entries and the projected schedule to the end of useful life. Permission asset-management:depreciation:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DepreciationSchedule" } } } } }
+
+  /verifications/due:
+    get:
+      summary: Assets overdue or due for physical verification within the window, plus open cycles with progress. Backs the audit-due widget. Permission asset-management:asset:read.
+      parameters:
+        - { name: within_days, in: query, description: "Defaults to ASSET_MANAGEMENT_VERIFICATION_DUE_SOON_DAYS", schema: { type: integer, minimum: 0 } }
+        - { name: org_unit_id, in: query, schema: { type: string, format: uuid } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/VerificationDue" } } } } }
+  /verification-cycles:
+    get:
+      summary: List verification cycles. Permission asset-management:verification:perform.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/CycleStatus" } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Cycle" } } } } } }
+    post:
+      summary: Plan a cycle over the assets matching the scope. Permission asset-management:verification:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CycleInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Cycle" } } } } }
+  /verification-cycles/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One cycle with counts per result. Permission asset-management:verification:perform.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cycle" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+  /verification-cycles/{id}/start:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Start a planned cycle. Snapshots the assets in scope as pending lines. Permission asset-management:verification:manage.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cycle" } } } }, "409": { description: Cycle is not planned } }
+  /verification-cycles/{id}/lines:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Lines of a cycle. Permission asset-management:verification:perform.
+      parameters:
+        - { name: result, in: query, schema: { $ref: "#/components/schemas/VerificationResult" } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LinePage" } } } } }
+    post:
+      summary: Record results for one or more assets, by asset id or scanned tag. Permission asset-management:verification:perform.
+      requestBody: { required: true, content: { application/json: { schema: { type: array, minItems: 1, items: { $ref: "#/components/schemas/LineInput" } } } } }
+      responses: { "200": { description: Updated lines, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Line" } } } } }, "409": { description: Cycle is not in progress } }
+  /verification-cycles/{id}/close:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Close a cycle and apply its results to the assets. Refused while lines are pending unless close_with_pending is true (pending become missing). Permission asset-management:verification:manage.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { close_with_pending: { type: boolean, default: false }, note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cycle" } } } }, "409": { description: "Lines still pending, or cycle not in progress" } }
+
+  /depreciation-runs:
+    get:
+      summary: List depreciation runs. Permission asset-management:depreciation:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/DepreciationRun" } } } } } }
+    post:
+      summary: Calculate a draft run for a period. Replaces an existing draft for the same period. Permission asset-management:depreciation:manage.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [period_end], properties: { period_end: { type: string, format: date }, category_ids: { type: array, items: { type: string, format: uuid } } } } } } }
+      responses: { "202": { description: Calculation started; poll the run, content: { application/json: { schema: { $ref: "#/components/schemas/DepreciationRun" } } } }, "409": { description: The period is already posted } }
+  /depreciation-runs/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One run with totals per category. Permission asset-management:depreciation:read.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DepreciationRun" } } } } }
+    delete:
+      summary: Delete a draft run. Permission asset-management:depreciation:manage.
+      responses: { "204": { description: Deleted }, "409": { description: Run is posted } }
+  /depreciation-runs/{id}/lines:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: Per-asset lines of a run. Permission asset-management:depreciation:read.
+      parameters:
+        - { name: category_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DepreciationLinePage" } } } } }
+  /depreciation-runs/{id}/post:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Post a calculated draft. The run is locked and book values move. Permission asset-management:depreciation:manage.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DepreciationRun" } } } }, "409": { description: "Not a calculated draft, or an earlier period is not posted" } }
+
+  /disposals:
+    get:
+      summary: List disposals. Permission asset-management:disposal:request (own) or asset-management:disposal:approve (all).
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/DisposalStatus" } }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/PageSize" }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DisposalPage" } } } } }
+    post:
+      summary: Request disposal of an asset. The asset becomes disposal_pending. Custodian of the asset or asset-management:asset:manage, with asset-management:disposal:request.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DisposalInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "409": { description: Asset already disposed or in disposal } }
+  /disposals/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      summary: One disposal. Permission asset-management:disposal:request or asset-management:disposal:approve.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "404": { $ref: "#/components/responses/NotFound" } }
+  /disposals/{id}/approve:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Approve a requested disposal. Not by the requester. Permission asset-management:disposal:approve.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { note: { type: string } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "409": { description: "Not requested, or caller is the requester" } }
+  /disposals/{id}/reject:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Reject a requested disposal with a reason. The asset returns to its previous status. Permission asset-management:disposal:approve.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string, minLength: 1 } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "409": { description: Not requested } }
+  /disposals/{id}/cancel:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Withdraw a requested or approved disposal. The asset returns to its previous status. Requester or asset-management:disposal:approve.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "409": { description: Already completed } }
+  /disposals/{id}/complete:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      summary: Record that an approved disposal happened. Depreciates up to the date, computes gain or loss, sets the asset disposed. Permission asset-management:asset:manage.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DisposalCompletion" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Disposal" } } } }, "409": { description: Not approved } }
+
+  /summary:
+    get:
+      summary: Counts and totals for dashboards. Permission asset-management:asset:read-all.
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Summary" } } } } }
+
 components:
-  schemas: {}
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    PageSize: { name: page_size, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+
+  responses:
+    NotFound: { description: Not found in the caller's organisation }
+
+  schemas:
+    AssetStatus:
+      type: string
+      enum: [in_service, in_repair, idle, missing, disposal_pending, disposed]
+    Condition:
+      type: string
+      enum: [new, good, fair, poor, damaged]
+    DepreciationMethod:
+      type: string
+      enum: [straight_line, written_down_value, none]
+    CycleStatus:
+      type: string
+      enum: [planned, in_progress, closed]
+    VerificationResult:
+      type: string
+      enum: [pending, found, missing, damaged, relocated]
+    DisposalStatus:
+      type: string
+      enum: [requested, approved, rejected, completed, cancelled]
+    DisposalMethod:
+      type: string
+      enum: [sale, scrap, donation, write_off, transfer_out, trade_in]
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount: { type: string, pattern: "^-?[0-9]+(\\.[0-9]{1,2})?$", description: "Decimal as a string, never a float" }
+        currency: { type: string, pattern: "^[A-Z]{3}$", description: "ISO 4217, defaults to ASSET_MANAGEMENT_DEFAULT_CURRENCY" }
+    Reference:
+      type: object
+      description: "Link to a record in another module, e.g. a purchase order in procurement or an AMC in amc-vendor-support."
+      required: [module, entity, id]
+      properties:
+        module: { type: string }
+        entity: { type: string }
+        id: { type: string }
+
+    DepreciationSettings:
+      type: object
+      description: "A missing value on an asset falls back to its category."
+      properties:
+        method: { $ref: "#/components/schemas/DepreciationMethod" }
+        useful_life_months: { type: integer, minimum: 1, description: "For straight_line" }
+        rate_percent: { type: number, minimum: 0, maximum: 100, description: "Yearly rate for written_down_value" }
+        residual_percent: { type: number, minimum: 0, maximum: 100, default: 5 }
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 120 }
+        code: { type: string, maxLength: 20, description: "Used in generated tags" }
+        description: { type: string }
+        depreciation: { $ref: "#/components/schemas/DepreciationSettings" }
+        verification_interval_months: { type: integer, minimum: 1 }
+    Category:
+      allOf:
+        - $ref: "#/components/schemas/CategoryInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            asset_count: { type: integer }
+
+    Acquisition:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        cost: { $ref: "#/components/schemas/Money" }
+        supplier_name: { type: string }
+        invoice_number: { type: string }
+        invoice_document_id: { type: string, description: "Document id from the documents platform service" }
+        funding_source: { type: string, description: "Free text, e.g. a grant name" }
+        purchase_reference: { $ref: "#/components/schemas/Reference" }
+    AssetInput:
+      type: object
+      required: [name, category_id]
+      properties:
+        tag: { type: string, maxLength: 60, description: "Unique in the organisation. Generated when empty." }
+        name: { type: string, maxLength: 200 }
+        category_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        make: { type: string }
+        model: { type: string }
+        description: { type: string }
+        location: { type: string, description: "Free text: building, floor, room" }
+        org_unit_id: { type: string, format: uuid, description: "Department that holds the asset" }
+        custodian_id: { type: string, format: uuid, description: "Identity user responsible for the asset" }
+        condition: { $ref: "#/components/schemas/Condition" }
+        acquisition: { $ref: "#/components/schemas/Acquisition" }
+        in_service_date: { type: string, format: date, description: "Depreciation starts here; defaults to the acquisition date" }
+        warranty_until: { type: string, format: date }
+        amc_reference: { $ref: "#/components/schemas/Reference" }
+        inventory_unit_id: { type: string, format: uuid, description: "Matching unit in inventory-equipment, when the asset is also lent out" }
+        depreciation: { $ref: "#/components/schemas/DepreciationSettings" }
+        attributes: { type: object, additionalProperties: { type: string } }
+        photo_document_ids: { type: array, items: { type: string } }
+    AssetUpdate:
+      type: object
+      description: "Any AssetInput field except tag, location, org_unit_id and custodian_id."
+      properties:
+        name: { type: string, maxLength: 200 }
+        category_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        make: { type: string }
+        model: { type: string }
+        description: { type: string }
+        acquisition: { $ref: "#/components/schemas/Acquisition" }
+        in_service_date: { type: string, format: date }
+        warranty_until: { type: string, format: date }
+        amc_reference: { $ref: "#/components/schemas/Reference" }
+        inventory_unit_id: { type: string, format: uuid }
+        depreciation: { $ref: "#/components/schemas/DepreciationSettings" }
+        attributes: { type: object, additionalProperties: { type: string } }
+        photo_document_ids: { type: array, items: { type: string } }
+    Asset:
+      allOf:
+        - $ref: "#/components/schemas/AssetInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/AssetStatus" }
+            effective_depreciation: { $ref: "#/components/schemas/DepreciationSettings" }
+            accumulated_depreciation: { $ref: "#/components/schemas/Money" }
+            book_value: { $ref: "#/components/schemas/Money" }
+            last_verified_at: { type: string, format: date, nullable: true }
+            next_verification_due: { type: string, format: date, nullable: true }
+            disposed_on: { type: string, format: date, nullable: true }
+            created_at: { type: string, format: date-time }
+            updated_at: { type: string, format: date-time }
+    AssetPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Asset" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+
+    TransferInput:
+      type: object
+      required: [reason]
+      description: "At least one of location, org_unit_id or custodian_id."
+      properties:
+        location: { type: string }
+        org_unit_id: { type: string, format: uuid }
+        custodian_id: { type: string, format: uuid }
+        effective_on: { type: string, format: date, description: "Defaults to today" }
+        reason: { type: string }
+    Transfer:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        from: { type: object, properties: { location: { type: string }, org_unit_id: { type: string, format: uuid }, custodian_id: { type: string, format: uuid } } }
+        to: { type: object, properties: { location: { type: string }, org_unit_id: { type: string, format: uuid }, custodian_id: { type: string, format: uuid } } }
+        effective_on: { type: string, format: date }
+        reason: { type: string }
+        source: { type: string, enum: [manual, verification], description: "verification when a cycle found the asset elsewhere" }
+        recorded_by: { type: string, format: uuid }
+        recorded_at: { type: string, format: date-time }
+
+    VerificationDue:
+      type: object
+      properties:
+        within_days: { type: integer }
+        overdue_count: { type: integer }
+        due_soon_count: { type: integer }
+        assets:
+          type: array
+          description: "Overdue first, then by due date"
+          items:
+            type: object
+            properties:
+              asset_id: { type: string, format: uuid }
+              tag: { type: string }
+              name: { type: string }
+              location: { type: string }
+              org_unit_id: { type: string, format: uuid }
+              next_verification_due: { type: string, format: date }
+              overdue: { type: boolean }
+        open_cycles: { type: array, items: { $ref: "#/components/schemas/Cycle" } }
+    CycleInput:
+      type: object
+      required: [name, due_on]
+      properties:
+        name: { type: string, maxLength: 200 }
+        due_on: { type: string, format: date }
+        scope:
+          type: object
+          description: "Assets matching every given filter; empty means all assets in service."
+          properties:
+            category_ids: { type: array, items: { type: string, format: uuid } }
+            org_unit_ids: { type: array, items: { type: string, format: uuid } }
+            location_contains: { type: string }
+            only_due: { type: boolean, default: false, description: "Only assets due for verification by due_on" }
+        verifier_user_ids: { type: array, items: { type: string, format: uuid } }
+    Cycle:
+      allOf:
+        - $ref: "#/components/schemas/CycleInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            organisation_id: { type: string, format: uuid }
+            status: { $ref: "#/components/schemas/CycleStatus" }
+            started_at: { type: string, format: date-time, nullable: true }
+            closed_at: { type: string, format: date-time, nullable: true }
+            counts: { type: object, properties: { total: { type: integer }, pending: { type: integer }, found: { type: integer }, missing: { type: integer }, damaged: { type: integer }, relocated: { type: integer } } }
+    LineInput:
+      type: object
+      required: [result]
+      description: "Identify the asset by asset_id or by scanned tag."
+      properties:
+        asset_id: { type: string, format: uuid }
+        tag: { type: string }
+        result: { type: string, enum: [found, missing, damaged, relocated] }
+        observed_location: { type: string, description: "Required for relocated" }
+        condition: { $ref: "#/components/schemas/Condition" }
+        note: { type: string }
+        photo_document_id: { type: string }
+    Line:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        cycle_id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        tag: { type: string }
+        name: { type: string }
+        expected_location: { type: string }
+        result: { $ref: "#/components/schemas/VerificationResult" }
+        observed_location: { type: string, nullable: true }
+        condition: { $ref: "#/components/schemas/Condition" }
+        note: { type: string, nullable: true }
+        verified_by: { type: string, format: uuid, nullable: true }
+        verified_at: { type: string, format: date-time, nullable: true }
+    LinePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Line" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+
+    DepreciationRun:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        period_start: { type: string, format: date }
+        period_end: { type: string, format: date }
+        status: { type: string, enum: [calculating, draft, posted, failed] }
+        asset_count: { type: integer }
+        total: { $ref: "#/components/schemas/Money" }
+        by_category: { type: array, items: { type: object, properties: { category_id: { type: string, format: uuid }, amount: { $ref: "#/components/schemas/Money" }, asset_count: { type: integer } } } }
+        calculated_at: { type: string, format: date-time, nullable: true }
+        posted_by: { type: string, format: uuid, nullable: true }
+        posted_at: { type: string, format: date-time, nullable: true }
+    DepreciationLine:
+      type: object
+      properties:
+        asset_id: { type: string, format: uuid }
+        tag: { type: string }
+        category_id: { type: string, format: uuid }
+        method: { $ref: "#/components/schemas/DepreciationMethod" }
+        opening_book_value: { $ref: "#/components/schemas/Money" }
+        amount: { $ref: "#/components/schemas/Money" }
+        closing_book_value: { $ref: "#/components/schemas/Money" }
+    DepreciationLinePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/DepreciationLine" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+    DepreciationSchedule:
+      type: object
+      properties:
+        asset_id: { type: string, format: uuid }
+        method: { $ref: "#/components/schemas/DepreciationMethod" }
+        cost: { $ref: "#/components/schemas/Money" }
+        residual_value: { $ref: "#/components/schemas/Money" }
+        posted: { type: array, items: { type: object, properties: { run_id: { type: string, format: uuid }, period_end: { type: string, format: date }, amount: { $ref: "#/components/schemas/Money" }, book_value_after: { $ref: "#/components/schemas/Money" } } } }
+        projected: { type: array, items: { type: object, properties: { period_end: { type: string, format: date }, amount: { $ref: "#/components/schemas/Money" }, book_value_after: { $ref: "#/components/schemas/Money" } } } }
+
+    DisposalInput:
+      type: object
+      required: [asset_id, method, reason]
+      properties:
+        asset_id: { type: string, format: uuid }
+        method: { $ref: "#/components/schemas/DisposalMethod" }
+        reason: { type: string }
+        expected_proceeds: { $ref: "#/components/schemas/Money" }
+    DisposalCompletion:
+      type: object
+      required: [disposed_on]
+      properties:
+        disposed_on: { type: string, format: date }
+        proceeds: { $ref: "#/components/schemas/Money" }
+        recipient: { type: string, description: "Buyer, recycler or receiving organisation" }
+        certificate_document_id: { type: string }
+        note: { type: string }
+    Disposal:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organisation_id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        asset_tag: { type: string }
+        method: { $ref: "#/components/schemas/DisposalMethod" }
+        status: { $ref: "#/components/schemas/DisposalStatus" }
+        reason: { type: string }
+        expected_proceeds: { $ref: "#/components/schemas/Money" }
+        requested_by: { type: string, format: uuid }
+        requested_at: { type: string, format: date-time }
+        decided_by: { type: string, format: uuid, nullable: true }
+        decision_note: { type: string, nullable: true }
+        disposed_on: { type: string, format: date, nullable: true }
+        proceeds: { $ref: "#/components/schemas/Money" }
+        book_value_at_disposal: { $ref: "#/components/schemas/Money" }
+        gain_or_loss: { $ref: "#/components/schemas/Money" }
+        recipient: { type: string, nullable: true }
+    DisposalPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Disposal" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+
+    Summary:
+      type: object
+      properties:
+        assets_total: { type: integer }
+        by_status: { type: object, additionalProperties: { type: integer } }
+        verification_overdue: { type: integer }
+        verification_due_soon: { type: integer }
+        open_cycles: { type: integer }
+        disposals_awaiting_approval: { type: integer }
+        warranties_expiring_30_days: { type: integer }
+        total_cost: { $ref: "#/components/schemas/Money" }
+        total_book_value: { $ref: "#/components/schemas/Money" }

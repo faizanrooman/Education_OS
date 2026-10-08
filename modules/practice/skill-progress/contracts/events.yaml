@@ -1,9 +1,30 @@
 # Domain events published by skill-progress.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
 module: skill-progress
 version: 1
-events: []
-#  - name: skill-progress.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: skill-progress.framework.created
+    description: A skill competency framework was created.
+    payload: { organisation_id: uuid, framework_id: uuid, code: string, title: string }
+
+  - name: skill-progress.skill.created
+    description: A new skill definition was added to a framework.
+    payload: { organisation_id: uuid, skill_id: uuid, framework_id: uuid, code: string, title: string }
+
+  - name: skill-progress.rubric.created
+    description: An assessment rubric was defined for a skill or framework.
+    payload: { organisation_id: uuid, rubric_id: uuid, skill_id: uuid, title: string }
+
+  - name: skill-progress.assessment.recorded
+    description: A skill evaluation or assessment was recorded for a learner.
+    payload: { organisation_id: uuid, assessment_id: uuid, learner_id: uuid, evaluator_id: uuid, skill_id: uuid, rubric_id: uuid, overall_score: number, level_achieved: string, recorded_at: datetime }
+
+  - name: skill-progress.milestone.achieved
+    description: A learner achieved a proficiency milestone or advanced to a new competence grade.
+    payload: { organisation_id: uuid, learner_id: uuid, skill_id: uuid, milestone_name: string, level_achieved: string, achieved_at: datetime }
+
+  - name: skill-progress.progress.updated
+    description: A learner's cumulative skill progress profile was recomputed.
+    payload: { organisation_id: uuid, learner_id: uuid, framework_id: uuid, updated_at: datetime }
+

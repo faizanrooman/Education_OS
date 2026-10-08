@@ -6,12 +6,12 @@ domain: facilities
 tier: common        # core (platform) | common (every institution) | specialized (one field)
 version: 0.1.0
 status: planned           # planned | in-progress | stable | deprecated
-description: "Booking calendar for classrooms, halls and venues with approvals."
-owners: []                # GitHub handles. Keep in sync with CODEOWNERS.
+description: "Generic resource-booking pattern: bookable resources, availability and bookings with optional approval. Field words come from the profile vocabulary."
+owners: [Ashritharooman]  # GitHub handles. Keep in sync with CODEOWNERS.
 
 # Platform services this module calls through packages/sdk. Nothing else.
 depends_on:
-  platform: [identity, audit]
+  platform: [identity, audit, notification, scheduler, documents]
   integrations: []
 
 # Public surface. Other modules may ONLY use these.

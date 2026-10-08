@@ -1,9 +1,40 @@
 # Domain events published by transport.
-# Naming: <module>.<entity>.<past-tense-verb>  e.g. admissions.application.submitted
-# Every event carries: id, occurred_at, actor, tenant, version, payload.
+# Naming: <module>.<entity>.<past-tense-verb>
+# Every event carries: id, occurred_at, actor, organisation_id (tenant), version, payload.
+# Vehicle positions are high volume and are never published as events; read them from GET /routes/{id}/live.
 module: transport
 version: 1
-events: []
-#  - name: transport.example.created
-#    description: ...
-#    payload_schema: ./schemas/example-created.json
+events:
+  - name: transport.route.reassigned
+    description: A route's current vehicle or driver changed. Notification tells the route's pass holders.
+    payload: { organisation_id: uuid, route_id: uuid, vehicle_id: uuid, driver_id: uuid }
+  - name: transport.pass.requested
+    description: A rider requested a pass. The transport office decides.
+    payload: { organisation_id: uuid, pass_id: uuid, person_id: uuid, route_id: uuid, stop_id: uuid, valid_from: date, valid_to: date }
+  - name: transport.pass.issued
+    description: A pass was issued. fees-accounts may raise the transport fee invoice from this event.
+    payload: { organisation_id: uuid, pass_id: uuid, person_id: uuid, rider_type: string, route_id: uuid, stop_id: uuid, valid_from: date, valid_to: date }
+  - name: transport.pass.rejected
+    description: A pass request was rejected. Notification tells the rider.
+    payload: { organisation_id: uuid, pass_id: uuid, person_id: uuid, reason: string }
+  - name: transport.pass.cancelled
+    description: An issued pass was cancelled before its end date. A raised fee invoice may need adjusting.
+    payload: { organisation_id: uuid, pass_id: uuid, person_id: uuid, route_id: uuid, cancelled_on: date, reason: string }
+  - name: transport.pass.expired
+    description: Published once per pass by the daily job when a pass passes its end date.
+    payload: { organisation_id: uuid, pass_id: uuid, person_id: uuid, route_id: uuid }
+  - name: transport.trip.started
+    description: A driver started a trip on a route.
+    payload: { organisation_id: uuid, trip_id: uuid, route_id: uuid, vehicle_id: uuid, driver_id: uuid, started_at: datetime }
+  - name: transport.trip.delayed
+    description: A running trip's reported delay increased. Notification may alert the route's pass holders.
+    payload: { organisation_id: uuid, trip_id: uuid, route_id: uuid, delay_minutes: integer }
+  - name: transport.trip.completed
+    description: A trip ended.
+    payload: { organisation_id: uuid, trip_id: uuid, route_id: uuid, ended_at: datetime }
+  - name: transport.document.expiry-flagged
+    description: Published once per document by the daily job 30 days before a vehicle's insurance, fitness or permit, or a driver's licence, expires.
+    payload: { organisation_id: uuid, subject: string, subject_id: uuid, document: string, expires_on: date }
+  - name: transport.notice.published
+    description: A notice was published to one route or to all routes (route_id null). Notification may alert riders.
+    payload: { organisation_id: uuid, notice_id: uuid, route_id: uuid, kind: string, title: string }

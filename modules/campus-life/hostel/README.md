@@ -2,12 +2,20 @@
 
 **Domain:** campus-life
 **Kind:** feature
-**Status:** planned
+**Status:** in-progress (contracts proposed)
 
 Room allocation, mess, visitors, discipline and fee linkage.
 
 ## Scope
-_Owner fills in: what this module is responsible for, and what it explicitly is not._
+Owner: Tejaswini (@tejaswini-rooman). Requirements: [docs/prd.md](docs/prd.md).
+
+**In scope:** hostels, rooms and beds; room requests, allocation, check-in and check-out; mess menu;
+leave (out-pass) requests; visitor log; discipline incidents; notices to residents. Publishes allocation
+events that fees-accounts may use to raise hostel fee invoices.
+
+**Not in scope:** charging and collecting hostel or mess fees (fees-accounts), mess inventory and
+purchasing (inventory-equipment, procurement), room repairs (maintenance), guest-room booking
+(facility-booking).
 
 ## Public surface
 - API: [contracts/openapi.yaml](contracts/openapi.yaml)
