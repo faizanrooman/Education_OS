@@ -20,6 +20,7 @@ events:
       enrolment-registration) react to this; source_module and source_reference echo what raised the invoice.
     payload: { organisation_id: uuid, invoice_id: uuid, person_id: uuid, total: string, paid_at: datetime, source_module: string, source_reference: string }
   - name: fees-accounts.invoice.cancelled
+    description: An unpaid invoice was cancelled with a reason; no balance remains due.
     payload: { organisation_id: uuid, invoice_id: uuid, person_id: uuid, reason: string }
   - name: fees-accounts.payment.received
     description: An online or offline payment was applied to an invoice and a receipt issued.
@@ -28,6 +29,8 @@ events:
     description: An offline payment was voided (for example a bounced cheque); its receipt is cancelled.
     payload: { organisation_id: uuid, payment_id: uuid, invoice_id: uuid, person_id: uuid, amount: string, reason: string }
   - name: fees-accounts.refund.issued
+    description: A refund was issued against a payment. payment-sbiepay handles online refunds.
     payload: { organisation_id: uuid, refund_id: uuid, payment_id: uuid, invoice_id: uuid, person_id: uuid, amount: string }
   - name: fees-accounts.concession.approved
+    description: A concession or scholarship was applied to an invoice, reducing the amount due.
     payload: { organisation_id: uuid, concession_id: uuid, invoice_id: uuid, person_id: uuid, kind: string, approved_amount: string }
