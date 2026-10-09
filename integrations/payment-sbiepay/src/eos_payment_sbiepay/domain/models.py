@@ -4,10 +4,11 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from eos_core.db import Base, TenantMixin, TimestampMixin, new_id, utcnow
-from sqlalchemy import JSON, Boolean, Date, DateTime, Integer, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, DateTime, Index, Integer, Numeric, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 OPEN_STATUSES = ("created", "pending")
+_OPEN_SQL = text("status IN ('created', 'pending')")
 FINAL_STATUSES = ("succeeded", "failed", "expired", "refunded", "partially_refunded")
 PAID_STATUSES = ("succeeded", "partially_refunded", "refunded")
 
@@ -45,6 +46,19 @@ class MerchantAccount(Base, TenantMixin):
 
 class Payment(Base, TenantMixin, TimestampMixin):
     __tablename__ = "payment_sbiepay_payment"
+    # At most one open payment per caller source in an organisation, enforced by the database so two
+    # simultaneous requests cannot both start a payment for the same invoice.
+    __table_args__ = (
+        Index(
+            "uq_payment_sbiepay_open_source",
+            "organisation_id",
+            "source_module",
+            "source_reference",
+            unique=True,
+            sqlite_where=_OPEN_SQL,
+            postgresql_where=_OPEN_SQL,
+        ),
+    )
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     reference: Mapped[str] = mapped_column(String(40), unique=True, index=True)
     purpose: Mapped[str] = mapped_column(String(20))  # subscription | fee

@@ -35,11 +35,15 @@ class ConfigError(Exception):
 
 
 def load() -> Config:
-    mode = _env("MODE", "mock").lower()
+    # An unset mode never falls back to the mock gateway: it must be chosen explicitly.
+    mode = _env("MODE", "sandbox").lower()
     if mode not in MODES:
         raise ConfigError(f"PAYMENT_SBIEPAY_MODE must be one of {', '.join(MODES)}")
     if mode == "mock" and not core_settings.dev_mode:
         raise ConfigError("PAYMENT_SBIEPAY_MODE=mock is refused unless EOS_DEV_MODE=true")
+    if mode != "mock" and not _env("CALLBACK_BASE_URL"):
+        # payment_url and the gateway's return URL must be absolute outside development.
+        raise ConfigError("PAYMENT_SBIEPAY_CALLBACK_BASE_URL is required in sandbox and live mode")
     return Config(
         mode=mode,
         merchant_id=_env("MERCHANT_ID"),

@@ -17,7 +17,7 @@ double verification, refund, and reconcile settlements. Used by `platform/billin
 
 ## How a payment works
 
-1. The caller sends `POST /payments` with its `source_module`, `source_reference`, amount, `return_url` and an optional `notify_url`. The adapter returns `{reference, payment_url, expires_at}`. While a payment for the same source is open, a second request returns `409` with that payment's session.
+1. The caller sends `POST /payments` with its `source_module`, `source_reference`, amount, `return_url` and an optional `notify_url`. The adapter returns `{reference, payment_url, expires_at}`. While a payment for the same source is open, a second request returns `409` with that payment's session. A unique index on open payments (`uq_payment_sbiepay_open_source`) enforces this in the database too, so two simultaneous requests can't both start a payment.
 2. The browser opens `payment_url`, an auto-submitting form to the gateway. The payment becomes `pending`.
 3. The gateway posts its response to `POST /callbacks/sbiepay`. The adapter never trusts that response alone. It asks the gateway again (double verification), records `succeeded` or `failed`, publishes the event, and redirects the browser to `return_url?reference=...&status=...`.
 4. A payment can reach `expired` in two ways:
@@ -48,8 +48,8 @@ These are plain functions that `platform/scheduler` will call. They aren't wired
 
 `PAYMENT_SBIEPAY_MODE` takes one of three values:
 
-- **`mock`** (the default): an in-memory gateway for development and tests. The redirect form posts straight back to the callback. It is refused unless `EOS_DEV_MODE=true`.
-- **`sandbox` and `live`**: use `SbiepayGateway`. It can't talk to SBIePay yet; see the limitations below.
+- **`sandbox`** (the default) and **`live`**: use `SbiepayGateway`. Both need `PAYMENT_SBIEPAY_CALLBACK_BASE_URL`, so `payment_url` and the gateway's return URL are absolute. Without it, payment calls answer `503`. The gateway can't talk to SBIePay yet; see the limitations below.
+- **`mock`**: an in-memory gateway for development and tests. The redirect form posts straight back to the callback. It must be set explicitly (`PAYMENT_SBIEPAY_MODE=mock`) and is refused unless `EOS_DEV_MODE=true`, so a missing setting never selects it.
 
 ## Running the tests
 

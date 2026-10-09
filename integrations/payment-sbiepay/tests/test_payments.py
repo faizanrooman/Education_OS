@@ -99,8 +99,95 @@ def test_mock_mode_is_refused_outside_dev_mode(monkeypatch):
 
 def test_sandbox_mode_stops_at_the_gateway_until_the_kit_is_implemented(client, org, monkeypatch):
     monkeypatch.setenv("PAYMENT_SBIEPAY_MODE", "sandbox")
+    monkeypatch.setenv("PAYMENT_SBIEPAY_CALLBACK_BASE_URL", "https://api.example.com")
     monkeypatch.setenv("PAYMENT_SBIEPAY_MERCHANT_ID", "PLATFORM1")
     monkeypatch.setenv("PAYMENT_SBIEPAY_ALLOWED_RETURN_HOSTS", "college.example.com,api.example.com")
     s = start(client, org.admin)
     r = client.get(s["payment_url"])
     assert r.status_code == 503 and "integration kit" in r.json()["detail"]
+
+
+def test_unset_mode_is_sandbox_not_mock(monkeypatch):
+    monkeypatch.delenv("PAYMENT_SBIEPAY_MODE")
+    monkeypatch.setenv("PAYMENT_SBIEPAY_CALLBACK_BASE_URL", "https://api.example.com")
+    assert config.load().mode == "sandbox"
+
+
+def test_sandbox_and_live_need_the_public_base_url(client, org, monkeypatch):
+    import pytest
+
+    for mode in ("sandbox", "live"):
+        monkeypatch.setenv("PAYMENT_SBIEPAY_MODE", mode)
+        with pytest.raises(config.ConfigError, match="CALLBACK_BASE_URL"):
+            config.load()
+        r = client.post(f"{PREFIX}/payments", json=payment_body(), headers=org.admin)
+        assert r.status_code == 503 and "CALLBACK_BASE_URL" in r.json()["detail"]
+
+
+def test_database_allows_one_open_payment_per_source(client, org, monkeypatch):
+    """Two simultaneous requests both pass the service's check; the unique index stops the second,
+    which then answers 409 with the first payment's session, exactly like the normal check."""
+    from eos_payment_sbiepay.application import service
+
+    body = payment_body()
+    first = client.post(f"{PREFIX}/payments", json=body, headers=org.admin)
+    assert first.status_code == 201
+
+    real = service._open_payments
+    calls = []
+
+    def check_sees_nothing_the_first_time(db, module, ref):
+        calls.append(ref)
+        return [] if len(calls) == 1 else real(db, module, ref)
+
+    monkeypatch.setattr(service, "_open_payments", check_sees_nothing_the_first_time)
+    second = client.post(f"{PREFIX}/payments", json=body, headers=org.admin)
+    assert len(calls) == 2  # the pre-check, then the lookup after the database refused the insert
+    assert second.status_code == 409
+    assert second.json()["reference"] == first.json()["reference"]
+    page = client.get(f"{PREFIX}/payments?source_module=billing", headers=org.admin).json()["items"]
+    assert [x["source_reference"] for x in page].count(body["source_reference"]) == 1
+
+
+def test_finished_payments_do_not_block_a_new_one(client, org):
+    """The index covers only open payments: after a failure the caller may start again."""
+    from sbiepay_support import browser_pays
+
+    s = start(client, org.admin, source_reference="invoice-retry")
+    browser_pays(client, s, "failure")
+    again = start(client, org.admin, source_reference="invoice-retry")
+    assert again["reference"] != s["reference"]
+
+
+def test_the_index_itself_refuses_a_second_open_payment(client, org):
+    import pytest
+    from eos_core.db import SessionLocal, utcnow
+    from eos_core.tenant import organisation_scope
+    from eos_payment_sbiepay.domain.models import Payment
+    from sqlalchemy.exc import IntegrityError
+
+    def row(ref):
+        return Payment(
+            organisation_id=org.id,
+            reference=ref,
+            purpose="fee",
+            source_module="fees-accounts",
+            source_reference="inv-direct",
+            merchant_id="M",
+            amount=1,
+            return_url="https://x.example.com",
+            status="created",
+            expires_at=utcnow(),
+        )
+
+    db = SessionLocal()
+    try:
+        with organisation_scope(org.id):
+            db.add(row("EOSDIRECT1"))
+            db.commit()
+            db.add(row("EOSDIRECT2"))
+            with pytest.raises(IntegrityError):
+                db.commit()
+            db.rollback()
+    finally:
+        db.close()

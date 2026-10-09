@@ -14,6 +14,7 @@ from eos_core import events
 from eos_core.db import scoped, utcnow
 from eos_core.tenant import organisation_scope, platform_scope
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..domain.models import (
@@ -254,15 +255,11 @@ def initiate(db: Session, *, organisation_id: str, user_id: str, body: dict) -> 
     _check_url(body["return_url"], cfg, "return_url")
     _check_url(body.get("notify_url"), cfg, "notify_url")
 
-    q = select(Payment).where(
-        Payment.source_module == body["source_module"],
-        Payment.source_reference == body["source_reference"],
-        Payment.status.in_(OPEN_STATUSES),
-    )
-    for open_payment in db.scalars(scoped(db, q, Payment)):
+    for open_payment in _open_payments(db, body["source_module"], body["source_reference"]):
         if open_payment.status == "pending" or _aware(open_payment.expires_at) > utcnow():
             raise PaymentError("an open payment already exists", 409, _session(open_payment, cfg))
         _expire(db, open_payment)  # created but never opened before its session ran out
+    db.flush()  # the expiry must reach the database before the new payment takes the open slot
 
     p = Payment(
         organisation_id=organisation_id,
@@ -282,8 +279,25 @@ def initiate(db: Session, *, organisation_id: str, user_id: str, body: dict) -> 
         expires_at=utcnow() + timedelta(minutes=cfg.session_ttl_minutes),
     )
     db.add(p)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as e:
+        # A simultaneous request won the open slot (uq_payment_sbiepay_open_source): answer like the check above.
+        db.rollback()
+        winner = next(iter(_open_payments(db, body["source_module"], body["source_reference"])), None)
+        if winner is None:
+            raise
+        raise PaymentError("an open payment already exists", 409, _session(winner, cfg)) from e
     return _session(p, cfg), True
+
+
+def _open_payments(db: Session, source_module: str, source_reference: str) -> list[Payment]:
+    q = select(Payment).where(
+        Payment.source_module == source_module,
+        Payment.source_reference == source_reference,
+        Payment.status.in_(OPEN_STATUSES),
+    )
+    return list(db.scalars(scoped(db, q, Payment)))
 
 
 def list_payments(db: Session, *, filters: dict, cursor: str | None, limit: int) -> dict:
