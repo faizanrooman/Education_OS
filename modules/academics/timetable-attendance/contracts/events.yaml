@@ -61,15 +61,15 @@ events:
 
   - name: timetable-attendance.attendance-record.marked
     description: Attendance was marked in an open session. One event per submission, listing the records it set.
-    consumers: [examinations]
+    consumers: []
     payload: { organisation_id: uuid, attendance_session_id: uuid, scheduled_class_id: uuid, course_offering_id: uuid, section_id: uuid, class_date: date, records: "{ attendance_record_id: uuid, student_id: uuid, status: string }[]" }
 
   - name: timetable-attendance.attendance-record.updated
     description: A record in a closed session was corrected, with a reason.
-    consumers: [examinations]
+    consumers: []
     payload: { organisation_id: uuid, attendance_record_id: uuid, attendance_session_id: uuid, course_offering_id: uuid, student_id: uuid, class_date: date, from_status: string, to_status: string, reason: string }
 
   - name: timetable-attendance.attendance-session.closed
     description: Attendance taking was closed; unmarked students became absent. closed_by is null when closed by the system at the deadline.
-    consumers: [examinations, reporting]
+    consumers: [reporting]
     payload: { organisation_id: uuid, attendance_session_id: uuid, scheduled_class_id: uuid, course_offering_id: uuid, section_id: uuid, class_date: date, closed_by: "uuid?", closed_at: datetime, present: integer, absent: integer, late: integer, excused: integer }

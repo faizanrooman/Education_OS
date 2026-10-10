@@ -177,7 +177,7 @@ ordered by oldest first.
 **FR-13 Student attendance summary and history.**
 - **Summary:** per course offering in an academic period, show classes held, attended (`present` + `late`), excused, percentage, and a shortage flag below `TIMETABLE_ATTENDANCE_SHORTAGE_THRESHOLD_PERCENT`.
 - **History:** the dated list of records.
-- **Excused classes:** whether they count toward classes held is open question Q6. The default is that they are excluded from the denominator.
+- **Excused classes:** excluded from the denominator (classes held). Decided by owner decision C7 (Q6).
 - **Access:** students see only their own; HoDs see students in their department; admins and viewers see all. Faculty see attendance for the classes they teach through the session records endpoints, not through reports.
 
 **FR-14 Department attendance reporting.** For a department and academic period (and an
@@ -202,6 +202,16 @@ The code and contracts use neutral terms. Profiles may override:
 | `timetable-attendance.timetable` | Timetable | "Practice schedule", "Rehearsal schedule" |
 | `timetable-attendance.scheduled-class` | Class | "Session", "Lecture", "Rehearsal" |
 | `timetable-attendance.attendance` | Attendance | "Roll call" |
+
+**FR-18 Bulk attendance for exam eligibility** (owner decision C7).
+- `POST /reports/attendance-eligibility` returns attendance counts for one course offering, up to an inclusive cut-off date, for the listed students or for every student allocated to its sections.
+- **Denominator (`classes_counted`):** closed sessions of non-cancelled classes in the range for which the student was eligible (FR-7). Sessions where the student was excused are left out.
+- **Numerator (`attended`):** present + late.
+- **Boundaries:** open sessions are not counted (their number is reported); cancelled classes are never counted. Inside a closed session no record is missing, because unmarked students become absent at close (FR-11).
+- **Edge cases:** a student with no counted class is flagged `no_eligible_classes`. A requested student never allocated to the offering's sections in the range is listed under `unknown_student_ids`, not treated as an error.
+- **No percentage threshold is applied here.** Examinations compares the counts with its own rule. Where the minimum lives is open (Q5).
+- **Expected consumer:** examinations, calling through the gateway with the caller's identity. Requires `timetable-attendance:report:read-eligibility`, granted by default to `examination-staff`.
+- **Dependencies:** `student_id` is provisional on Q3. The student population depends on the section-allocation events (Q2).
 
 ## 8. Data model (summary)
 
@@ -299,6 +309,7 @@ Modules check permission keys, never roles (ARCHITECTURE.md, Security), so a wid
 | `timetable-attendance-faculty` | `faculty` |
 | `timetable-attendance-student` | `student` |
 | `timetable-attendance-viewer` | read-only roles such as governance |
+| `timetable-attendance-exam-eligibility` | `examination-staff` (only `report:read-eligibility`, for FR-18) |
 
 ## 13. Open questions and decisions pending confirmation
 
@@ -309,8 +320,8 @@ Modules check permission keys, never roles (ARCHITECTURE.md, Security), so a wid
 | Q3 | Which identifier `student_id` is: the student-information record id or the identity user id; and whether the allocation event carries the display name | Praveen, Faizan |
 | Q4 | Rooms: keep a free-text `location_label`, or reference a `facility-booking` resource and book it on publish | Ashritha, Faizan |
 | Q5 | Shortage threshold, marking window and correction window: organisation settings (where?) or env defaults only | Faizan |
-| Q6 | Whether `excused` counts toward classes held in the attendance percentage | Shivani with examinations (eligibility rules) |
-| Q7 | Whether examinations consumes `attendance-record.*` events or reads `GET /reports/...` to decide exam eligibility | Shivani (examinations), Akshata |
+| Q6 | **Decided (owner decision C7):** `excused` classes are excluded from the denominator | Shivani |
+| Q7 | **Decided (owner decision C7):** examinations reads attendance through the bulk report in FR-18, not through `attendance-record.*` events | Shivani |
 | Q8 | Naming alignment: this contract uses `academic_period_id`, `course_offering_id` and `instructor_assignment_id`; the academic-management draft uses `term_id`, `offering_id` and a faculty-assignment `id` | Shivani (align academic-management before either merges) |
 | Q9 | How the caller's department is known (identity SDK), and whether that alone limits a HoD's timetable and scheduled-class writes, or a separate org-wide key is needed | Faizan (platform/identity) |
 

@@ -807,6 +807,44 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /reports/attendance-eligibility:
+    post:
+      tags: [reports]
+      summary: Bulk attendance counts for exam eligibility
+      description: |
+        Read-only; POST only carries the student list. Returns, per student, the classes counted and the
+        classes attended in one course offering up to an inclusive cut-off date, for examinations to decide
+        exam eligibility (FR-18, owner decision C7). Excused classes are excluded from both counts. No
+        percentage or threshold is applied here; where the minimum lives is open (PRD Q5).
+        student_id follows this contract's provisional identifier (PRD Q3).
+      operationId: getAttendanceForEligibility
+      x-permission: timetable-attendance:report:read-eligibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceEligibilityRequest"
+      responses:
+        "200":
+          description: Counts per student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceEligibilityReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: The course offering is not known to timetable-attendance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
   # --------------------------------------------------------------- widgets
   /me/teaching-schedule:
     get:
@@ -1463,6 +1501,82 @@ components:
           format: date-time
         counts:
           $ref: "#/components/schemas/AttendanceCounts"
+    AttendanceEligibilityRequest:
+      type: object
+      required: [course_offering_id, cutoff_date]
+      properties:
+        course_offering_id:
+          type: string
+          format: uuid
+        cutoff_date:
+          type: string
+          format: date
+          description: Inclusive, in the organisation's time zone. Classes dated after it are not counted
+        from_date:
+          type: string
+          format: date
+          description: Inclusive. When omitted, every class of the course offering up to cutoff_date is counted
+        student_ids:
+          type: array
+          maxItems: 2000
+          description: When omitted, every student allocated to a section of the course offering between from_date and cutoff_date
+          items:
+            type: string
+            format: uuid
+    StudentEligibilityAttendance:
+      type: object
+      required: [student_id, classes_counted, attended, absent, excused, no_eligible_classes]
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        classes_counted:
+          type: integer
+          description: |
+            Denominator. Closed attendance sessions of non-cancelled classes of the course offering, dated
+            within the range, for which the student was eligible (allocated to the class's section on the
+            class date), excluding sessions where the student was excused
+        attended:
+          type: integer
+          description: Sessions counted where the student was present or late
+        absent:
+          type: integer
+          description: Sessions counted where the student was absent, including students left unmarked at close (FR-11)
+        excused:
+          type: integer
+          description: Sessions where the student was excused; excluded from classes_counted and attended
+        no_eligible_classes:
+          type: boolean
+          description: True when classes_counted is 0, so no attendance ratio can be formed
+    AttendanceEligibilityReport:
+      type: object
+      required: [course_offering_id, cutoff_date, generated_at, items, unknown_student_ids, open_sessions_excluded]
+      properties:
+        course_offering_id:
+          type: string
+          format: uuid
+        from_date:
+          type: [string, "null"]
+          format: date
+        cutoff_date:
+          type: string
+          format: date
+        generated_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudentEligibilityAttendance"
+        unknown_student_ids:
+          type: array
+          description: Requested students never allocated to a section of this course offering in the range; not an error
+          items:
+            type: string
+            format: uuid
+        open_sessions_excluded:
+          type: integer
+          description: Sessions in the range still open; they are not counted until closed
     OfferingAttendance:
       type: object
       required: [course_offering_id, classes_held, attended, excused, percentage, below_threshold]
@@ -1479,7 +1593,7 @@ components:
           format: uuid
         classes_held:
           type: integer
-          description: Closed sessions; excused classes excluded pending PRD Q6
+          description: Closed sessions; excused classes excluded (PRD Q6, decided by C7)
         attended:
           type: integer
           description: present + late

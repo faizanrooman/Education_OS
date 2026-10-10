@@ -51,6 +51,8 @@ permissions:
     description: View attendance reports for the caller's department
   - key: timetable-attendance:report:read-all
     description: View attendance reports for any student or department in the organisation
+  - key: timetable-attendance:report:read-eligibility
+    description: Read attendance counts in bulk for exam eligibility, for any course offering in the organisation (FR-18)
 roles:
   - name: timetable-attendance-admin
     description: Academic or timetable administrator. Default for org-admin.
@@ -70,6 +72,7 @@ roles:
       - timetable-attendance:attendance-record:correct
       - timetable-attendance:report:read-department
       - timetable-attendance:report:read-all
+      - timetable-attendance:report:read-eligibility
   - name: timetable-attendance-department-head
     description: Plans the department timetable and oversees its attendance. Default for department-admin.
     grants:
@@ -110,3 +113,7 @@ roles:
       - timetable-attendance:attendance-record:read
       - timetable-attendance:report:read-department
       - timetable-attendance:report:read-all
+  - name: timetable-attendance-exam-eligibility
+    description: Reads attendance counts for exam eligibility. Default for examination-staff (owner decision C7).
+    grants:
+      - timetable-attendance:report:read-eligibility
