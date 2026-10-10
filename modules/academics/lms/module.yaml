@@ -23,8 +23,8 @@ exposes:
 # Events this module subscribes to (by name, from other modules' events.yaml).
 # Pending confirmation from owners (docs/prd.md section 12): course offering, section, academic
 # period and instructor assignment events from academic-management; course offering and section
-# registration from enrolment-registration; scheduled-class events from timetable-attendance only
-# if LQ12 keeps the link. search, scheduler and notification are not dependencies in week 1 (LQ14).
+# registration from enrolment-registration. No scheduled-class events are consumed (owner decision
+# C19). search, scheduler and notification are not dependencies in week 1 (LQ14).
 consumes_events: []
 
 # Config this module needs. Document every key in config/env.example.

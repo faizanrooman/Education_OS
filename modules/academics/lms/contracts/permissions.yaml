@@ -5,8 +5,8 @@
 # and a key always means the same scope whoever holds it:
 # - *-own: the caller's own records (submissions, attempts, released grades), and the course spaces
 #   the caller belongs to as student or instructor.
-# - *-assigned: course spaces the caller teaches (instructor assignment; teaching assistants are
-#   pending docs/prd.md LQ5).
+# - *-assigned: course spaces the caller teaches (instructor assignment, docs/prd.md LQ5; no
+#   teaching-assistant role in Week 1, owner decision C18).
 # - *-department: course spaces of the caller's department. How the caller's department is obtained
 #   from platform/identity is pending confirmation (docs/prd.md LQ13).
 # - *-all: every course space in the organisation.
@@ -110,7 +110,7 @@ roles:
       - lms:grade:read-department
       - lms:report:read-department
   - name: lms-instructor
-    description: Teaches in course spaces. Default for faculty. Teaching assistants are pending LQ5.
+    description: Teaches in course spaces. Default for faculty. No teaching-assistant role in Week 1 (owner decision C18).
     grants:
       - lms:course-space:read-own
       - lms:course-space:manage-assigned

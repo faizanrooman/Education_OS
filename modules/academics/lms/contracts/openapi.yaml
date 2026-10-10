@@ -11,9 +11,9 @@ info:
     the narrowest scope. Where wider scopes exist, the operation's description names the further
     keys that widen it (*-own or *-assigned < *-department < *-all; docs/prd.md section 13). The widest
     key the caller holds applies. This follows the timetable-attendance and examinations contracts.
-    course_offering_id and section ids are academic-management IDs (vocabulary pending Q8);
+    course_offering_id and section ids are academic-management IDs (vocabulary aligned by owner decision C5);
     student_id is an external person ID (LQ6); document_id is a platform/documents ID;
-    scheduled_class_id is a timetable-attendance ID (pending LQ12).
+    scheduled_class_id is an optional timetable-attendance ID (owner decision C19).
 servers:
   - url: /api/v1/lms
 tags:
@@ -54,7 +54,7 @@ paths:
     post:
       tags: [course-spaces]
       summary: Create a course space for a course offering
-      description: Manual creation by an administrator (FR-1). Automatic creation from course-offering events is OPEN (LQ3). Publishes lms.course-space.created.
+      description: Manual creation by an administrator, one per course offering (FR-1, owner decision C17). Publishes lms.course-space.created.
       operationId: createCourseSpace
       x-permission: lms:course-space:manage-all
       requestBody:
@@ -1294,7 +1294,7 @@ components:
         url: { type: string, format: uri }
         body: { type: string }
         visible_section_ids: { type: array, items: { type: string, format: uuid } }
-        scheduled_class_id: { type: string, format: uuid, description: Optional timetable-attendance class link; whether it is kept is PENDING (LQ12) }
+        scheduled_class_id: { type: string, format: uuid, description: Optional timetable-attendance class link (owner decision C19); no scheduled-class events are consumed }
     UpdateCourseMaterialRequest:
       type: object
       properties:

@@ -38,7 +38,7 @@ lms owns exactly these resources:
 
 **Coursework grades are not examination results.** They are points an instructor gives for coursework
 inside lms. Examination marks, assessment schemes, results and their publication belong to
-`academics/examinations`. Whether coursework grades feed an examinations assessment component is LQ2.
+`academics/examinations`. Coursework grades do not feed an examinations assessment component in Week 1 (owner decision C9, LQ2).
 
 ## 3. Out of scope
 
@@ -76,18 +76,18 @@ Profile role ids are from `platform/identity/config/profiles/*.yaml`.
 | Viewer (for example governance or IQAC roles) | Read-only access to course spaces and organisation-wide reports |
 
 Teacher-education roles inherit from these: `mentor-teacher` extends `faculty`, and
-`teacher-trainee` extends `student`. Teaching assistants are not yet defined (LQ5).
+`teacher-trainee` extends `student`. There is no teaching-assistant role in Week 1 (owner decision C18, LQ5).
 
 ## 5. Core resources
 
 ### 5.1 Course Space
 - Has `course_offering_id`, `title`, `description` and `visible_section_ids`. An empty list means every section of the offering.
-- Belongs to the department of its course offering. The department is cached from academic-management (pending LQ3).
+- Belongs to the department of its course offering. The department is cached from academic-management (consumed events pending, section 12).
 - **Members:**
   - students registered in the course offering, and in a visible section where sections are set (pending LQ4)
   - instructors assigned to the offering (pending LQ5)
 
-Whether a course space is created automatically or manually, and whether it is one per course offering or one per section, is **OPEN (LQ3)**. This contract proposes one per course offering, created by an administrator.
+**Decided (owner decision C17):** a course space is created manually by an administrator, one per course offering. When it is archived stays open (LQ3).
 
 ### 5.2 Content Unit
 - Has `title`, `position` and `published`.
@@ -100,7 +100,7 @@ Whether a course space is created automatically or manually, and whether it is o
   - `link`: `url`
   - `page`: `body` text
 - Also has `title`, an optional `unit_id`, `visible_section_ids` and `status`.
-- Optional `scheduled_class_id` (a timetable-attendance ID). Whether this link is needed at all is **PENDING (LQ12)**.
+- Optional `scheduled_class_id` (a timetable-attendance ID). It stays optional and lms consumes no scheduled-class events (owner decision C19, LQ12).
 
 ### 5.4 Assignment
 - Has `title`, `instructions`, an optional `unit_id`, `due_at`, `max_points` and `target_section_ids`.
@@ -176,8 +176,8 @@ inherit it from `student`, which may show the card twice (LQ16). This is not cha
 
 **FR-1 Course space creation.**
 - An administrator creates a course space for a course offering, optionally limited to some sections.
-- The course offering must exist in the local read model, which is filled by consumed events (pending LQ3 and Q8).
-- Automatic creation from course-offering events is **OPEN (LQ3)**. `course-space.created` is published either way.
+- The course offering must exist in the local read model, which is filled by consumed events (pending, section 12).
+- Creation is manual (owner decision C17). `course-space.created` is published on creation.
 
 **FR-2 Course space settings and lifecycle.**
 - Instructors of the space (or an administrator) edit its title, description and visible sections, activate it and archive it.
@@ -193,7 +193,7 @@ inherit it from `student`, which may show the card twice (LQ16). This is not cha
 **FR-5 Course materials.**
 - Instructors add documents (stored in `platform/documents`), links and pages; edit them; and publish or unpublish them.
 - Publishing publishes `material.published`.
-- An optional `scheduled_class_id` may be set, pending LQ12.
+- An optional `scheduled_class_id` may be set (owner decision C19).
 
 **FR-6 Assignments.**
 - Instructors create assignments with the fields in 5.4, then publish and close them.
@@ -233,7 +233,7 @@ inherit it from `student`, which may show the card twice (LQ16). This is not cha
 
 **FR-13 Gradebook.**
 - For a course space: every published assignment and quiz per student, with the status (`missing`, `submitted`, `graded` or `released`) and points.
-- Totals are unweighted: released points over the maximum of released items. Weighting belongs to examinations (LQ2).
+- Totals are unweighted: released points over the maximum of released items. Weighting belongs to examinations (LQ2, owner decision C9).
 - Instructors see drafts; students see only their own released grades.
 
 **FR-14 Discussions.**
@@ -310,11 +310,11 @@ copies, not foreign keys. `student_id`, `instructor_id`, `department_id`, `docum
 
 | Needs | From | How | Status |
 |---|---|---|---|
-| Course offering (code, title, department, status), sections, academic period | academic-management | Consumed events into `offering_ref` | PENDING CONFIRMATION FROM OWNER (Shivani; LQ3, Q8) |
+| Course offering (code, title, department, status), sections, academic period | academic-management | Consumed events into `offering_ref` | PENDING CONFIRMATION FROM OWNER (Shivani; names become authoritative when PR #168 merges, owner decision C4) |
 | Instructor assignments, including teaching assistants | academic-management | Consumed events into `instructor_ref` | PENDING CONFIRMATION FROM OWNER (Shivani; LQ5) |
 | Students registered in each course offering and section | enrolment-registration | Consumed events into `member_ref` | PENDING CONFIRMATION FROM OWNER (Praveen; LQ4) |
 | Canonical student identifier | student-information / identity | n/a | PENDING (Praveen, Faizan; LQ6) |
-| Scheduled classes, only if materials link to classes | timetable-attendance | Consumed events or ID only | PENDING (Shivani; LQ12) |
+| Scheduled classes, only as an optional material link | timetable-attendance | ID only; no events consumed | Decided (owner decision C19) |
 | Permission checks, current user, caller's department | platform/identity | `packages/sdk` | Available; department source pending LQ13 |
 | Audit trail | platform/audit | `packages/sdk` | Available |
 | Publishing events | platform/event-bus | `packages/sdk` | Available |
@@ -336,7 +336,7 @@ the one stored by `packages/core` (`eos_core.events.OutboxEvent`): `id`, `name`,
 | `lms.assignment.published` | notification; possibly examinations (LQ1) |
 | `lms.assignment.updated` | notification; possibly examinations (LQ1) |
 | `lms.submission.submitted` | notification |
-| `lms.grade.released` | notification; possibly examinations (LQ2) |
+| `lms.grade.released` | notification; not examinations in Week 1 (owner decision C9) |
 | `lms.quiz.published` | notification; possibly examinations (LQ1) |
 | `lms.quiz-attempt.submitted` | none yet |
 | `lms.discussion-thread.created` | notification |
@@ -353,7 +353,6 @@ The names below describe what is needed. They are **not** event names.
 | Academic period changes (for archiving) | academic-management (Shivani) | PENDING CONFIRMATION FROM OWNER |
 | Instructor assignment created / ended, with role (including teaching assistants) | academic-management (Shivani) | PENDING CONFIRMATION FROM OWNER |
 | Student registered in / withdrawn from a course offering or section | enrolment-registration (Praveen) | PENDING CONFIRMATION FROM OWNER |
-| Scheduled class created / updated / cancelled (only if LQ12 keeps the link) | timetable-attendance (Shivani) | PENDING CONFIRMATION FROM OWNER |
 
 The academic-management (PR #168) and timetable-attendance (PR #179) drafts propose event names and
 list lms as a consumer. Those names become authoritative only when the PRs merge.
@@ -392,24 +391,24 @@ the matching `-all` key.
 | `lms-student` | `student` |
 | `lms-viewer` | read-only roles such as governance |
 
-Whether teaching assistants get `lms-instructor`, a reduced set of keys or a role of their own is **OPEN (LQ5)**.
+There is no teaching-assistant role in Week 1 (owner decision C18). How instructor assignments feed the `-assigned` scope stays open (LQ5).
 
 ## 14. Open questions
 
 | # | Question | Who decides |
 |---|---|---|
 | LQ1 | Examinations Q6: does `examinations.upcoming-assessments` include LMS quizzes and assignment due dates? If it does, examinations would consume `lms.assignment.*` and `lms.quiz.published`, or a separate LMS widget would be added to the Student layout | Tejaswini, Shivani |
-| LQ2 | Examinations Q9: do LMS coursework grades feed the examinations `continuous` assessment component? If so, how LMS items map to components, and by `lms.grade.released` or an API | Shivani (lms and examinations) |
-| LQ3 | Is a course space created automatically from course-offering events, or manually? One per course offering, or one per section? When is it archived? | Shivani (academic-management and lms) |
+| LQ2 | **Decided for Week 1 (owner decision C9, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** coursework grades do not feed the examinations `continuous` component; revisited in a later phase | Shivani |
+| LQ3 | **Creation and scope decided (owner decision C17, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** manual, one per course offering. **Still open:** when a course space is archived | Shivani (academic-management and lms) |
 | LQ4 | Which enrolment-registration events and payloads define student access (course offering and section registration, withdrawal)? | Praveen |
-| LQ5 | How are instructor assignments and teaching assistants represented for the `-assigned` scope? Does a teaching assistant hold `lms-instructor`, a reduced set of keys, or its own role? | Shivani (academic-management) |
+| LQ5 | **Teaching-assistant part decided (owner decision C18, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** no teaching-assistant role in Week 1. **Still open:** how instructor assignments are represented for the `-assigned` scope (academic-management events, C4) | Shivani (academic-management) |
 | LQ6 | What is the canonical `student_id` (student-information record id or identity user id)? Same as examinations Q2 and timetable-attendance Q3 | Praveen, Faizan |
 | LQ7 | Which file size limits, scanning and access-control rules does `platform/documents` apply to materials and submissions? | Himanshu |
 | LQ8 | Do live-class meeting links (`integrations/video-conferencing`) belong in lms or timetable-attendance? | Himanshu, Shivani |
 | LQ9 | How should lms link library digital resources (reading lists): by URL, by a library item ID, or not at all? | Tejaswini |
 | LQ10 | Boundary with `practice/projects` (capstone submissions and reviews), `practice/portfolio` (teaching portfolio) and `practice/skill-progress` (practicum assessment). Proposed: lms assignments are coursework only | Tejaswini, Praveen, Akshata |
 | LQ11 | Plagiarism checking: no module or integration exists. Out of scope unless an owner confirms otherwise | Faizan, Himanshu |
-| LQ12 | Is linking materials to a `scheduled_class_id` needed? If not, the field is dropped and timetable-attendance's proposed lms consumers can be trimmed | Shivani |
+| LQ12 | **Decided (owner decision C19, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** `scheduled_class_id` stays optional; lms consumes no scheduled-class events, and timetable-attendance no longer lists lms as a consumer of them | Shivani |
 | LQ13 | How is the caller's department determined (identity SDK)? Same as examinations Q13 and timetable-attendance Q9 | Faizan |
 | LQ14 | Future integration with `platform/search` (indexing materials) and `platform/scheduler` / `platform/notification` (due-date reminders). Not in week 1 | Himanshu |
 | LQ15 | Profile vocabulary keys for lms (for example "assignment" called "studio brief" in a design academy) | Faizan (profiles) |

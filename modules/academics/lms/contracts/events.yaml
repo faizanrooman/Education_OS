@@ -4,7 +4,7 @@
 #
 # STATUS: PROPOSED (week 1, issue #63). `consumers` lists the modules expected to subscribe; each
 # owner confirms before this file is locked (see docs/prd.md section 11).
-# course_offering_id and section ids are academic-management IDs (vocabulary pending Q8);
+# course_offering_id and section ids are academic-management IDs (vocabulary aligned by owner decision C5);
 # student_id is an external person ID (docs/prd.md LQ6); document_id is a platform/documents ID.
 # Grades here are coursework grades, not examination results.
 module: lms
@@ -21,7 +21,7 @@ envelope:
   payload: object
 events:
   - name: lms.course-space.created
-    description: A course space was created for a course offering (how it is created is pending LQ3).
+    description: A course space was created for a course offering, manually by an administrator (owner decision C17).
     consumers: []
     payload: { organisation_id: uuid, course_space_id: uuid, course_offering_id: uuid, title: string, visible_section_ids: "uuid[]" }
 
