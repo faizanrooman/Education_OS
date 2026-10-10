@@ -131,7 +131,7 @@ Teacher-education roles inherit from these: `mentor-teacher` extends `faculty`, 
 ### 5.10 Result
 - One per (exam cycle, student, course offering).
 - Has component marks, `weighted_percent`, `grade`, `grade_point` and `passed`.
-- The student's cycle summary has the `grade_point_average`, weighted by the course offering credits cached from academic-management (pending Q8).
+- The student's cycle summary has the `grade_point_average`, weighted by the course offering credits cached from academic-management (consumed events pending, section 12).
 - Status: `computed → approved → published`. A published result can be revised, which creates a new `version` with a reason.
 
 ## 6. Examination lifecycle
@@ -187,7 +187,7 @@ belongs to enrolment-registration and is not served here.
 
 **FR-4 Paper creation.**
 - The controller creates papers for a cycle from the active assessment scheme of a course offering, one per examined component.
-- The course offering must exist in the local read model, which is filled by consumed events (pending Q8).
+- The course offering must exist in the local read model, which is filled by consumed events (pending, section 12).
 
 **FR-5 Session scheduling.**
 - The controller schedules a session with start and end time, the papers written in it, a venue label and the number of invigilators required.
@@ -319,7 +319,7 @@ copies, not foreign keys. `student_id`, `staff_id`, `department_id` and `documen
 
 | Needs | From | How | Status |
 |---|---|---|---|
-| Academic period, course offering (course code, title, credits, department), instructor assignment (to suggest evaluators) | academic-management | Consumed events into `offering_ref` | PENDING CONFIRMATION FROM OWNER (Shivani; Q8) |
+| Academic period, course offering (course code, title, credits, department), instructor assignment (to suggest evaluators) | academic-management | Consumed events into `offering_ref` | PENDING CONFIRMATION FROM OWNER (Shivani; names become authoritative when PR #168 merges, owner decision C4) |
 | Who is registered for each course offering; supplementary and backlog registration | enrolment-registration | Consumed events into `registration_ref` | PENDING CONFIRMATION FROM OWNER (Praveen; Q1) |
 | Student status (active, suspended, discontinued) | student-information | Event or API | PENDING CONFIRMATION FROM OWNER (Praveen; Q2) |
 | Attendance counts per student and course offering at the cut-off date | timetable-attendance | `POST /reports/attendance-eligibility` (timetable-attendance FR-18, PR #179), key `timetable-attendance:report:read-eligibility` | Decided by owner decision C7; proposed contract, not yet merged |
@@ -421,8 +421,8 @@ confirmed (Q13); until then the department-scoped keys are defined but their sco
 | Q5 | **API part decided (owner decision C7):** examinations reads attendance through timetable-attendance's bulk read (FR-18 in PR #179), not events; excused classes are excluded from the denominator. **Still open:** whether the minimum is set per exam cycle here (proposed) or comes from timetable-attendance's shortage threshold | Shivani (timetable-attendance), with Akshata for the Exam Staff view |
 | Q6 | Does `examinations.upcoming-assessments` include LMS quizzes and assignments, or exams only? Proposed: exams only | Tejaswini, Shivani (lms) |
 | Q7 | Transcripts and certificates: examinations, student-information, or only the NAD and DigiLocker integrations from published results | Praveen, Himanshu, Faizan |
-| Q8 | Align Academic Management ID vocabulary with Timetable & Attendance and Examinations (`academic_period_id`, `course_offering_id`, `instructor_assignment_id` vs `term_id`, `offering_id`, faculty-assignment `id`) | Shivani |
-| Q9 | Do internal or continuous-assessment marks come from LMS grades (a `continuous` component fed by lms) or are they entered here? | Shivani (lms and examinations) |
+| Q8 | **Decided (owner decision C5, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** academic-management uses `academic_period_id`, `course_offering_id` and `instructor_assignment_id`, aligned in PR #168 | Shivani |
+| Q9 | **Decided for Week 1 (owner decision C9, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** LMS coursework grades do not feed the `continuous` component; exam marks are entered here. Integration is revisited in a later phase | Shivani |
 | Q10 | Should result approval use `platform/workflow` (no module uses it yet) or stay as this module's state machine? | Himanshu, Faizan |
 | Q11 | Does duty remuneration involve hr-payroll, and does it consume `duty.*` events? | Gokula Lakshmi |
 | Q12 | Which result fields do `platform/reporting` (`reporting.attendance-and-results-by-department`), regulatory-reports, nad and digilocker need in `result.published`? | Himanshu, Madhumita |

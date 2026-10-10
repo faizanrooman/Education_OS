@@ -5,7 +5,7 @@
 # STATUS: PROPOSED (week 1, issue #63). `consumers` lists the modules expected to subscribe; each
 # owner confirms before this file is locked (see docs/prd.md section 11).
 # academic_period_id, course_offering_id and instructor_assignment_id are academic-management IDs
-# (vocabulary pending docs/prd.md Q8); student_id and staff_id are external person IDs.
+# (vocabulary aligned by owner decision C5, docs/prd.md Q8); student_id and staff_id are external person IDs.
 module: examinations
 version: 1
 # Envelope fields as stored by the outbox in packages/core (eos_core.events.OutboxEvent).

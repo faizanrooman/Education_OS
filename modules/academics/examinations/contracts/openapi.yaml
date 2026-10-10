@@ -11,7 +11,7 @@ info:
     keys that widen it (*-assigned < *-department < *-all; docs/prd.md section 13). The widest key
     the caller holds applies. This follows the timetable-attendance contract.
     academic_period_id, course_offering_id and instructor_assignment_id are academic-management IDs
-    (vocabulary pending docs/prd.md Q8); student_id and staff_id are external person IDs;
+    (vocabulary aligned by owner decision C5, docs/prd.md Q8); student_id and staff_id are external person IDs;
     document_id is a platform/documents ID.
 servers:
   - url: /api/v1/examinations
@@ -1330,7 +1330,7 @@ components:
           type: [number, "null"]
           minimum: 0
           maximum: 100
-          description: Null means no attendance rule; the attendance source is pending Q5
+          description: Null means no attendance rule. Attendance comes from timetable-attendance's bulk read (owner decision C7); where the minimum lives is still Q5
         check_dues:
           type: boolean
           description: Whether dues are an eligibility input; the dues source is pending Q4
@@ -1666,7 +1666,7 @@ components:
         course_offering_id: { type: string, format: uuid }
         course_code: { type: string, readOnly: true }
         course_title: { type: string, readOnly: true }
-        credits: { type: [number, "null"], readOnly: true, description: Cached from the course offering (pending Q8) }
+        credits: { type: [number, "null"], readOnly: true, description: Cached from the course offering (consumed events pending) }
         version: { type: integer, minimum: 1 }
         components: { type: array, items: { $ref: "#/components/schemas/ComponentScore" } }
         weighted_percent: { type: number, minimum: 0, maximum: 100 }
