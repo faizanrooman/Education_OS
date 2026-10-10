@@ -260,9 +260,9 @@ uses the platform event envelope: `id`, `occurred_at`, `actor`, `organisation_id
 | `timetable-attendance.timetable.updated` | none yet (audit/reporting) |
 | `timetable-attendance.timetable.published` | lms, examinations (avoid exam clashes with classes) |
 | `timetable-attendance.timetable.unpublished` | lms, examinations |
-| `timetable-attendance.scheduled-class.created` | lms (link material to a class), platform/notification (later) |
-| `timetable-attendance.scheduled-class.updated` | lms, platform/notification (later) |
-| `timetable-attendance.scheduled-class.cancelled` | lms, platform/notification (later) |
+| `timetable-attendance.scheduled-class.created` | platform/notification (later); not lms (owner decision C19) |
+| `timetable-attendance.scheduled-class.updated` | platform/notification (later); not lms (owner decision C19) |
+| `timetable-attendance.scheduled-class.cancelled` | platform/notification (later); not lms (owner decision C19) |
 | `timetable-attendance.attendance-session.opened` | none yet |
 | `timetable-attendance.attendance-record.marked` | examinations (attendance eligibility), platform/notification (absence alerts, later) |
 | `timetable-attendance.attendance-record.updated` | examinations, platform/notification (later) |
@@ -322,7 +322,7 @@ Modules check permission keys, never roles (ARCHITECTURE.md, Security), so a wid
 | Q5 | Shortage threshold, marking window and correction window: organisation settings (where?) or env defaults only | Faizan |
 | Q6 | **Decided (owner decision C7):** `excused` classes are excluded from the denominator | Shivani |
 | Q7 | **Decided (owner decision C7):** examinations reads attendance through the bulk report in FR-18, not through `attendance-record.*` events | Shivani |
-| Q8 | Naming alignment: this contract uses `academic_period_id`, `course_offering_id` and `instructor_assignment_id`; the academic-management draft uses `term_id`, `offering_id` and a faculty-assignment `id` | Shivani (align academic-management before either merges) |
+| Q8 | **Decided (owner decision C5, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** academic-management uses `academic_period_id`, `course_offering_id` and `instructor_assignment_id`, aligned in PR #168 | Shivani |
 | Q9 | How the caller's department is known (identity SDK), and whether that alone limits a HoD's timetable and scheduled-class writes, or a separate org-wide key is needed | Faizan (platform/identity) |
 
 ## 14. Acceptance for this PRD (week 1)

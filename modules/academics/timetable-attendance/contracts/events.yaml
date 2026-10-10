@@ -41,17 +41,17 @@ events:
 
   - name: timetable-attendance.scheduled-class.created
     description: A class occurrence was generated from a timetable slot or created ad hoc.
-    consumers: [lms]
+    consumers: []
     payload: { organisation_id: uuid, scheduled_class_id: uuid, timetable_id: "uuid?", academic_period_id: uuid, course_offering_id: uuid, section_id: uuid, instructor_assignment_id: uuid, instructor_id: uuid, class_date: date, starts_at: datetime, ends_at: datetime, location_label: "string?" }
 
   - name: timetable-attendance.scheduled-class.updated
     description: A class was rescheduled or its location or instructor changed.
-    consumers: [lms]
+    consumers: []
     payload: { organisation_id: uuid, scheduled_class_id: uuid, changed_fields: "string[]", class_date: date, starts_at: datetime, ends_at: datetime, location_label: "string?" }
 
   - name: timetable-attendance.scheduled-class.cancelled
     description: A class was cancelled.
-    consumers: [lms]
+    consumers: []
     payload: { organisation_id: uuid, scheduled_class_id: uuid, course_offering_id: uuid, section_id: uuid, class_date: date, reason: "string?", cancelled_at: datetime }
 
   - name: timetable-attendance.attendance-session.opened
