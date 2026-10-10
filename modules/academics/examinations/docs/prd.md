@@ -205,7 +205,7 @@ belongs to enrolment-registration and is not served here.
 - **Inputs, in this order, each adding a reason when it fails:**
   1. Registration in the course offering (enrolment-registration, Q1)
   2. Student status (student-information, Q2)
-  3. Attendance at least `min_attendance_percent` up to `eligibility_cutoff_date` (timetable-attendance, Q5)
+  3. Attendance at least `min_attendance_percent` up to `eligibility_cutoff_date`, from timetable-attendance's bulk attendance read (owner decision C7); excused classes are excluded from the denominator. Where the minimum lives is still Q5
   4. Dues, when `check_dues` is set (fees-accounts, Q4)
   5. The cycle's own examination rules
 - **Missing inputs.** An input whose source is not available yet (the integration is unconfirmed) leaves the candidate `pending` with no reason recorded for that input. It never silently counts as eligible.
@@ -322,7 +322,7 @@ copies, not foreign keys. `student_id`, `staff_id`, `department_id` and `documen
 | Academic period, course offering (course code, title, credits, department), instructor assignment (to suggest evaluators) | academic-management | Consumed events into `offering_ref` | PENDING CONFIRMATION FROM OWNER (Shivani; Q8) |
 | Who is registered for each course offering; supplementary and backlog registration | enrolment-registration | Consumed events into `registration_ref` | PENDING CONFIRMATION FROM OWNER (Praveen; Q1) |
 | Student status (active, suspended, discontinued) | student-information | Event or API | PENDING CONFIRMATION FROM OWNER (Praveen; Q2) |
-| Attendance percentage per student and course offering at the cut-off date | timetable-attendance | Event or API | PENDING CONFIRMATION FROM OWNER (Shivani; Q5) |
+| Attendance counts per student and course offering at the cut-off date | timetable-attendance | `POST /reports/attendance-eligibility` (timetable-attendance FR-18, PR #179), key `timetable-attendance:report:read-eligibility` | Decided by owner decision C7; proposed contract, not yet merged |
 | Dues status for examination fees | fees-accounts | Event or API | PENDING CONFIRMATION FROM OWNER (Gokula Lakshmi; Q4) |
 | Permission checks, current user, caller's department | platform/identity | `packages/sdk` | Available; department scope pending Q13 |
 | Audit trail | platform/audit | `packages/sdk` | Available |
@@ -366,7 +366,6 @@ The names below describe what is needed. They are **not** event names.
 | Instructor assignment created / ended | academic-management (Shivani) | PENDING CONFIRMATION FROM OWNER |
 | Student registered for / withdrawn from a course offering; supplementary or backlog registration | enrolment-registration (Praveen) | PENDING CONFIRMATION FROM OWNER |
 | Student status changed | student-information (Praveen) | PENDING CONFIRMATION FROM OWNER |
-| Attendance recorded or corrected (only if Q5 chooses events over an API) | timetable-attendance (Shivani) | PENDING CONFIRMATION FROM OWNER |
 | Examination-fee dues settled or outstanding (only if Q4 chooses events) | fees-accounts (Gokula Lakshmi) | PENDING CONFIRMATION FROM OWNER |
 
 academic-management (PR #168), timetable-attendance (PR #179) and fees-accounts (PR #170) have
@@ -419,7 +418,7 @@ confirmed (Q13); until then the department-scoped keys are defined but their sco
 | Q2 | Which identifier `student_id` is (student-information record id or identity user id); where student status and display name come from | Praveen, Faizan |
 | Q3 | Exam venues: keep a free-text `venue_label`, or reference facility-booking resources and book them (or create blackouts) when a session is scheduled | Ashritha |
 | Q4 | Whether examination-fee dues can withhold eligibility or hall tickets; which fees-accounts event or API reports dues; who raises the examination-fee invoice | Gokula Lakshmi |
-| Q5 | Attendance eligibility: a bulk timetable-attendance API (per course offering, all students, up to a cut-off date; it does not exist yet in PR #179) or attendance events; whether the minimum is set per exam cycle here (proposed) or comes from timetable-attendance's shortage threshold | Shivani (timetable-attendance), with Akshata for the Exam Staff view |
+| Q5 | **API part decided (owner decision C7):** examinations reads attendance through timetable-attendance's bulk read (FR-18 in PR #179), not events; excused classes are excluded from the denominator. **Still open:** whether the minimum is set per exam cycle here (proposed) or comes from timetable-attendance's shortage threshold | Shivani (timetable-attendance), with Akshata for the Exam Staff view |
 | Q6 | Does `examinations.upcoming-assessments` include LMS quizzes and assignments, or exams only? Proposed: exams only | Tejaswini, Shivani (lms) |
 | Q7 | Transcripts and certificates: examinations, student-information, or only the NAD and DigiLocker integrations from published results | Praveen, Himanshu, Faizan |
 | Q8 | Align Academic Management ID vocabulary with Timetable & Attendance and Examinations (`academic_period_id`, `course_offering_id`, `instructor_assignment_id` vs `term_id`, `offering_id`, faculty-assignment `id`) | Shivani |
