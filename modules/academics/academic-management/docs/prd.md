@@ -147,6 +147,8 @@ The full list with payloads is in `contracts/events.yaml`. Every event carries `
 | `academic-management.section.created` / `.updated` | timetable-attendance, lms, enrolment-registration |
 | `academic-management.faculty-assignment.created` / `.ended` | timetable-attendance, lms, examinations |
 
+`term.*` events identify the academic period by `academic_period_id`; `faculty-assignment.*` events identify the instructor assignment by `instructor_assignment_id`.
+
 ### 8.2 Consumed (proposed: not yet in `module.yaml`)
 
 Enrolment is owned and published by `enrolment-registration`. The roster read model (FR-14)
