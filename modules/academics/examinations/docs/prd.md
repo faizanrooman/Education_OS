@@ -309,7 +309,7 @@ The module has its own schema, `examinations`. Every table has `organisation_id`
 | `exam_duty` | id, organisation_id, exam_cycle_id, staff_id, duty_type, exam_session_id?, exam_paper_id?, status, cancel_reason |
 | `mark_entry` | id, organisation_id, candidate_id, marks_obtained, absent, entered_by, entered_at, moderation_delta, moderation_reason, moderated_by, status |
 | `result` | id, organisation_id, exam_cycle_id, student_id, course_offering_id, version, weighted_percent, grade, grade_point, passed, status, approved_by, published_at, revision_reason |
-| `offering_ref` (read model) | organisation_id, course_offering_id, academic_period_id, course_code, course_title, credits, department_id |
+| `offering_ref` (read model) | organisation_id, course_offering_id, course_id, academic_period_id, course_code, course_title, credits, department_id. `course_id` is kept so that course changes from academic-management can be applied to every offering of that course (PR #168) |
 | `registration_ref` (read model) | organisation_id, student_id, course_offering_id, status (pending Q1) |
 
 Read-model tables are refreshed only from consumed events (section 12). They are local
@@ -433,7 +433,7 @@ confirmed (Q13); until then the department-scoped keys are defined but their sco
 
 | # | Item | Raised with |
 |---|---|---|
-| CR-1 | academic-management's PRD (PR #168, section 3) says examination staff read the "assessment scheme" from courses. The approved boundary gives Assessment Scheme to examinations, and academic-management's `Course` schema has no such field. The wording should change in PR #168. This PR does not touch academic-management | PR #168 (Shivani) |
+| CR-1 | **Answered.** Akshata's recorded comment on PR #168 agrees that Assessment Scheme is owned by examinations, not academic-management. Academic-management's PRD wording (sections 3 and 8.3) was updated in PR #168 to match. This PR does not touch academic-management | PR #168 (Shivani) |
 | R-1 | Event envelope. ARCHITECTURE.md requires only `organisation_id` in the envelope; the implemented outbox (`packages/core`, `eos_core.events.OutboxEvent`) stores `id`, `name`, `organisation_id`, `actor`, `occurred_at`, `payload`. The scaffold comment in every `contracts/events.yaml` ("id, occurred_at, actor, tenant, version, payload") also lists `version`, which neither the architecture docs nor the outbox define. This contract follows the outbox, and contract versioning stays with the file-level `version` and module semver (module-standard rule 7). The timetable-attendance draft (PR #179) still lists `version`. Should the scaffold comment be corrected, or should `version` be added to the outbox? | Faizan |
 
 ## 15. Acceptance criteria (week 1)
