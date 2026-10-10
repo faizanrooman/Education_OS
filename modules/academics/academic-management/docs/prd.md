@@ -48,7 +48,7 @@ Profile role ids are from `platform/identity/config/profiles/*.yaml`.
 | `department-admin` (HoD) | Creates offerings and sections for the department; assigns faculty; watches faculty load |
 | `faculty` | Sees their assigned offerings and rosters |
 | `student` | Reads programme structure, curriculum and course details |
-| `examination-staff` | Reads offerings and courses (credits, assessment scheme) to plan exams |
+| `examination-staff` | Reads offerings and courses (code, title, credits, department) to plan exams; assessment schemes are owned by `academics/examinations` |
 
 Teacher-education roles inherit from these: `mentor-teacher` extends `faculty`; `teacher-trainee`
 extends `student`.
@@ -166,7 +166,7 @@ once he confirms them in his `events.yaml`.
 | Praveen (enrolment-registration, student-information) | Enrolment event names and payloads in 8.2; that sections are defined here and his module allocates students to them; whether he consumes `programme.*` and `curriculum.published` |
 | Himanshu (Department Admin dashboard) | `GET /faculty-load` shape for `academic-management.faculty-load` |
 | Tejaswini (Student dashboard) | Whether any Student widget needs academic-management data directly (none in the current layout) |
-| Akshata (Examination Staff dashboard) | Which offering/course fields examinations needs cached (credits, course_type, term) |
+| Akshata (Examination Staff dashboard) | Answered on PR #168: examinations needs course code, title, credits, department and term, which the proposed `offering.created` payload carries; assessment schemes are owned by `academics/examinations`, not here. The event itself remains proposed (8.1) |
 | Faizan (architecture) | Contract review; that academic terms are owned here and not in `packages/contracts` |
 
 ## 9. Permissions
