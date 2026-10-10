@@ -69,9 +69,9 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
-  /terms/{term_id}:
+  /terms/{academic_period_id}:
     parameters:
-      - $ref: "#/components/parameters/TermId"
+      - $ref: "#/components/parameters/AcademicPeriodId"
     get:
       tags: [terms]
       summary: Get a term
@@ -111,9 +111,9 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
-  /terms/{term_id}/activate:
+  /terms/{academic_period_id}/activate:
     parameters:
-      - $ref: "#/components/parameters/TermId"
+      - $ref: "#/components/parameters/AcademicPeriodId"
     post:
       tags: [terms]
       summary: Make this the active term
@@ -507,7 +507,7 @@ paths:
       operationId: listOfferings
       x-permission: academic-management:offering:read
       parameters:
-        - name: term_id
+        - name: academic_period_id
           in: query
           schema:
             type: string
@@ -577,9 +577,9 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
-  /offerings/{offering_id}:
+  /offerings/{course_offering_id}:
     parameters:
-      - $ref: "#/components/parameters/OfferingId"
+      - $ref: "#/components/parameters/CourseOfferingId"
     get:
       tags: [offerings]
       summary: Get an offering with its sections and faculty
@@ -617,9 +617,9 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /offerings/{offering_id}/status:
+  /offerings/{course_offering_id}/status:
     parameters:
-      - $ref: "#/components/parameters/OfferingId"
+      - $ref: "#/components/parameters/CourseOfferingId"
     post:
       tags: [offerings]
       summary: Change an offering's status
@@ -653,9 +653,9 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
-  /offerings/{offering_id}/sections:
+  /offerings/{course_offering_id}/sections:
     parameters:
-      - $ref: "#/components/parameters/OfferingId"
+      - $ref: "#/components/parameters/CourseOfferingId"
     get:
       tags: [offerings]
       summary: List sections of an offering
@@ -732,9 +732,9 @@ paths:
           $ref: "#/components/responses/Conflict"
 
   # ------------------------------------------------------ faculty assignment
-  /offerings/{offering_id}/faculty-assignments:
+  /offerings/{course_offering_id}/faculty-assignments:
     parameters:
-      - $ref: "#/components/parameters/OfferingId"
+      - $ref: "#/components/parameters/CourseOfferingId"
     get:
       tags: [faculty]
       summary: List faculty assigned to an offering
@@ -789,9 +789,9 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
-  /faculty-assignments/{assignment_id}/end:
+  /faculty-assignments/{instructor_assignment_id}/end:
     parameters:
-      - $ref: "#/components/parameters/AssignmentId"
+      - $ref: "#/components/parameters/InstructorAssignmentId"
     post:
       tags: [faculty]
       summary: End a faculty assignment
@@ -810,9 +810,9 @@ paths:
           $ref: "#/components/responses/Conflict"
 
   # --------------------------------------------------------------- roster
-  /offerings/{offering_id}/roster:
+  /offerings/{course_offering_id}/roster:
     parameters:
-      - $ref: "#/components/parameters/OfferingId"
+      - $ref: "#/components/parameters/CourseOfferingId"
     get:
       tags: [offerings, widgets]
       summary: Students enrolled in an offering
@@ -837,9 +837,9 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [offering_id, items, total]
+                required: [course_offering_id, items, total]
                 properties:
-                  offering_id:
+                  course_offering_id:
                     type: string
                     format: uuid
                   items:
@@ -864,7 +864,7 @@ paths:
       operationId: listMyOfferings
       x-permission: academic-management:roster:read
       parameters:
-        - name: term_id
+        - name: academic_period_id
           in: query
           description: Defaults to the active term
           schema:
@@ -877,9 +877,9 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [term_id, items]
+                required: [academic_period_id, items]
                 properties:
-                  term_id:
+                  academic_period_id:
                     type: string
                     format: uuid
                   items:
@@ -897,7 +897,7 @@ paths:
       operationId: getFacultyLoad
       x-permission: academic-management:faculty-load:read
       parameters:
-        - name: term_id
+        - name: academic_period_id
           in: query
           description: Defaults to the active term
           schema:
@@ -941,8 +941,8 @@ components:
         type: integer
         default: 0
         minimum: 0
-    TermId:
-      name: term_id
+    AcademicPeriodId:
+      name: academic_period_id
       in: path
       required: true
       schema:
@@ -969,8 +969,8 @@ components:
       schema:
         type: string
         format: uuid
-    OfferingId:
-      name: offering_id
+    CourseOfferingId:
+      name: course_offering_id
       in: path
       required: true
       schema:
@@ -983,8 +983,8 @@ components:
       schema:
         type: string
         format: uuid
-    AssignmentId:
-      name: assignment_id
+    InstructorAssignmentId:
+      name: instructor_assignment_id
       in: path
       required: true
       schema:
@@ -1342,7 +1342,7 @@ components:
     # --- offerings and sections
     Offering:
       type: object
-      required: [id, organisation_id, course_id, term_id, status, programme_ids, course, sections]
+      required: [id, organisation_id, course_id, academic_period_id, status, programme_ids, course, sections]
       properties:
         id:
           type: string
@@ -1353,7 +1353,7 @@ components:
         course_id:
           type: string
           format: uuid
-        term_id:
+        academic_period_id:
           type: string
           format: uuid
         status:
@@ -1393,12 +1393,12 @@ components:
           format: uuid
     CreateOfferingRequest:
       type: object
-      required: [course_id, term_id, sections]
+      required: [course_id, academic_period_id, sections]
       properties:
         course_id:
           type: string
           format: uuid
-        term_id:
+        academic_period_id:
           type: string
           format: uuid
         programme_ids:
@@ -1421,7 +1421,7 @@ components:
             format: uuid
     Section:
       type: object
-      required: [id, organisation_id, offering_id, code, capacity, status]
+      required: [id, organisation_id, course_offering_id, code, capacity, status]
       properties:
         id:
           type: string
@@ -1429,7 +1429,7 @@ components:
         organisation_id:
           type: string
           format: uuid
-        offering_id:
+        course_offering_id:
           type: string
           format: uuid
         code:
@@ -1463,7 +1463,7 @@ components:
     # --- faculty assignment
     FacultyAssignment:
       type: object
-      required: [id, organisation_id, offering_id, faculty_id, role, contact_hours, status]
+      required: [id, organisation_id, course_offering_id, faculty_id, role, contact_hours, status]
       properties:
         id:
           type: string
@@ -1471,7 +1471,7 @@ components:
         organisation_id:
           type: string
           format: uuid
-        offering_id:
+        course_offering_id:
           type: string
           format: uuid
         section_id:
@@ -1536,9 +1536,9 @@ components:
           format: date-time
     MyOffering:
       type: object
-      required: [offering_id, course, role, sections, enrolled_count]
+      required: [course_offering_id, course, role, sections, enrolled_count]
       properties:
-        offering_id:
+        course_offering_id:
           type: string
           format: uuid
         course:
@@ -1565,9 +1565,9 @@ components:
           type: integer
     FacultyLoadReport:
       type: object
-      required: [term_id, max_weekly_contact_hours, items]
+      required: [academic_period_id, max_weekly_contact_hours, items]
       properties:
-        term_id:
+        academic_period_id:
           type: string
           format: uuid
         department_id:

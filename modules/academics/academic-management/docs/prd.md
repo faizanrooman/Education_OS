@@ -108,8 +108,8 @@ Each widget's endpoint is in `contracts/openapi.yaml` before any widget is built
 
 | Widget id | Dashboard (builder) | Endpoint | Permission |
 |---|---|---|---|
-| `academic-management.course-roster` | Faculty (Shivani) | `GET /me/offerings`, then `GET /offerings/{offering_id}/roster` | `academic-management:roster:read` |
-| `academic-management.faculty-load` | Department Admin (Himanshu) | `GET /faculty-load?term_id=&department_id=` | `academic-management:faculty-load:read` |
+| `academic-management.course-roster` | Faculty (Shivani) | `GET /me/offerings`, then `GET /offerings/{course_offering_id}/roster` | `academic-management:roster:read` |
+| `academic-management.faculty-load` | Department Admin (Himanshu) | `GET /faculty-load?academic_period_id=&department_id=` | `academic-management:faculty-load:read` |
 
 ## 7. Data model (summary)
 
@@ -123,10 +123,10 @@ Own schema `academic_management`. Every table has `organisation_id` and an RLS p
 | `curriculum` | id, organisation_id, programme_id, version, status, published_at |
 | `curriculum_item` | id, organisation_id, curriculum_id, course_id, programme_term, category, credits |
 | `course` | id, organisation_id, code, title, credits, lecture_hours, practical_hours, course_type, department_id, status |
-| `offering` | id, organisation_id, course_id, term_id, status, programme_ids |
-| `section` | id, organisation_id, offering_id, code, capacity, status |
-| `faculty_assignment` | id, organisation_id, offering_id, section_id, faculty_id, role, contact_hours, status |
-| `roster_entry` (read model) | id, organisation_id, offering_id, section_id, student_id, enrolled_at, status |
+| `offering` | id, organisation_id, course_id, academic_period_id, status, programme_ids |
+| `section` | id, organisation_id, course_offering_id, code, capacity, status |
+| `faculty_assignment` | id, organisation_id, course_offering_id, section_id, faculty_id, role, contact_hours, status |
+| `roster_entry` (read model) | id, organisation_id, course_offering_id, section_id, student_id, enrolled_at, status |
 
 `department_id`, `faculty_id` and `student_id` are external IDs (identity, student-information).
 
@@ -155,9 +155,9 @@ once he confirms them in his `events.yaml`.
 
 | Proposed event | Needed fields |
 |---|---|
-| `enrolment-registration.course-registration.confirmed` | organisation_id, registration_id, student_id, student_name, roll_number, offering_id, section_id, term_id, confirmed_at |
-| `enrolment-registration.course-registration.withdrawn` | organisation_id, registration_id, student_id, offering_id, section_id, withdrawn_at |
-| `enrolment-registration.section-allocation.changed` | organisation_id, registration_id, student_id, offering_id, from_section_id, to_section_id |
+| `enrolment-registration.course-registration.confirmed` | organisation_id, registration_id, student_id, student_name, roll_number, course_offering_id, section_id, academic_period_id, confirmed_at |
+| `enrolment-registration.course-registration.withdrawn` | organisation_id, registration_id, student_id, course_offering_id, section_id, withdrawn_at |
+| `enrolment-registration.section-allocation.changed` | organisation_id, registration_id, student_id, course_offering_id, from_section_id, to_section_id |
 
 ### 8.3 Confirmations needed before locking
 
