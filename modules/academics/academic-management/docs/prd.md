@@ -186,7 +186,7 @@ Default module roles map to profile roles as in section 3.
 
 1. Sections: defined here (proposed), or by enrolment-registration as part of "section allocation"? This PRD assumes they are defined here and allocated there.
 2. Electives: does enrolment-registration need an "elective group" concept from the curriculum? If so, add `elective_group` to `curriculum_item`.
-3. Cross-listed courses (one offering, several programmes): handled by `programme_ids` on the offering. Confirm this is enough for examinations.
+3. Cross-listed courses (one offering, several programmes): **decided (owner decision C21, [owner decision record](https://github.com/rooman-itsd/Education_OS/pull/183#issuecomment-6099000605)):** `programme_ids` on the offering stays the representation; no other cross-listing model.
 
 ## 12. Acceptance for this PRD (week 1)
 
