@@ -258,8 +258,8 @@ uses the platform event envelope: `id`, `occurred_at`, `actor`, `organisation_id
 |---|---|
 | `timetable-attendance.timetable.created` | none yet (audit/reporting) |
 | `timetable-attendance.timetable.updated` | none yet (audit/reporting) |
-| `timetable-attendance.timetable.published` | lms, examinations (avoid exam clashes with classes) |
-| `timetable-attendance.timetable.unpublished` | lms, examinations |
+| `timetable-attendance.timetable.published` | none in Week 1; lms and examinations do not consume it ([decision C on #179](https://github.com/rooman-itsd/Education_OS/pull/179#issuecomment-6099361776)) |
+| `timetable-attendance.timetable.unpublished` | none in Week 1; lms and examinations do not consume it ([decision C on #179](https://github.com/rooman-itsd/Education_OS/pull/179#issuecomment-6099361776)) |
 | `timetable-attendance.scheduled-class.created` | platform/notification (later); not lms (owner decision C19) |
 | `timetable-attendance.scheduled-class.updated` | platform/notification (later); not lms (owner decision C19) |
 | `timetable-attendance.scheduled-class.cancelled` | platform/notification (later); not lms (owner decision C19) |

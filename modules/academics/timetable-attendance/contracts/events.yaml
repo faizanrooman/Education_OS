@@ -31,12 +31,12 @@ events:
 
   - name: timetable-attendance.timetable.published
     description: A timetable was published and its scheduled classes were generated.
-    consumers: [lms, examinations]
+    consumers: []
     payload: { organisation_id: uuid, timetable_id: uuid, academic_period_id: uuid, department_id: "uuid?", version: integer, published_at: datetime, scheduled_class_count: integer }
 
   - name: timetable-attendance.timetable.unpublished
     description: A timetable was unpublished; future classes without attendance were cancelled.
-    consumers: [lms, examinations]
+    consumers: []
     payload: { organisation_id: uuid, timetable_id: uuid, academic_period_id: uuid, version: integer, unpublished_at: datetime, cancelled_class_count: integer }
 
   - name: timetable-attendance.scheduled-class.created
